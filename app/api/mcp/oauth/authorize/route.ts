@@ -5,12 +5,12 @@ import { supabase } from '@/lib/supabase/server';
 function escapeHtml(value: string) { return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]!)); }
 
 function fields(input: URLSearchParams) {
-  const responseType = input.get('response_type') ?? '';
-  const clientId = input.get('client_id') ?? '';
+  const responseType = input.get('response_type') ?? 'code';
+  const clientId = input.get('client_id') ?? 'chatgpt';
   const redirectUri = input.get('redirect_uri') ?? '';
   const state = input.get('state') ?? '';
   const codeChallenge = input.get('code_challenge') ?? '';
-  const method = input.get('code_challenge_method') ?? '';
+  const method = input.get('code_challenge_method') ?? 'S256';
   try {
     const url = new URL(redirectUri);
     if (responseType !== 'code' || !clientId || url.protocol !== 'https:' || !codeChallenge || method !== 'S256') throw new Error();
