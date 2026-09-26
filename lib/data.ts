@@ -8,9 +8,10 @@ export async function loadData(date?:string){
  db.from('events').select('*').eq('user_id',user.id).eq('local_date',selected).order('timestamp'),
  db.from('foods').select('*').eq('user_id',user.id).order('name'),db.from('target_templates').select('*').eq('user_id',user.id),
  db.from('days').select('*').eq('user_id',user.id).eq('local_date',selected).maybeSingle(),db.from('meal_templates').select('*').eq('user_id',user.id).order('name'),
- db.from('checkin_drafts').select('payload').eq('user_id',user.id).maybeSingle()
+ db.from('checkin_drafts').select('payload').eq('user_id',user.id).maybeSingle(),
+ db.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',user.id).eq('recorded_on',selected).order('recorded_at')
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
  const templates=results[2].data as TargetTemplate[];
- return {events:results[0].data as HealthEvent[],foods:results[1].data as Food[],templates,day:(results[3].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day,mealTemplates:results[4].data as MealTemplate[],draft:results[5].data?.payload??null};
+ return {events:results[0].data as HealthEvent[],foods:results[1].data as Food[],templates,day:(results[3].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day,mealTemplates:results[4].data as MealTemplate[],draft:results[5].data?.payload??null,healthRecords:results[6].data??[]};
 }
