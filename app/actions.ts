@@ -45,3 +45,9 @@ export async function importHealthWorkbook(formData: FormData){
  for(let index=0;index<records.length;index+=250){const batch=records.slice(index,index+250).map(record=>({...record,user_id:user.id}));const result=await db.from('health_records').upsert(batch,{onConflict:'user_id,category,recorded_on,recorded_at,payload',ignoreDuplicates:true});check(result.error);imported+=batch.length;}
  revalidatePath('/','layout');return {imported,total:records.length};
 }
+const recordCategory=z.enum(['sleep','activity','bowel','supplement','tennis','schedule','body_metrics']);
+export async function saveHealthRecord(category:unknown,date:unknown,payload:unknown,notes=''){
+ const parsed=z.object({category:recordCategory,date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),payload:z.record(z.string(),z.unknown()),notes:z.string().max(5000)}).parse({category,date,payload,notes});
+ const {db,user}=await context();const result=await db.from('health_records').insert({user_id:user.id,category:parsed.category,recorded_on:parsed.date,recorded_at:new Date().toISOString(),payload:parsed.payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
+}
+export async function saveHealthProfile(profile:unknown){const value=z.record(z.string(),z.unknown()).parse(profile);const {db,user}=await context();const result=await db.from('health_profiles').upsert({user_id:user.id,profile:value,updated_at:new Date().toISOString()},{onConflict:'user_id'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;}

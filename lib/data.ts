@@ -12,5 +12,5 @@ export async function loadData(date?:string){
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
  const templates=results[2].data as TargetTemplate[];
- return {events:results[0].data as HealthEvent[],foods:results[1].data as Food[],templates,day:(results[3].data??{local_date:selected,day_type:'normal',targets:templates.find(t=>t.day_type==='normal')?.targets??{}}) as Day,mealTemplates:results[4].data as MealTemplate[],draft:results[5].data?.payload??null};
+ return {events:results[0].data as HealthEvent[],foods:results[1].data as Food[],templates,day:(results[3].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day,mealTemplates:results[4].data as MealTemplate[],draft:results[5].data?.payload??null};
 }
