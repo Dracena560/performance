@@ -10,7 +10,7 @@ export async function loadData(date?:string){
  db.from('foods').select('*').eq('user_id',user.id).order('name'),db.from('target_templates').select('*').eq('user_id',user.id),
  db.from('days').select('*').eq('user_id',user.id).eq('local_date',selected).maybeSingle(),db.from('meal_templates').select('*').eq('user_id',user.id).order('name'),
  db.from('checkin_drafts').select('payload').eq('user_id',user.id).maybeSingle(),
- db.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',user.id).eq('recorded_on',selected).order('recorded_at'),
+ db.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',user.id).gte('recorded_on',new Date(`${selected}T12:00:00Z`).getTime()-86400000 ? new Date(new Date(`${selected}T12:00:00Z`).getTime()-86400000).toISOString().slice(0,10) : selected).lte('recorded_on',selected).order('recorded_at'),
  db.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',user.id).gte('recorded_on',`${selected.slice(0,4)}-01-01`).lte('recorded_on',selected).in('category',['meal_history','hydration_history']).order('recorded_on')
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
