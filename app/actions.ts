@@ -14,8 +14,9 @@ export async function login(_previous:{error:string},form:FormData){
  const db=await supabase(); const {error}=await db.auth.signInWithPassword({email:String(form.get('email')),password:String(form.get('password'))});
  if(error)return {error:'Não foi possível entrar. Confira seu e-mail e senha.'};
  const next = String(form.get('next') ?? '');
- try { const target = new URL(next); if (target.origin === 'https://performance-felipe-bd10.vercel.app' && target.pathname === '/api/mcp/oauth/authorize') redirect(target.toString()); } catch { /* Use the dashboard default. */ }
- redirect('/hoje');
+ let destination = '/hoje';
+ try { const target = new URL(next); if (target.origin === 'https://performance-felipe-bd10.vercel.app' && target.pathname === '/api/mcp/oauth/authorize') destination = target.toString(); } catch { /* Use the dashboard default. */ }
+ redirect(destination);
 }
 export async function logout(){const {db}=await context();await db.auth.signOut();redirect('/login');}
 export async function saveEvent(input:EventInput,id?:string){

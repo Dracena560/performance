@@ -53,5 +53,6 @@ export async function POST(request: Request) {
   if (!user || user.id !== process.env.HEALTH_GPT_USER_ID) return new NextResponse('Sessão inválida.', { status: 401 });
   const code = issueAuthorizationCode({ sub: user.id, clientId: input.clientId, redirectUri: input.redirectUri, codeChallenge: input.codeChallenge });
   const callback = new URL(input.redirectUri); callback.searchParams.set('code', code); if (input.state) callback.searchParams.set('state', input.state);
-  return NextResponse.redirect(callback);
+  // Switch the consent form POST to a GET at the OAuth client's callback.
+  return NextResponse.redirect(callback, 303);
 }
