@@ -55,7 +55,7 @@ export async function saveActionEvent(db: any, event: Record<string, unknown>, i
 
 const nutritionShape = Object.fromEntries(nutrients.map((nutrient) => [nutrient, z.number().nonnegative().nullable().optional().default(null)])) as unknown as Record<typeof nutrients[number], z.ZodTypeAny>;
 export const actionNutritionSchema = z.object(nutritionShape);
-const requiredMealNutrients = ['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium'] as const;
+const requiredMealNutrients = ['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
 export const actionMealItemSchema = z.object({
   name: z.string().trim().min(1).max(200),
   grams: z.number().positive().max(10000),
