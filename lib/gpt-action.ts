@@ -55,10 +55,15 @@ export async function saveActionEvent(db: any, event: Record<string, unknown>, i
 
 const nutritionShape = Object.fromEntries(nutrients.map((nutrient) => [nutrient, z.number().nonnegative().nullable().optional().default(null)])) as unknown as Record<typeof nutrients[number], z.ZodTypeAny>;
 export const actionNutritionSchema = z.object(nutritionShape);
+const requiredMealNutrients = ['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium'] as const;
 export const actionMealItemSchema = z.object({
   name: z.string().trim().min(1).max(200),
   grams: z.number().positive().max(10000),
   nutrition: actionNutritionSchema.default({}),
+}).superRefine((item, context) => {
+  for (const nutrient of requiredMealNutrients) {
+    if (typeof item.nutrition[nutrient] !== 'number') context.addIssue({ code: z.ZodIssueCode.custom, path: ['nutrition', nutrient], message: `Informe ${nutrient} por 100 g antes de salvar a refeição.` });
+  }
 });
 
 export const waterActionSchema = z.object({
