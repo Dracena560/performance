@@ -19,9 +19,13 @@ export const groups={
 };
 export const scoreKeys=Object.values(groups).flatMap(x=>Object.keys(x));
 export const scoresSchema=z.record(z.string(),z.number().min(0).max(10).nullable()).refine(x=>Object.keys(x).every(k=>scoreKeys.includes(k)),'Campo de check-in inválido');
-export const nutrients=['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium'] as const;
+// Values are per 100 g. Sodium and micronutrients use mg; energy uses kcal.
+export const nutrients=['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
+export const micronutrients=['vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
+export const nutrientInfo={calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],sodium:['Sódio','mg'],vitamin_a:['Vitamina A','mg'],vitamin_c:['Vitamina C','mg'],vitamin_d:['Vitamina D','mg'],vitamin_b12:['Vitamina B12','mg'],folate:['Folato','mg'],calcium:['Cálcio','mg'],iron:['Ferro','mg'],magnesium:['Magnésio','mg'],potassium:['Potássio','mg'],zinc:['Zinco','mg']} as const;
 const nutrientShape=Object.fromEntries(nutrients.map(k=>[k,z.number().nonnegative().nullable()])) as Record<typeof nutrients[number],z.ZodNullable<z.ZodNumber>>;
-export const nutritionSchema=z.object(nutrientShape);
+// Older meal snapshots did not include micronutrients, so omitted values remain unknown.
+export const nutritionSchema=z.object(nutrientShape).partial();
 export type Nutrition=z.infer<typeof nutritionSchema>;
 export const foodSchema=z.object({name:z.string().trim().min(1).max(200),brand:z.string().max(100).default(''),nutrition:nutritionSchema,favorite:z.boolean().default(false)});
 export type Food=z.infer<typeof foodSchema>&{id:string};
@@ -52,7 +56,7 @@ export function totals(events:HealthEvent[]){
  const out:Record<string,number>={};
  for(const e of events){
  if(e.data.kind==='water'&&e.data.beverage==='água')out.water=(out.water??0)+e.data.volume;
- if(e.data.kind==='meal')for(const item of e.data.items)for(const k of nutrients){const value=item.nutrition[k];if(value!==null)out[k]=(out[k]??0)+value*item.grams/100;}
+ if(e.data.kind==='meal')for(const item of e.data.items)for(const k of nutrients){const value=item.nutrition[k];if(typeof value==='number')out[k]=(out[k]??0)+value*item.grams/100;}
  }
  return out;
 }

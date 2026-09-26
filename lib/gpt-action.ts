@@ -30,15 +30,15 @@ export function requireActionKey(request: Request) {
 export const idempotencySchema = z.string().uuid();
 export const occurredAtSchema = z.string().datetime({ offset: true }).optional();
 
-export function eventBase(kind: 'water' | 'checkin' | 'meal', data: Record<string, unknown>, occurredAt?: string, notes = '') {
+export function eventBase(kind: 'water' | 'checkin' | 'meal', data: Record<string, unknown>, occurredAt?: string, notes = '', estimated = false) {
   return {
     user_id: process.env.HEALTH_GPT_USER_ID!,
     timestamp: occurredAt ?? new Date().toISOString(),
     timezone,
     type: kind,
     source: 'ChatGPT',
-    measurement_type: kind === 'checkin' ? 'subjective' : 'exact',
-    estimated: false,
+    measurement_type: kind === 'checkin' ? 'subjective' : estimated ? 'estimated' : 'exact',
+    estimated: kind === 'checkin' ? false : estimated,
     data: { kind, ...data },
     notes,
   };
@@ -87,6 +87,7 @@ export const mealActionSchema = z.object({
   satiety: z.number().min(0).max(10).nullable().optional().default(null),
   occurred_at: occurredAtSchema,
   notes: z.string().max(5000).default(''),
+  estimated: z.boolean().optional().default(true),
   idempotency_key: idempotencySchema,
 });
 
