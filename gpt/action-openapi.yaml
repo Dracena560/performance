@@ -91,6 +91,7 @@ paths:
       responses:
         '200': { description: Resumo encontrado. }
 components:
+  schemas: {}
   securitySchemes:
     healthActionKey:
       type: apiKey
