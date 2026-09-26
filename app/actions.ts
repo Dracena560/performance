@@ -12,7 +12,10 @@ function check(error: {message:string}|null){if(error)throw new Error('Não foi 
 export async function login(_previous:{error:string},form:FormData){
  if(!configured())return {error:'O Supabase ainda não foi configurado.'};
  const db=await supabase(); const {error}=await db.auth.signInWithPassword({email:String(form.get('email')),password:String(form.get('password'))});
- if(error)return {error:'Não foi possível entrar. Confira seu e-mail e senha.'};redirect('/hoje');
+ if(error)return {error:'Não foi possível entrar. Confira seu e-mail e senha.'};
+ const next = String(form.get('next') ?? '');
+ try { const target = new URL(next); if (target.origin === 'https://performance-felipe-bd10.vercel.app' && target.pathname === '/api/mcp/oauth/authorize') redirect(target.toString()); } catch { /* Use the dashboard default. */ }
+ redirect('/hoje');
 }
 export async function logout(){const {db}=await context();await db.auth.signOut();redirect('/login');}
 export async function saveEvent(input:EventInput,id?:string){

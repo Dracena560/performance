@@ -1,0 +1,76 @@
+import { randomUUID } from 'node:crypto';
+import { NextResponse } from 'next/server';
+import { checkinActionSchema, dailySummary, eventBase, mealActionSchema, saveActionEvent, waterActionSchema } from '@/lib/gpt-action';
+import { readAccessToken } from '@/lib/mcp-oauth';
+import { createClient } from '@supabase/supabase-js';
+
+export const runtime = 'nodejs';
+
+const toolList = [
+  { name: 'registrar_agua', title: 'Registrar água', description: 'Registra água ingerida pelo usuário, em mililitros. Use apenas após confirmar valores ambíguos.', inputSchema: { type: 'object', required: ['volume_ml'], properties: { volume_ml: { type: 'number', minimum: 1, maximum: 10000 }, occurred_at: { type: 'string', description: 'Data e hora em ISO 8601. Omita para agora.' }, notes: { type: 'string' } } }, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, securitySchemes: [{ type: 'oauth2', scopes: ['health:write'] }] },
+  { name: 'registrar_checkin', title: 'Registrar check-in', description: 'Registra sono, energia, humor, atividade e observações de um check-in confirmado.', inputSchema: { type: 'object', properties: { preset: { type: 'string' }, scores: { type: 'object' }, activity: { type: 'string' }, moods: { type: 'array', items: { type: 'string' } }, environment: { type: 'array', items: { type: 'string' } }, occurred_at: { type: 'string' }, notes: { type: 'string' } } }, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, securitySchemes: [{ type: 'oauth2', scopes: ['health:write'] }] },
+  { name: 'registrar_refeicao', title: 'Registrar refeição', description: 'Registra uma refeição já confirmada pelo usuário. Não invente nutrientes.', inputSchema: { type: 'object', required: ['name', 'items'], properties: { name: { type: 'string' }, meal_type: { type: 'string' }, items: { type: 'array', items: { type: 'object', required: ['name', 'grams'], properties: { name: { type: 'string' }, grams: { type: 'number', minimum: 1 }, nutrition: { type: 'object' } } } }, hunger: { type: 'number', minimum: 0, maximum: 10 }, satiety: { type: 'number', minimum: 0, maximum: 10 }, occurred_at: { type: 'string' }, notes: { type: 'string' } } }, annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false }, securitySchemes: [{ type: 'oauth2', scopes: ['health:write'] }] },
+  { name: 'consultar_resumo_diario', title: 'Consultar resumo diário', description: 'Consulta água, refeições, metas e eventos de uma data.', inputSchema: { type: 'object', properties: { date: { type: 'string', description: 'Data AAAA-MM-DD. Omita para hoje.' } } }, annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false }, securitySchemes: [{ type: 'oauth2', scopes: ['health:read'] }] },
+];
+
+function rpc(id: unknown, result: unknown) { return NextResponse.json({ jsonrpc: '2.0', id: id ?? null, result }); }
+function rpcError(id: unknown, code: number, message: string) { return NextResponse.json({ jsonrpc: '2.0', id: id ?? null, error: { code, message } }); }
+
+function authenticated(request: Request) {
+  const header = request.headers.get('authorization');
+  const token = header?.match(/^Bearer (.+)$/i)?.[1];
+  const access = token ? readAccessToken(token) : null;
+  return access?.sub === process.env.HEALTH_GPT_USER_ID ? access : null;
+}
+
+function challenge(request: Request) {
+  const origin = new URL(request.url).origin;
+  return new NextResponse(null, { status: 401, headers: { 'www-authenticate': `Bearer resource_metadata="${origin}/.well-known/oauth-protected-resource", scope="health:read health:write"` } });
+}
+
+function database() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('O servidor ainda não foi configurado.');
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+function textResult(value: unknown) { return { content: [{ type: 'text', text: JSON.stringify(value) }], structuredContent: value }; }
+function input(value: unknown) { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+
+async function callTool(name: string, argumentsValue: unknown) {
+  const args = input(argumentsValue); const db = database(); const key = typeof args.idempotency_key === 'string' ? args.idempotency_key : randomUUID();
+  if (name === 'registrar_agua') {
+    const value = waterActionSchema.parse({ ...args, idempotency_key: key });
+    const event = await saveActionEvent(db, eventBase('water', { volume: value.volume_ml, beverage: 'água' }, value.occurred_at, value.notes), value.idempotency_key);
+    return textResult({ saved: true, event });
+  }
+  if (name === 'registrar_checkin') {
+    const value = checkinActionSchema.parse({ ...args, idempotency_key: key });
+    const event = await saveActionEvent(db, eventBase('checkin', { preset: value.preset, scores: value.scores, activity: value.activity ?? '', moods: value.moods, environment: value.environment }, value.occurred_at, value.notes), value.idempotency_key);
+    return textResult({ saved: true, event });
+  }
+  if (name === 'registrar_refeicao') {
+    const value = mealActionSchema.parse({ ...args, idempotency_key: key });
+    const event = await saveActionEvent(db, eventBase('meal', { name: value.name, meal_type: value.meal_type, items: value.items, hunger: value.hunger, satiety: value.satiety }, value.occurred_at, value.notes), value.idempotency_key);
+    return textResult({ saved: true, event });
+  }
+  if (name === 'consultar_resumo_diario') return textResult(await dailySummary(db, process.env.HEALTH_GPT_USER_ID!, typeof args.date === 'string' ? args.date : undefined));
+  throw new Error('Ferramenta não encontrada.');
+}
+
+export async function OPTIONS() { return new NextResponse(null, { status: 204, headers: { allow: 'POST, OPTIONS' } }); }
+
+export async function POST(request: Request) {
+  if (!authenticated(request)) return challenge(request);
+  let body: { id?: unknown; method?: string; params?: any };
+  try { body = await request.json(); } catch { return rpcError(null, -32700, 'JSON inválido.'); }
+  if (body.method === 'initialize') return rpc(body.id, { protocolVersion: body.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'saude-do-felipe', version: '1.0.0' }, instructions: 'Registre somente dados que o usuário confirmou. Use as ferramentas para consultar ou salvar dados; não invente resultados.' });
+  if (body.method === 'notifications/initialized') return new NextResponse(null, { status: 202 });
+  if (body.method === 'tools/list') return rpc(body.id, { tools: toolList });
+  if (body.method === 'tools/call') {
+    try { return rpc(body.id, await callTool(body.params?.name, body.params?.arguments)); }
+    catch (error) { return rpc(body.id, { content: [{ type: 'text', text: error instanceof Error ? error.message : 'Não foi possível concluir a operação.' }], isError: true }); }
+  }
+  return rpcError(body.id, -32601, 'Método não suportado.');
+}
