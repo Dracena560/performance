@@ -29,7 +29,14 @@ export async function GET(request: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(request.url)}`, request.url));
   if (user.id !== process.env.HEALTH_GPT_USER_ID) return new NextResponse('Esta conta não tem acesso a esta integração.', { status: 403 });
-  const hidden = Object.entries(input).map(([name, value]) => `<input type="hidden" name="${name}" value="${escapeHtml(value)}">`).join('');
+  const hidden = [
+    ['response_type', 'code'],
+    ['client_id', input.clientId],
+    ['redirect_uri', input.redirectUri],
+    ['state', input.state],
+    ['code_challenge', input.codeChallenge],
+    ['code_challenge_method', 'S256'],
+  ].map(([name, value]) => `<input type="hidden" name="${name}" value="${escapeHtml(value)}">`).join('');
   return new NextResponse(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Conectar Saúde do Felipe</title><style>body{font-family:system-ui;background:#101417;color:#f7f7f7;max-width:560px;margin:10vh auto;padding:24px}main{background:#1b2124;border-radius:16px;padding:32px}button{background:#fff;color:#111;border:0;border-radius:10px;padding:12px 18px;font-weight:700;font-size:16px}p{line-height:1.5;color:#c8d0d5}</style></head><body><main><h1>Conectar Saúde do Felipe</h1><p>Você está permitindo que o ChatGPT registre e consulte os seus dados de saúde neste dashboard.</p><form method="post">${hidden}<button type="submit">Autorizar conexão</button></form></main></body></html>`, { headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
