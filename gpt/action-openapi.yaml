@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  title: Dashboard Saúde Felipe
+  version: 1.0.0
+  description: API privada para registrar e consultar dados pessoais de saúde. Só grave dados que o usuário confirmou.
+servers:
+  - url: https://performance-felipe-bd10.vercel.app
+paths:
+  /api/gpt/water:
+    post:
+      operationId: registerWater
+      summary: Registra água ingerida em mililitros.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [volume_ml, idempotency_key]
+              properties:
+                volume_ml: { type: number, minimum: 1, description: Quantidade de água em ml. }
+                occurred_at: { type: string, format: date-time, description: Momento em ISO 8601 com fuso. Omita para agora. }
+                notes: { type: string }
+                idempotency_key: { type: string, format: uuid, description: Gere um UUID novo por registro e reutilize-o somente numa repetição da mesma chamada. }
+      responses:
+        '200': { description: Registro salvo. }
+  /api/gpt/checkins:
+    post:
+      operationId: registerCheckin
+      summary: Registra um check-in de bem-estar já confirmado pelo usuário.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idempotency_key]
+              properties:
+                preset: { type: string }
+                scores:
+                  type: object
+                  additionalProperties: { type: [number, 'null'], minimum: 0, maximum: 10 }
+                activity: { type: string }
+                moods: { type: array, items: { type: string } }
+                environment: { type: array, items: { type: string } }
+                occurred_at: { type: string, format: date-time }
+                notes: { type: string }
+                idempotency_key: { type: string, format: uuid }
+      responses:
+        '200': { description: Check-in salvo. }
+  /api/gpt/meals:
+    post:
+      operationId: registerMeal
+      summary: Registra uma refeição confirmada. Não estime nutrientes sem deixar claro que são desconhecidos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, items, idempotency_key]
+              properties:
+                name: { type: string }
+                meal_type: { type: string }
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [name, grams]
+                    properties:
+                      name: { type: string }
+                      grams: { type: number, minimum: 1 }
+                      nutrition: { type: object, description: Nutrientes por 100 g; omita campos desconhecidos. }
+                hunger: { type: [number, 'null'], minimum: 0, maximum: 10 }
+                satiety: { type: [number, 'null'], minimum: 0, maximum: 10 }
+                occurred_at: { type: string, format: date-time }
+                notes: { type: string }
+                idempotency_key: { type: string, format: uuid }
+      responses:
+        '200': { description: Refeição salva. }
+  /api/gpt/summary:
+    get:
+      operationId: getDailySummary
+      summary: Consulta o resumo do dia, incluindo água, refeições, metas e eventos.
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema: { type: string, format: date }
+          description: Data no formato AAAA-MM-DD. Omita para hoje.
+      responses:
+        '200': { description: Resumo encontrado. }
+components:
+  securitySchemes:
+    healthActionKey:
+      type: apiKey
+      in: header
+      name: X-Health-Action-Key
+security:
+  - healthActionKey: []
