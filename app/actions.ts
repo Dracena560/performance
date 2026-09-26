@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { configured, supabase } from '@/lib/supabase/server';
 import { eventSchema, foodSchema, itemSchema, targetSchema, dayTypes, localDate, type EventInput } from '@/lib/domain';
+import { readHealthWorkbook } from '@/lib/history-import';
 async function context(){
  if(!configured())throw new Error('Conecte o Supabase para salvar seus registros.');
  const db=await supabase();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sua sessão expirou. Entre novamente.');return {db,user};
@@ -37,3 +38,10 @@ export async function saveTargets(date:string,day_type:string,targets:unknown,as
 }
 export async function saveDraft(payload:unknown){const parsed=z.object({timestamp:z.string(),preset:z.string(),scores:z.record(z.string(),z.number().min(0).max(10).nullable()),activity:z.string(),moods:z.array(z.string()),environment:z.array(z.string()),notes:z.string().max(5000)}).parse(payload);const {db,user}=await context();const {error}=await db.from('checkin_drafts').upsert({user_id:user.id,payload:parsed,updated_at:new Date().toISOString()});check(error);}
 export async function clearDraft(){const {db,user}=await context();const {error}=await db.from('checkin_drafts').delete().eq('user_id',user.id);check(error);}
+export async function importHealthWorkbook(formData: FormData){
+ const file=formData.get('workbook');if(!(file instanceof File)||!file.name.toLowerCase().endsWith('.xlsx'))throw new Error('Selecione a planilha .xlsx do histórico de saúde.');
+ const records=readHealthWorkbook(await file.arrayBuffer());if(!records.length)throw new Error('Não encontrei registros com uma coluna Data na planilha.');
+ const {db,user}=await context();let imported=0;
+ for(let index=0;index<records.length;index+=250){const batch=records.slice(index,index+250).map(record=>({...record,user_id:user.id}));const result=await db.from('health_records').upsert(batch,{onConflict:'user_id,category,recorded_on,recorded_at,payload',ignoreDuplicates:true});check(result.error);imported+=batch.length;}
+ revalidatePath('/','layout');return {imported,total:records.length};
+}

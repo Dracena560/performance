@@ -1,6 +1,6 @@
 import { z } from 'zod';
 export const timezone='Europe/London';
-export const dayTypes=['descanso','normal','tênis leve','tênis moderado','tênis intenso','customizado'] as const;
+export const dayTypes=['dia sem tênis · caminhada com Caju','dia de tênis · jogo da liga','dia de tênis · jogo amistoso','dia de tênis · treino leve','dia de tênis · treino intenso','recuperação','customizado'] as const;
 export const metricInfo={water:['Água','ml'],calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],steps:['Passos','passos'],exercise:['Exercício','min'],sleep:['Sono','min']} as const;
 export type Metric=keyof typeof metricInfo;
 export const targetSchema=z.object({kind:z.enum(['minimum','maximum','range','exact']),min:z.number().nonnegative().nullable(),max:z.number().positive().nullable()}).superRefine((v,c)=>{
