@@ -51,3 +51,12 @@ export async function saveHealthRecord(category:unknown,date:unknown,payload:unk
  const {db,user}=await context();const result=await db.from('health_records').insert({user_id:user.id,category:parsed.category,recorded_on:parsed.date,recorded_at:new Date().toISOString(),payload:parsed.payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
 }
 export async function saveHealthProfile(profile:unknown){const value=z.record(z.string(),z.unknown()).parse(profile);const {db,user}=await context();const result=await db.from('health_profiles').upsert({user_id:user.id,profile:value,updated_at:new Date().toISOString()},{onConflict:'user_id'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;}
+export async function updateTennisScore(recordId:unknown,setsInput:unknown){
+ const sets=z.array(z.object({felipe:z.number().int().min(0).max(99),adversario:z.number().int().min(0).max(99)})).min(1).max(5).parse(setsInput);
+ const id=z.string().uuid().parse(recordId);const {db,user}=await context();
+ const current=await db.from('health_records').select('payload').eq('id',id).eq('user_id',user.id).eq('category','tennis').single();check(current.error);
+ const won=sets.filter(set=>set.felipe>set.adversario).length,lost=sets.filter(set=>set.adversario>set.felipe).length;
+ if(!current.data)throw new Error('Partida não encontrada.');
+ const payload={...(current.data.payload as Record<string,unknown>),sets,score:sets.map(set=>`${set.felipe}-${set.adversario}`).join(', '),...(won===lost?{}:{outcome:won>lost?'vitória':'derrota'})};
+ const result=await db.from('health_records').update({payload,source:'manual'}).eq('id',id).eq('user_id',user.id).select().single();check(result.error);revalidatePath('/tenis');return result.data;
+}
