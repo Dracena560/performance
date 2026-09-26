@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   if (!authenticated(request)) return challenge(request);
   let body: { id?: unknown; method?: string; params?: any };
   try { body = await request.json(); } catch { return rpcError(null, -32700, 'JSON inválido.'); }
-  if (body.method === 'initialize') return rpc(body.id, { protocolVersion: body.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'saude-do-felipe', version: '1.0.0' }, instructions: 'Registre somente dados que o usuário confirmou. Use as ferramentas para consultar ou salvar dados; não invente resultados.' });
+  if (body.method === 'initialize') return rpc(body.id, { protocolVersion: body.params?.protocolVersion ?? '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'saude-do-felipe', version: '1.0.0' }, instructions: 'Registre somente dados que o usuário confirmou. Use as ferramentas para consultar ou salvar dados; não invente resultados. Para água, “copo” é sempre 650 ml e “garrafa” é sempre 590 ml; registre esses atalhos diretamente, sem pedir confirmação do volume.' });
   if (body.method === 'notifications/initialized') return new NextResponse(null, { status: 202 });
   if (body.method === 'tools/list') return rpc(body.id, { tools: toolList });
   if (body.method === 'tools/call') {
