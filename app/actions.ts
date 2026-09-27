@@ -29,11 +29,14 @@ export async function saveEvent(input:EventInput,id?:string){
 export async function deleteEvent(id:string){const {db,user}=await context();const {error}=await db.from('events').delete().eq('id',z.string().uuid().parse(id)).eq('user_id',user.id);check(error);revalidatePath('/','layout');}
 export async function saveFood(input:unknown){const value=foodSchema.parse(input);const {db,user}=await context();const result=await db.from('foods').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
 export async function saveMealTemplate(input:unknown){const value=z.object({name:z.string().trim().min(1).max(200),items:z.array(itemSchema).min(1)}).parse(input);const {db,user}=await context();const result=await db.from('meal_templates').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
-const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','steps','exercise','sleep']),targetSchema);
+const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','sodium','steps','exercise','sleep']),targetSchema);
 export async function saveTargets(date:string,day_type:string,targets:unknown,asTemplate:boolean){
  const parsed=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),day_type:z.enum(dayTypes),targets:targetsSchema}).parse({date,day_type,targets});
- const {db,user}=await context();const {error}=await db.from('days').upsert({user_id:user.id,local_date:parsed.date,day_type:parsed.day_type,targets:parsed.targets},{onConflict:'user_id,local_date'});check(error);
- if(asTemplate){const result=await db.from('target_templates').upsert({user_id:user.id,name:parsed.day_type,day_type:parsed.day_type,targets:parsed.targets},{onConflict:'user_id,day_type'});check(result.error);}
+ const session=await context();const user={id:healthUserId()??session.user.id};const db=healthUserId()?healthService():session.db;
+ const {sodium,...coreTargets}=parsed.targets;
+ const {error}=await db.from('days').upsert({user_id:user.id,local_date:parsed.date,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,local_date'});check(error);
+ if(asTemplate){const result=await db.from('target_templates').upsert({user_id:user.id,name:parsed.day_type,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,day_type'});check(result.error);}
+ const extra:Record<string,unknown>={['personal_sodium_date_'+parsed.date]:sodium??null};if(asTemplate)extra['personal_sodium_type_'+parsed.day_type]=sodium??null;await mergeProfileSection(extra);
  revalidatePath('/','layout');
 }
 export async function saveDraft(payload:unknown){const parsed=z.object({timestamp:z.string(),preset:z.string(),scores:z.record(z.string(),z.number().min(0).max(10).nullable()),activity:z.string(),moods:z.array(z.string()),environment:z.array(z.string()),notes:z.string().max(5000)}).parse(payload);const {db,user}=await context();const {error}=await db.from('checkin_drafts').upsert({user_id:user.id,payload:parsed,updated_at:new Date().toISOString()});check(error);}
@@ -50,7 +53,7 @@ export async function saveHealthRecord(category:unknown,date:unknown,payload:unk
  const parsed=z.object({category:recordCategory,date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),payload:z.record(z.string(),z.unknown()),notes:z.string().max(5000)}).parse({category,date,payload,notes});
  const {db,user}=await context();const result=await db.from('health_records').insert({user_id:user.id,category:parsed.category,recorded_on:parsed.date,recorded_at:new Date().toISOString(),payload:parsed.payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
 }
-export async function saveHealthProfile(profile:unknown){const value=z.record(z.string(),z.unknown()).parse(profile);const {db,user}=await context();const result=await db.from('health_profiles').upsert({user_id:user.id,profile:value,updated_at:new Date().toISOString()},{onConflict:'user_id'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;}
+export async function saveHealthProfile(profile:unknown){const value=z.record(z.string(),z.unknown()).parse(profile);await mergeProfileSection(Object.fromEntries(Object.entries(value).filter(([key])=>!key.startsWith('personal_'))));return true;}
 export async function updateTennisScore(recordId:unknown,setsInput:unknown){
  const sets=z.array(z.object({felipe:z.number().int().min(0).max(99),adversario:z.number().int().min(0).max(99)})).min(1).max(5).parse(setsInput);
  const id=z.string().uuid().parse(recordId);const {db,user}=await context();
@@ -72,3 +75,21 @@ export async function applyRecommendedTargets(){const session=await context();co
  'customizado':{water:range(2700,3200),calories:range(2300,2600),protein:range(115,135),carbs:range(230,290),fat:range(60,75),saturated_fat:maximum(20),fibre:range(28,35),steps:exact(9000),exercise:exact(60),sleep:range(470,540)}
 };const rows=Object.entries(plan).map(([day_type,targets])=>({user_id:userId,name:day_type,day_type,targets}));const result=await db.from('target_templates').upsert(rows,{onConflict:'user_id,day_type'}).select();check(result.error);revalidatePath('/','layout');return result.data;}
 export async function deleteHealthRecord(recordId:unknown){const id=z.string().uuid().parse(recordId);const session=await context();const userId=healthUserId()??session.user.id;const db=healthUserId()?healthService():session.db;const result=await db.from('health_records').delete().eq('id',id).eq('user_id',userId);check(result.error);revalidatePath('/exercicios');revalidatePath('/hoje');return true;}
+
+// Merge profile sections with optimistic concurrency so independent screens cannot overwrite each other.
+async function mergeProfileSection(patch:Record<string,unknown>){
+ const session=await context();const userId=healthUserId()??session.user.id;const db=healthUserId()?healthService():session.db;
+ for(let attempt=0;attempt<4;attempt++){
+  const current=await db.from('health_profiles').select('profile,updated_at').eq('user_id',userId).maybeSingle();check(current.error);
+  const profile={...(current.data?.profile??{}),...patch};
+  if(!current.data){const added=await db.from('health_profiles').upsert({user_id:userId,profile},{onConflict:'user_id',ignoreDuplicates:true}).select('user_id');check(added.error);if(added.data?.length){revalidatePath('/','layout');return;}}
+  else {const updated=await db.from('health_profiles').update({profile,updated_at:new Date().toISOString()}).eq('user_id',userId).eq('updated_at',current.data.updated_at).select('user_id');check(updated.error);if(updated.data?.length){revalidatePath('/','layout');return;}}
+ }
+ throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
+}
+export async function savePersonalSection(section:unknown,input:unknown){
+ const key=z.enum(['finance','trips','car']).parse(section);
+ const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
+ const value=key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ await mergeProfileSection({['personal_'+key]:value});return true;
+}
