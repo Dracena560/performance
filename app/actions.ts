@@ -88,8 +88,11 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
- const value=key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
+ const value=key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
+
+export async function saveInvestment(input:unknown){const {investmentSnapshotSchema,appendSnapshot,investmentsSchema}=await import('@/lib/investments');const {updateProfile}=await import('@/lib/profile-store');const snapshot=investmentSnapshotSchema.parse(input);const session=await context();const db=healthUserId()?healthService():session.db;await updateProfile(db,healthUserId()??session.user.id,profile=>({...profile,personal_investments:appendSnapshot(investmentsSchema.parse(profile.personal_investments??[]),snapshot)}));revalidatePath('/','layout');return {saved:true,id:snapshot.id};}
