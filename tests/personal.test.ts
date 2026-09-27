@@ -16,3 +16,16 @@ test('daily totals never borrow yesterday or workout calories; latest snapshot w
  const summary=dailyActivity([...rows,{category:'daily_metrics',recorded_on:'2026-09-26',recorded_at:'2026-09-26T23:00:00Z',payload:{steps:8000,active_calories:450,stand_hours:12}}],'2026-09-26');
  assert.equal(summary.steps,8000);assert.equal(summary.total,2300);assert.equal(summary.active,450);assert.equal(summary.stand,720);
 });
+
+test('expanded car profile preserves legacy dates and supports avatars and history',async()=>{
+ const {carSchema}=await import('../lib/personal');
+ const legacy={model:'Eclipse Cross',registration:'AB12 CDE',purchase:'2026-01-10',insurance:'2026-01-11',permit:'2026-02-01',notes:'Meu carro'};
+ const converted=carSchema.parse(legacy);
+ assert.equal(converted.insurance,legacy.insurance);assert.equal(converted.permit,legacy.permit);assert.equal(converted.km,null);assert.deepEqual(converted.previous,[]);
+ const record={...converted,km:34000,insuranceSite:'https://example.com',insuranceExpiry:'2027-01-11',permitSite:'https://example.org',permitExpiry:'2027-02-01',photo:'data:image/jpeg;base64,/9j/AA==',previous:[{id:'one',model:'Carro antigo',purchase:'2020-01-01',sold:'2025-01-01',photo:'data:image/jpeg;base64,/9j/AA=='}]};
+ const saved=carSchema.parse(JSON.parse(JSON.stringify(record)));assert.equal(saved.photo,record.photo);assert.equal(saved.previous[0].model,'Carro antigo');assert.equal(saved.km,34000);
+ assert.equal(carSchema.safeParse({...record,insuranceSite:'javascript:alert(1)'}).success,false);
+ assert.equal(carSchema.safeParse({...record,insuranceExpiry:'2025-01-01'}).success,false);
+ assert.equal(carSchema.safeParse({...record,purchase:'2026-02-31'}).success,false);
+ assert.equal(carSchema.safeParse({...record,photo:'data:image/svg+xml;base64,AAAA'}).success,false);
+});

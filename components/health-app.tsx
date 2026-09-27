@@ -4,7 +4,7 @@ import { sleepQuality } from '@/lib/sleep-quality';
 import { useEffect,useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { HeartPulse,LayoutDashboard,Droplets,Utensils,Activity,Clock3,Target,Plus,ArrowUpRight,ChevronLeft,ChevronRight,LogOut,Search,Pencil,Copy,Trash2,Flame,Brain,Footprints,Moon,Check,Menu,X,Trophy } from 'lucide-react';
+import { HeartPulse,LayoutDashboard,Droplets,Utensils,Activity,Clock3,Target,Plus,ArrowUpRight,ChevronLeft,ChevronRight,LogOut,Search,Pencil,Copy,Trash2,Flame,Brain,Footprints,Moon,Check,Menu,X,Trophy,UserRound } from 'lucide-react';
 import { LineChart,Line,XAxis,YAxis,Tooltip,ResponsiveContainer,CartesianGrid } from 'recharts';
 import { Button } from './ui/button';
 import { Dialog,DialogContent,DialogTitle,DialogDescription } from './ui/dialog';
@@ -15,7 +15,7 @@ import { totals,format,metricInfo,nutrientInfo,micronutrients,targetProgress,tar
 import { applyRecommendedTargets, saveEvent,deleteEvent,saveFood,saveMealTemplate,saveTargets,logout } from '@/app/actions';
 type HealthRecord={id:string;category:string;recorded_on:string;recorded_at:string|null;payload:Record<string,unknown>;source:string};
 type Initial={events:HealthEvent[];periodEvents:HealthEvent[];foods:Food[];templates:TargetTemplate[];day:Day;mealTemplates:MealTemplate[];draft:Draft|null;healthRecords:HealthRecord[];periodHealthRecords:HealthRecord[]};
-const nav=[['hoje','Hoje',LayoutDashboard],['saude','Saúde',HeartPulse],['financeiro','Financeiro',Target],['tenis','Tênis',Trophy],['viagens','Viagens',Footprints]] as const;
+const nav=[['hoje','Hoje',LayoutDashboard],['saude','Saúde',HeartPulse],['financeiro','Financeiro',Target],['tenis','Tênis',Trophy],['viagens','Viagens',Footprints],['minhas-informacoes','Minhas informações',UserRound]] as const;
 const metricIcons={water:Droplets,calories:Flame,protein:Utensils,carbs:Utensils,fat:Utensils,saturated_fat:Utensils,fibre:Utensils,sodium:Utensils,steps:Footprints,exercise:Activity,sleep:Moon};
 export default function HealthApp({initial,demo=false,view:initialView}:{initial:Initial;demo?:boolean;view:string}){
  const router=useRouter();const [events,setEvents]=useState(initial.events),[periodEvents,setPeriodEvents]=useState(initial.periodEvents),[foods,setFoods]=useState(initial.foods),[templates,setTemplates]=useState(initial.templates),[mealTemplates,setMealTemplates]=useState(initial.mealTemplates),[day,setDay]=useState(initial.day),[healthRecords,setHealthRecords]=useState(initial.healthRecords),[periodHealthRecords,setPeriodHealthRecords]=useState(initial.periodHealthRecords),[view,setView]=useState(initialView),[modal,setModal]=useState<string|null>(null),[editing,setEditing]=useState<HealthEvent|undefined>(),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[search,setSearch]=useState(''),[category,setCategory]=useState('all'),[mobileNav,setMobileNav]=useState(false),[remove,setRemove]=useState<HealthEvent|null>(null),[checkinKey,setCheckinKey]=useState(0);
