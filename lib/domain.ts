@@ -21,7 +21,7 @@ export const scoreKeys=Object.values(groups).flatMap(x=>Object.keys(x));
 export const scoresSchema=z.record(z.string(),z.number().min(0).max(10).nullable()).refine(x=>Object.keys(x).every(k=>scoreKeys.includes(k)),'Campo de check-in inválido');
 // Values are per 100 g. Sodium and micronutrients use mg; energy uses kcal.
 export const nutrients=['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
-export const micronutrients=['vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
+export const micronutrients=['sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
 export const nutrientInfo={calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],sodium:['Sódio','mg'],vitamin_a:['Vitamina A','µg'],vitamin_c:['Vitamina C','mg'],vitamin_d:['Vitamina D','µg'],vitamin_b12:['Vitamina B12','µg'],folate:['Folato','µg'],calcium:['Cálcio','mg'],iron:['Ferro','mg'],magnesium:['Magnésio','mg'],potassium:['Potássio','mg'],zinc:['Zinco','mg']} as const;
 const nutrientShape=Object.fromEntries(nutrients.map(k=>[k,z.number().nonnegative().nullable()])) as Record<typeof nutrients[number],z.ZodNullable<z.ZodNumber>>;
 // Older meal snapshots did not include micronutrients, so omitted values remain unknown.
