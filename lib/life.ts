@@ -21,7 +21,8 @@ export const deadlineSchema=z.object({id:z.string().min(1).max(100),name:z.strin
 export const datesSchema=z.array(deadlineSchema).max(300);
 export type Deadline=z.infer<typeof deadlineSchema>;
 export const preferenceGroups={Comida:['Favoritas','Não gosta'],Viagem:['Tipo de hotel','Cidades','Clima','Atividades'],Restaurantes:['Tipos','Preço','Ambiente']} as const;
-export const seriesPreferenceSchema=z.object({id:z.string().min(1).max(100),name:z.string().max(200),rating:z.number().min(0).max(10).nullable()});
+export const seriesRatingSchema=z.union([z.number().min(0).max(10),z.string().trim().min(1).max(200).refine(value=>{const match=value.match(/^(\d+(?:[.,]\d+)?)\s*(?:[–—-]\s*(\d+(?:[.,]\d+)?))?(?:\s*,\s*[^\d].*)?$/);if(!match)return false;const low=Number(match[1].replace(',','.')),high=match[2]?Number(match[2].replace(',','.')):low;return low>=0&&high<=10&&high>=low;},'Use uma nota de 0 a 10 ou uma faixa, como 7–10, dependendo do episódio.')]).nullable();
+export const seriesPreferenceSchema=z.object({id:z.string().min(1).max(100),name:z.string().max(200),rating:seriesRatingSchema});
 export const preferencesSchema=z.object({series:z.array(seriesPreferenceSchema).max(500).optional()}).catchall(z.string().max(5000));
 export type Preferences={series?:z.infer<typeof seriesPreferenceSchema>[]} & {[key:string]:string|z.infer<typeof seriesPreferenceSchema>[]|undefined};
 export function cleanPreferences(input:Record<string,any>):Preferences{return Object.fromEntries(Object.entries(input).filter(([key])=>!['Carros.','Música.','Filmes.'].some(prefix=>key.startsWith(prefix))&&key!=='Comida.Intolerâncias')) as Preferences;}

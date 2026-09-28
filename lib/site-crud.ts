@@ -26,7 +26,7 @@ export const resources={
  viagens:{key:'personal_trips',schema:z.array(tripSchema).max(1000),empty:[],description:'Lugares, país, data, nota e detalhes.'},
  contas:{key:'personal_bills',schema:billsSchema,empty:[],description:'Energia, gás, água, internet, Council Tax e outras contas.'},
  documentos_datas:{key:'personal_dates',schema:datesSchema,empty:[],description:'Documentos, visto, passaporte, garantias, assinaturas, consultas e respectivos vencimentos.'},
- preferencias:{key:'personal_preferences',schema:preferencesSchema,empty:{},description:'Preferências pessoais. Comida.Favoritas, Comida.Não gosta, Viagem.Clima e Restaurantes.Ambiente. series é uma lista de {id,name,rating}, nota de 0 a 10 ou null. Não usar campos de carros, música ou intolerâncias aqui.'},
+ preferencias:{key:'personal_preferences',schema:preferencesSchema,empty:{},description:'Preferências pessoais. Comida.Favoritas, Comida.Não gosta, Viagem.Clima e Restaurantes.Ambiente. series é uma lista de {id,name,rating}, nota de 0 a 10, texto com faixa (ex.: 7–10, dependendo do episódio) ou null. Não usar campos de carros, música ou intolerâncias aqui.'},
  eventos:{table:'events',schema:eventSchema,description:'Água, refeições (ingredientes, quantidades e todos os nutrientes), check-ins. local_date é calculada de timestamp em Europe/London.'},
  registros:{table:'health_records',schema:recordSchema,description:'Sono, exercícios, resumo diário, tênis e sets/check-ins, suplementos, fezes, medidas e importações. Todos os detalhes ficam em payload.'},
  dias_metas:{table:'days',schema:daySchema,description:'Tipo de dia e metas, incluindo sódio. Seletor id = UUID retornado na consulta.'},
