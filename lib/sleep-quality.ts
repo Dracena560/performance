@@ -1,11 +1,8 @@
-import { metricValue } from './health-metrics';
+import { sleepData } from './sleep-data';
 // Diary estimate only: reuse the same transparent scoring across all screens.
 export function sleepQuality(payload:Record<string,unknown>){
- const minuteTotal=metricValue(payload,['time asleep minutes','sleep duration minutes']);
- const hours=minuteTotal!==null?minuteTotal/60:metricValue(payload,['hours','duration hours','sleep hours','sono h']);
- const deep=metricValue(payload,['deep minutes','profundo min','deep']);
- const rem=metricValue(payload,['rem minutes','rem min','rem']);
- const awake=metricValue(payload,['awake minutes','acordado min','awake']);
+ const {total,deep,rem,awake}=sleepData(payload);
+ const hours=total===null?null:total/60;
  if(hours===null||hours<0||hours>24)return {score:null,explanation:'Duração do sono não informada ou inválida.'};
  let points=hours>=7&&hours<=9?5:hours>=6&&hours<=10?3:1;
  let possible=5;

@@ -2,6 +2,7 @@
 import { DeadlineSummary } from './deadline-summary';
 import type { Reminder } from '@/lib/life';
 import { dailyActivity } from '@/lib/daily-activity';
+import { sleepData,sleepNights } from '@/lib/sleep-data';
 import { formatSleepDuration } from '@/lib/sleep-duration';
 import { sleepQuality } from '@/lib/sleep-quality';
 import { useEffect,useState } from 'react';
@@ -53,9 +54,8 @@ export default function HealthApp({initial,demo=false,view:initialView}:{initial
  const labelRecord=(key:string)=>({hours:'Sono total',duration_hours:'Sono total',sleep_hours:'Sono total',time_asleep:'Sono total',awake_minutes:'Acordado',rem_minutes:'REM',core_minutes:'Core',deep_minutes:'Profundo',subjective_quality:'Qualidade subjetiva',morning_recovery:'Recuperação',heart_rate_min:'FC mínima',heart_rate_max:'FC máxima',heart_rate_average:'FC média',respiratory_rate:'Respiração',spo2:'SpO₂',bedtime:'Hora de dormir',wake_time:'Hora de acordar'}[key]??key.replaceAll('_',' '));
  const unitRecord=(key:string)=>key==='hours'||key==='duration_hours'||key==='sleep_hours'?' h':key.endsWith('_minutes')?' min':key.startsWith('heart_rate')?' bpm':key==='respiratory_rate'?' /min':key==='spo2'?' %':'';
  const sleepFields=(value:Record<string,unknown>,prefix=''):Array<[string,unknown]>=>Object.entries(value).flatMap(([key,item])=>item&&typeof item==='object'&&!Array.isArray(item)?sleepFields(item as Record<string,unknown>,`${prefix}${key}_`):item===null||item===''?[]:[[`${prefix}${key}`,item]]);
- const sleepRecords=healthRecords.filter(record=>record.recorded_on===day.local_date&&(record.category==='sleep'||sleepFields(record.payload).some(([key,value])=>/(time.?asleep|sono.?h|sleep.?hours|rem.?minutes|deep.?minutes)/i.test(key)&&value!==null)));
- const latestSleep=sleepRecords.slice().sort((a,b)=>(b.recorded_at??'').localeCompare(a.recorded_at??'')).at(0);
- const sleepSummary=latestSleep?(()=>{const groups=[['Sono total',/^(time.?asleep(?:.?minutes)?|sono.?total|sono.?h|sleep.?hours|duration.?hours|hours)$/i],['REM',/^rem(?:.?minutes|.?min|.?h)?$/i],['Core',/^core(?:.?minutes|.?min|.?h)?$/i],['Profundo',/^(deep|profundo)(?:.?minutes|.?min|.?h)?$/i],['Acordado',/^(awake|acordado)(?:.?minutes|.?min|.?h)?$/i]] as const;const fields=sleepFields(latestSleep.payload);return groups.flatMap(([label,rule])=>{const entry=fields.find(([key])=>rule.test(key));if(!entry)return [];const [key,raw]=entry;const n=typeof raw==='number'?raw:typeof raw==='string'&&raw.trim()?Number(raw):NaN;const inHours=/hours$|(?:_| )h$/i.test(key);const mins=Number.isFinite(n)?Math.round(inHours?n*60:n):null;const value=mins===null?String(raw):formatSleepDuration(mins);return [{label,value,key}];});})():[];
+ const latestSleep=sleepNights(healthRecords).find(record=>record.recorded_on===day.local_date);
+ const sleepSummary=latestSleep?Object.entries(sleepData(latestSleep.payload)).filter(([,value])=>value!==null).map(([key,value])=>({key,label:({total:'Sono total',rem:'REM',core:'Core',deep:'Profundo',awake:'Acordado'} as Record<string,string>)[key],value:formatSleepDuration(value)})):[];
 const healthValue=(record:HealthRecord|undefined,aliases:string[])=>{if(!record)return null;const fields=sleepFields(record.payload);for(const alias of aliases){const wanted=alias.replace(/[^a-z0-9]/gi,'').toLowerCase();const found=fields.find(([name])=>name.replace(/[^a-z0-9]/gi,'').toLowerCase()===wanted);if(found&&found[1]!==null&&found[1]!==undefined)return String(found[1]);}return null;};
  const latestActivity=healthRecords.filter(record=>record.category==='activity'||record.category==='workout').sort((a,b)=>(b.recorded_at??'').localeCompare(a.recorded_at??'')).at(0);
  const movementRows=[
