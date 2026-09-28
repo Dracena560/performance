@@ -88,11 +88,20 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car','bills','dates','preferences']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
  const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
- const value=key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {tennisProfileSchema}=await import('@/lib/tennis-club');
+ const value=key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
 
 export async function saveInvestment(input:unknown){const {investmentSnapshotSchema,appendSnapshot,investmentsSchema}=await import('@/lib/investments');const {updateProfile}=await import('@/lib/profile-store');const {priceInPounds}=await import('@/lib/investment-fx');const snapshot=await priceInPounds(investmentSnapshotSchema.parse(input));const session=await context();const db=healthUserId()?healthService():session.db;const saved=await updateProfile(db,healthUserId()??session.user.id,profile=>({...profile,personal_investments:appendSnapshot(investmentsSchema.parse(profile.personal_investments??[]),snapshot)}));revalidatePath('/','layout');return {saved:true,id:snapshot.id,snapshot:saved.personal_investments.find((s:any)=>s.id===snapshot.id)};}
+
+export async function updateTennisDetails(recordId:unknown,input:unknown){
+ const id=z.string().uuid().parse(recordId);
+ const value=z.object({match_type:z.string().max(100),opponent_or_partner:z.string().max(200),duration_minutes:z.number().finite().nonnegative().nullable(),analysis:z.string().max(10000)}).parse(input);
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ const current=await db.from('health_records').select('payload').eq('id',id).eq('user_id',userId).eq('category','tennis').single();check(current.error);if(!current.data)throw new Error('Partida não encontrada.');
+ const result=await db.from('health_records').update({payload:{...current.data.payload,...value}}).eq('id',id).eq('user_id',userId).eq('category','tennis');check(result.error);revalidatePath('/','layout');return true;
+}

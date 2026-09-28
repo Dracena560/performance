@@ -1,3 +1,4 @@
+import { tennisProfileSchema } from './tennis-club';
 import { priceInPounds } from './investment-fx';
 import { defaultHealthProfile,defaultHealthCards,defaultHealthSections } from './health-profile-defaults';
 import { createHash } from 'node:crypto';
@@ -18,6 +19,7 @@ const planSchema=daySchema.extend({agenda:z.array(z.string().max(2000)).max(200)
 const healthSchema=z.record(z.string().max(200),z.unknown()).refine(v=>Object.keys(v).every(k=>!k.startsWith('personal_')),'Use a seção específica para dados pessoais.');
 const draftSchema=z.object({payload:z.record(z.string(),z.unknown())});
 export const resources={
+ perfil_tenis:{key:'personal_tennis',schema:tennisProfileSchema,empty:{},description:'Perfil de tênis editável: name, sex, racket, strings. upcoming = partidas futuras {id,date YYYY-MM-DD,time HH:mm em Europe/London ou vazio,opponent,location,type (Simples · Liga, Simples · Amistoso, Duplas, Treino),notes,cancelled}. Ao receber foto de calendário, consulte esta seção, extraia apenas compromissos visíveis, adicione cada partida em /upcoming/- com id estável e evite duplicatas por data/horário/adversário. Corrija pelo id existente. Não registre partidas futuras como resultados em tennis; não invente horário, sexo ou adversário.'},
  perfil_saude:{key:'health',schema:healthSchema,empty:{},description:'Textos e informações de saúde em Minhas informações. Campos livres, usando os nomes já existentes.'},
  resumo_perfil:{key:'personal_health_display',schema:healthDisplaySchema,empty:{cards:[],sections:[]},description:'Cards de tipo sanguíneo, VO2max, metabolismo, altura e listas de referências do perfil. cards = [[rótulo,valor]], sections = [[título,[informações]]].'},
  carro:{key:'personal_car',schema:carSchema,empty:{model:''},description:'Todos os campos do carro, avatar em photo (URL HTTPS da imagem ou data:image/jpeg;base64), carros anteriores em previous, financiamento/MOT/Tax/seguro/documentos/manutenções em extra.'},

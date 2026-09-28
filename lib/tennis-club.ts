@@ -1,0 +1,8 @@
+import { z } from 'zod';
+import { dateValue } from './life';
+export const appointmentSchema=z.object({id:z.string().min(1).max(100),date:dateValue.refine(v=>!!v,'Informe a data'),time:z.string().regex(/^$|^([01]\d|2[0-3]):[0-5]\d$/).default(''),opponent:z.string().max(200).default(''),location:z.string().max(200).default(''),type:z.enum(['Simples · Liga','Simples · Amistoso','Duplas','Treino']).default('Simples · Amistoso'),notes:z.string().max(5000).default(''),cancelled:z.boolean().default(false)});
+export const tennisProfileSchema=z.object({name:z.string().max(150).default('Felipe'),sex:z.string().max(60).default(''),racket:z.string().max(200).default('Yonex Vcore 98'),strings:z.string().max(200).default('Solinco Mach 10 · 52 lbs'),upcoming:z.array(appointmentSchema).max(500).default([])});
+export type TennisProfile=z.infer<typeof tennisProfileSchema>;
+export type Appointment=z.infer<typeof appointmentSchema>;
+export function matchGroup(type:string){const t=type.toLowerCase();if(/trein|training/.test(t))return 'training';if(/dupla|double/.test(t))return 'doubles';if(/liga|league/.test(t))return 'league';if(/amist|friendly/.test(t))return 'friendly';return 'other';}
+export function upcomingMatches(items:Appointment[],date:string,time:string){return items.filter(i=>!i.cancelled&&(i.date>date||(i.date===date&&(!i.time||i.time>=time)))).sort((a,b)=>(a.date+(a.time||'23:59')).localeCompare(b.date+(b.time||'23:59')));}

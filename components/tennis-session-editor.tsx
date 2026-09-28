@@ -1,0 +1,8 @@
+'use client';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
+import {updateTennisDetails} from '@/app/actions';
+export function TennisSessionEditor({id,type,opponent,duration,analysis,onSaved}:{id:string;type:string|null;opponent:string|null;duration:number|null;analysis:string|null;onSaved:()=>void}){
+ const router=useRouter(),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ return <details className="tennis-detail-section personal-page"><summary>Editar informações da sessão</summary><form className="personal-page" onSubmit={async e=>{e.preventDefault();const data=new FormData(e.currentTarget);setBusy(true);setError('');try{await updateTennisDetails(id,{match_type:String(data.get('type')),opponent_or_partner:String(data.get('opponent')),duration_minutes:data.get('duration')===''?null:Number(data.get('duration')),analysis:String(data.get('analysis'))});router.refresh();onSaved();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}><div className="personal-form-grid"><label>Tipo de sessão<input name="type" list="tennis-types" defaultValue={type??''}/><datalist id="tennis-types">{['Simples · Liga','Simples · Amistoso','Duplas','Treino'].map(t=><option key={t} value={t}/>)}</datalist></label><label>Adversário / parceiro<input name="opponent" defaultValue={opponent??''}/></label><label>Duração em minutos<input name="duration" type="number" min="0" step="any" defaultValue={duration??''}/></label></div><label>Observações<textarea name="analysis" rows={4} defaultValue={analysis??''}/></label>{error&&<p role="alert" className="error">{error}</p>}<button className="button primary" disabled={busy}>{busy?'Salvando…':'Salvar sessão'}</button></form></details>;
+}
