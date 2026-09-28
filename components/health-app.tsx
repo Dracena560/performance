@@ -1,4 +1,5 @@
 'use client';
+import { siteNavigation } from './site-navigation';
 import { DeadlineSummary } from './deadline-summary';
 import type { Reminder } from '@/lib/life';
 import { dailyActivity } from '@/lib/daily-activity';
@@ -19,7 +20,7 @@ import { totals,format,metricInfo,nutrientInfo,micronutrients,targetProgress,tar
 import { applyRecommendedTargets, saveEvent,deleteEvent,saveFood,saveMealTemplate,saveTargets,logout } from '@/app/actions';
 type HealthRecord={id:string;category:string;recorded_on:string;recorded_at:string|null;payload:Record<string,unknown>;source:string};
 type Initial={reminders?:Reminder[];events:HealthEvent[];periodEvents:HealthEvent[];foods:Food[];templates:TargetTemplate[];day:Day;mealTemplates:MealTemplate[];draft:Draft|null;healthRecords:HealthRecord[];periodHealthRecords:HealthRecord[]};
-const nav=[['hoje','Hoje',LayoutDashboard],['saude','Saúde',HeartPulse],['financeiro','Financeiro',Target],['tenis','Tênis',Trophy],['viagens','Viagens',Footprints],['minhas-informacoes','Minhas informações',UserRound]] as const;
+const nav = siteNavigation;
 const metricIcons={water:Droplets,calories:Flame,protein:Utensils,carbs:Utensils,fat:Utensils,saturated_fat:Utensils,fibre:Utensils,sodium:Utensils,steps:Footprints,exercise:Activity,sleep:Moon};
 export default function HealthApp({initial,demo=false,view:initialView}:{initial:Initial;demo?:boolean;view:string}){
  const router=useRouter();const [events,setEvents]=useState(initial.events),[periodEvents,setPeriodEvents]=useState(initial.periodEvents),[foods,setFoods]=useState(initial.foods),[templates,setTemplates]=useState(initial.templates),[mealTemplates,setMealTemplates]=useState(initial.mealTemplates),[day,setDay]=useState(initial.day),[healthRecords,setHealthRecords]=useState(initial.healthRecords),[periodHealthRecords,setPeriodHealthRecords]=useState(initial.periodHealthRecords),[view,setView]=useState(initialView),[modal,setModal]=useState<string|null>(null),[editing,setEditing]=useState<HealthEvent|undefined>(),[notice,setNotice]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false),[search,setSearch]=useState(''),[category,setCategory]=useState('all'),[mobileNav,setMobileNav]=useState(false),[remove,setRemove]=useState<HealthEvent|null>(null),[checkinKey,setCheckinKey]=useState(0);
