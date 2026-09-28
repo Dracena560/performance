@@ -20,8 +20,12 @@ export const defaultBills:Bill[]=['Energia','Gás','Água','Internet','Council T
 export const deadlineSchema=z.object({id:z.string().min(1).max(100),name:z.string().min(1).max(200),kind:z.enum(['Documento','Visto','Passaporte','Garantia','Assinatura','Consulta','Outro']),number:z.string().max(100),issued:dateValue,date:dateValue,url:siteValue,notes:z.string().max(5000)});
 export const datesSchema=z.array(deadlineSchema).max(300);
 export type Deadline=z.infer<typeof deadlineSchema>;
-export const preferenceGroups={Comida:['Favoritas','Não gosta','Intolerâncias'],Filmes:['Gêneros','Atores','Estilo'],Viagem:['Tipo de hotel','Cidades','Clima','Atividades'],Carros:['Marcas','Conforto','Tecnologia','Tamanho'],Música:['Estilos','Artistas'],Restaurantes:['Tipos','Preço','Ambiente']} as const;
-export const preferencesSchema=z.record(z.string().max(100),z.string().max(5000));
+export const preferenceGroups={Comida:['Favoritas','Não gosta'],Viagem:['Tipo de hotel','Cidades','Clima','Atividades'],Restaurantes:['Tipos','Preço','Ambiente']} as const;
+export const seriesPreferenceSchema=z.object({id:z.string().min(1).max(100),name:z.string().max(200),rating:z.number().min(0).max(10).nullable()});
+export const preferencesSchema=z.object({series:z.array(seriesPreferenceSchema).max(500).optional()}).catchall(z.string().max(5000));
+export type Preferences={series?:z.infer<typeof seriesPreferenceSchema>[]} & {[key:string]:string|z.infer<typeof seriesPreferenceSchema>[]|undefined};
+export function cleanPreferences(input:Record<string,any>):Preferences{return Object.fromEntries(Object.entries(input).filter(([key])=>!['Carros.','Música.','Filmes.'].some(prefix=>key.startsWith(prefix))&&key!=='Comida.Intolerâncias')) as Preferences;}
+
 export type Reminder={id:string;name:string;date:string;days:number;level:string;thisMonth:boolean};
 export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  const all:{id:string;name:string;date:string}[]=[];const car=profile.personal_car??{},extra=car.extra??{};
