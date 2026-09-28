@@ -1,6 +1,6 @@
 'use client';
 import { CarExtras } from './life-information';
-import { useState } from 'react';
+import { useEffect,useState } from 'react';
 import { Camera,Plus,Save,Trash2,Car,ShieldCheck,ParkingCircle,ExternalLink } from 'lucide-react';
 import { carSchema,previousCarSchema,type CarProfile,type PreviousCar } from '@/lib/personal';
 import { savePersonalSection } from '@/app/actions';
@@ -21,7 +21,8 @@ function Photo({value,onChange,disabled}:{value:string;onChange:(value:string)=>
  return <div className="car-photo-control"><div className="car-avatar">{value?<img src={value} alt="Foto do carro"/>:<Car size={38}/>}</div><label className="button secondary photo-upload"><Camera size={16}/>{loading?'Preparando…':'Escolher foto'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={disabled||loading} onChange={async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;setError('');setLoading(true);try{onChange(await avatarFromFile(file));}catch(err){setError((err as Error).message);}finally{setLoading(false);}}}/></label>{value&&<button type="button" className="text-link" disabled={disabled||loading} onClick={()=>onChange('')}>Remover foto</button>}{error&&<p role="alert" className="error">{error}</p>}</div>;
 }
 export function CarInformation({initial}:{initial?:unknown}){
- const parsed=carSchema.safeParse(initial??{});const [value,setValue]=useState<CarProfile>(parsed.success?{...parsed.data,model:parsed.data.model||'Mitsubishi Eclipse Cross'}:carSchema.parse({})),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+ const parsed=carSchema.safeParse(initial??{});const [value,setValue]=useState<CarProfile>(parsed.success?parsed.data:carSchema.parse({})),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('');
+ useEffect(()=>{const next=carSchema.safeParse(initial??{});if(next.success)setValue(next.data);},[JSON.stringify(initial)]);
  const update=(patch:Partial<CarProfile>)=>{setValue(current=>({...current,...patch}));setMessage('Alterações ainda não salvas.');};
  const updatePrevious=(id:string,patch:Partial<PreviousCar>)=>{setValue(current=>({...current,previous:current.previous.map(car=>car.id===id?{...car,...patch}:car)}));setMessage('Alterações ainda não salvas.');};
  const save=async()=>{setBusy(true);setError('');setMessage('');try{const checked=carSchema.safeParse(value);if(!checked.success)throw new Error(checked.error.issues[0]?.message??'Confira os campos.');await savePersonalSection('car',checked.data);setMessage('Carro, fotos e histórico salvos.');}catch(err){setError((err as Error).message);}finally{setBusy(false);}};

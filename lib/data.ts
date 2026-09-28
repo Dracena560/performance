@@ -18,8 +18,9 @@ export async function loadData(date?:string){
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
  const profile=results[9].data?.profile??{};const sodiumDefault={kind:'maximum' as const,min:null,max:2000};
- const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:{...t.targets,sodium:profile['personal_sodium_type_'+t.day_type]??sodiumDefault}}));
+ const withSodium=(base:any,key:string,fallback:any)=>{const out={...base};const target=Object.hasOwn(profile,key)?profile[key]:fallback;if(target)out.sodium=target;else delete out.sodium;return out;};
+ const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:withSodium(t.targets,'personal_sodium_type_'+t.day_type,sodiumDefault)}));
  const currentDay=(results[4].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day;
- currentDay.targets={...currentDay.targets,sodium:profile['personal_sodium_date_'+selected]??profile['personal_sodium_type_'+currentDay.day_type]??sodiumDefault};
+ const typeKey='personal_sodium_type_'+currentDay.day_type;currentDay.targets=withSodium(currentDay.targets,'personal_sodium_date_'+selected,Object.hasOwn(profile,typeKey)?profile[typeKey]:sodiumDefault);
  return {reminders:reminders(profile,selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
 }
