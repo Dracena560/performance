@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { configured, healthService, healthUserId, supabase } from '@/lib/supabase/server';
 import { eventSchema, foodSchema, itemSchema, targetSchema, dayTypes, localDate, type EventInput } from '@/lib/domain';
 import { readHealthWorkbook } from '@/lib/history-import';
+import { diarySchema } from '@/lib/diary-fields';
 async function context(){
  if(!configured())throw new Error('Conecte o Supabase para salvar seus registros.');
  const db=await supabase();const {data:{user}}=await db.auth.getUser();if(!user)throw new Error('Sua sessão expirou. Entre novamente.');return {db,user};
@@ -51,7 +52,17 @@ export async function importHealthWorkbook(formData: FormData){
 const recordCategory=z.enum(['sleep','activity','bowel','supplement','tennis','schedule','body_metrics']);
 export async function saveHealthRecord(category:unknown,date:unknown,payload:unknown,notes=''){
  const parsed=z.object({category:recordCategory,date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),payload:z.record(z.string(),z.unknown()),notes:z.string().max(5000)}).parse({category,date,payload,notes});
- const {db,user}=await context();const result=await db.from('health_records').insert({user_id:user.id,category:parsed.category,recorded_on:parsed.date,recorded_at:new Date().toISOString(),payload:parsed.payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
+ const {db,user}=await context();const result=await db.from('health_records').insert({user_id:user.id,category:parsed.category,recorded_on:parsed.date,recorded_at:new Date().toISOString(),payload:{...parsed.payload,notes:parsed.notes},source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
+}
+export async function saveDiaryRecord(input:unknown){
+ const value=diarySchema.parse(input);const session=await context();const userId=healthUserId()??session.user.id;const db=healthUserId()?healthService():session.db;
+ if(value.kind==='water'){
+  const event=eventSchema.parse({timestamp:value.occurred_at,timezone:'Europe/London',type:'water',source:'manual',measurement_type:'measured',estimated:false,notes:value.notes,data:{kind:'water',volume:value.volume_ml!,beverage:'água'}});
+  const result=await db.from('events').insert({...event,user_id:userId}).select().single();check(result.error);revalidatePath('/','layout');return {storage:'event',record:result.data};
+ }
+ const category=value.kind==='bowel'?'bowel':value.kind==='checkin'||value.kind==='activity'?'checkin_history':'supplement';
+ const payload={...value,record_type:value.kind};
+ const result=await db.from('health_records').insert({user_id:userId,category,recorded_on:localDate(new Date(value.occurred_at)),recorded_at:value.occurred_at,payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return {storage:'record',record:result.data};
 }
 export async function saveHealthProfile(profile:unknown){const value=z.record(z.string(),z.unknown()).parse(profile);await mergeProfileSection(Object.fromEntries(Object.entries(value).filter(([key])=>!key.startsWith('personal_'))));return true;}
 export async function updateTennisScore(recordId:unknown,setsInput:unknown){
