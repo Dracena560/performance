@@ -1,12 +1,12 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
 import * as echarts from 'echarts/core';
-import {LineChart,BarChart,HeatmapChart,ScatterChart} from 'echarts/charts';
-import {GridComponent,TooltipComponent,MarkLineComponent,CalendarComponent,VisualMapComponent,DatasetComponent} from 'echarts/components';
+import {LineChart,BarChart,HeatmapChart,ScatterChart,RadarChart} from 'echarts/charts';
+import {GridComponent,TooltipComponent,MarkLineComponent,CalendarComponent,VisualMapComponent,DatasetComponent,RadarComponent} from 'echarts/components';
 import {SVGRenderer} from 'echarts/renderers';
 import type {EChartsCoreOption} from 'echarts/core';
 
-echarts.use([LineChart,BarChart,HeatmapChart,ScatterChart,GridComponent,TooltipComponent,MarkLineComponent,CalendarComponent,VisualMapComponent,DatasetComponent,SVGRenderer]);
+echarts.use([LineChart,BarChart,HeatmapChart,ScatterChart,RadarChart,GridComponent,TooltipComponent,MarkLineComponent,CalendarComponent,VisualMapComponent,DatasetComponent,RadarComponent,SVGRenderer]);
 
 /** Design-system colours resolved for the element the chart sits in (so page-level tokens and Dark Mode apply). */
 export type ChartTheme={color:(token:string)=>string;label:string;label2:string;separator:string;surface:string;reduceMotion:boolean;

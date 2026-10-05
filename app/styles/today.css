@@ -341,3 +341,77 @@
 .wellbeing-side{display:grid;gap:var(--s-4);align-content:start;min-width:0}
 .wellbeing-side .day-log-row{grid-template-columns:44px 30px minmax(0,1fr)}
 .wellbeing-side .day-log-actions{grid-column:3;justify-content:flex-end;margin-top:-6px}
+
+/* Seu dia em resumo (day-rhythm.tsx) */
+.day-summary{display:grid;gap:var(--s-4);min-width:0}
+.summary-top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,2fr);gap:var(--s-4);align-items:stretch}
+.summary-now{display:grid;align-content:start;gap:var(--s-2);padding:var(--s-4);border-radius:var(--r-md);background:color-mix(in srgb,var(--sys-indigo) 8%,var(--bg-3))}
+.summary-now .current-overall{margin:0}
+.summary-dims{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2) var(--s-4)}
+.summary-dims>div{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px var(--s-2);font-size:var(--fs-footnote)}
+.summary-dims span{color:var(--label-2)}
+.summary-dims b{font-variant-numeric:tabular-nums}
+.summary-dims i,.summary-bar,.log-scores i,.nutrient-foods-list i{grid-column:1/-1;display:block;height:5px;border-radius:var(--r-pill);background:var(--fill-3);overflow:hidden}
+.summary-dims em,.summary-bar em,.log-scores i em,.nutrient-foods-list i em{display:block;height:100%;border-radius:inherit}
+.summary-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-2)}
+.summary-tile{display:grid;align-content:start;gap:4px;padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--bg-3);min-width:0}
+.summary-icon{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:color-mix(in srgb,var(--tile) 16%,transparent);color:color-mix(in srgb,var(--tile) 70%,var(--label))}
+.summary-tile small{font-size:var(--fs-caption);color:var(--label-2)}
+.summary-tile b{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;font-variant-numeric:tabular-nums}
+.summary-tile>span:last-child{font-size:var(--fs-caption);color:var(--label-2)}
+.summary-tile>span.up{color:light-dark(color-mix(in srgb,var(--success) 60%,var(--label)),var(--success))}
+.summary-tile>span.down{color:light-dark(color-mix(in srgb,var(--sys-orange) 60%,var(--label)),var(--sys-orange))}
+.summary-bar em{background:var(--tile)}
+.summary-bar.over em{background:var(--danger)}
+.summary-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4);padding-top:var(--s-4);border-top:1px solid var(--separator-soft)}
+.summary-charts>div{min-width:0}
+.summary-charts h3{font-size:var(--fs-headline);line-height:var(--lh-headline)}
+.summary-insight{margin-top:var(--s-2)}
+
+/* Registros do dia: horizontal track */
+.day-log-strip{display:grid;gap:var(--s-3);min-width:0}
+.log-track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(210px,240px);gap:var(--s-3);margin:0;padding:6px 2px var(--s-2);list-style:none;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:thin;position:relative}
+.log-track>li{display:grid;gap:6px;scroll-snap-align:start;position:relative}
+.log-track>li>time{display:flex;align-items:center;gap:6px;font-size:var(--fs-footnote);font-weight:700;color:var(--label-2);font-variant-numeric:tabular-nums}
+.log-track>li>time::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--kind);box-shadow:0 0 0 3px color-mix(in srgb,var(--kind) 22%,transparent)}
+.log-track>li>time::after{content:"";flex:1;height:2px;background:var(--separator-soft)}
+.log-card{display:grid;align-content:start;gap:var(--s-2);height:100%;padding:var(--s-3);border-radius:var(--r-md);background:var(--bg-3);text-align:left;box-shadow:inset 3px 0 0 var(--kind);transition:background-color var(--dur-fast),transform var(--dur) var(--ease-spring)}
+.log-card:hover{background:var(--fill-3);transform:translateY(-1px)}
+.log-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--s-2)}
+.log-head .day-log-icon{width:28px;height:28px;border-radius:8px}
+.log-head strong{font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.log-head em{font-style:normal;font-size:var(--fs-caption);font-weight:700;padding:2px 7px;border-radius:var(--r-pill);background:var(--fill-3)}
+.log-chips{display:flex;flex-wrap:wrap;gap:4px}
+.log-chips span{max-width:100%;padding:2px 8px;border-radius:var(--r-pill);background:var(--bg-2);font-size:var(--fs-caption);color:var(--label);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-more{display:inline-flex;align-items:center;gap:2px;margin-top:auto;font-size:var(--fs-caption);font-weight:600;color:var(--accent)}
+.log-dialog .log-scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-3);margin-top:var(--s-4)}
+.log-scores>div{display:grid;grid-template-columns:1fr auto;gap:4px}
+.log-scores small{color:var(--label-2)}
+.log-scores b em{font-style:normal;font-size:var(--fs-caption);color:var(--label-2)}
+.log-dialog-chips{display:flex;flex-wrap:wrap;gap:6px;margin:var(--s-4) 0 0;padding:0;list-style:none}
+.log-dialog-chips li{padding:4px 12px;border-radius:var(--r-pill);background:var(--fill-4);font-size:var(--fs-footnote)}
+.log-notes{margin-top:var(--s-4);color:var(--label-2);white-space:pre-line}
+.log-actions{display:flex;justify-content:flex-end;gap:var(--s-2);margin-top:var(--s-5)}
+
+/* Vitaminas: alimentos e suplementos (day-nutrients.tsx) */
+.nutrient-split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4);align-items:start}
+.nutrient-list h2{display:flex;align-items:center;gap:var(--s-2)}
+.nutrient-list ul{margin:var(--s-2) 0 0;padding:0;list-style:none}
+.nutrient-list li+li{border-top:1px solid var(--separator-soft)}
+.nutrient-list li>button{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:var(--s-3);width:100%;min-height:var(--hit);padding:var(--s-2) 0;text-align:left;font-size:var(--fs-subhead)}
+.nutrient-list li>button:hover span{color:var(--accent)}
+.nutrient-list li>button b{font-weight:600;font-variant-numeric:tabular-nums}
+.nutrient-list li>button b small{font-weight:400;color:var(--label-2)}
+.nutrient-list li>button svg{color:var(--label-3,var(--label-2))}
+.nutrient-foods-list{display:grid;gap:var(--s-3);margin:var(--s-4) 0 0;padding:0;list-style:none}
+.nutrient-foods-list>li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px var(--s-3);padding:var(--s-3);border-radius:var(--r-md);background:var(--fill-4)}
+.nutrient-foods-list>li>div{display:grid;gap:2px;min-width:0}
+.nutrient-foods-list small,.nutrient-foods-list>li>span{font-size:var(--fs-caption);color:var(--label-2)}
+.nutrient-foods-list i em{background:var(--tint-nutrition)}
+@media (max-width:980px){
+ .summary-top,.summary-charts,.nutrient-split{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+ .summary-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .log-track{grid-auto-columns:minmax(200px,78%)}
+}

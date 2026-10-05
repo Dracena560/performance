@@ -1,4 +1,5 @@
 import { diaryDescription, diaryLabels } from './diary-fields';
+import { sleepData } from './sleep-data';
 
 export type Dimension='mente'|'humor'|'corpo'|'digestao';
 export const dimensions:{key:Dimension;label:string;color:string}[]=[
@@ -43,8 +44,8 @@ export function dayEntries(events:EventLike[],records:RecordLike[],date:string):
   else if(e.type==='water')out.push({id:e.id,kind:'water',at:e.timestamp,title:`${Math.round(d.volume)} ml`,details:[d.beverage??'água'],notes:e.notes??'',scores:{},volume:d.volume,source:'event'});
   else if(e.type==='meal')out.push({id:e.id,kind:'meal',at:e.timestamp,title:d.name||d.meal_type||'Refeição',details:(d.items??[]).slice(0,6).map((i:any)=>i.name).filter(Boolean),notes:e.notes??'',scores:{},source:'event'});
  }
- for(const r of records){const type=r.payload.record_type;if(r.recorded_on!==date||typeof type!=='string'||!(type in entryLabels))continue;const kind=type as EntryKind;
-  out.push({id:r.id,kind,at:r.recorded_at??`${date}T12:00:00Z`,title:entryLabels[kind],details:kind==='water'?[]:chips(r.payload),notes:String(r.payload.notes??''),scores:kind==='checkin'?choiceScores(r.payload):{},volume:typeof r.payload.volume_ml==='number'?r.payload.volume_ml:undefined,source:'record'});
+ for(const r of records){if(r.recorded_on!==date)continue;const type=typeof r.payload.record_type==='string'?r.payload.record_type:r.category==='supplement'?'vitamins':r.category==='bowel'?'bowel':null;if(!type||!(type in entryLabels))continue;const kind=type as EntryKind;
+  out.push({id:r.id,kind,at:r.recorded_at??`${date}T12:00:00Z`,title:entryLabels[kind],details:kind==='water'?[]:kind==='vitamins'&&!r.payload.record_type?supplementNames(r.payload):chips(r.payload),notes:String(r.payload.notes??''),scores:kind==='checkin'?choiceScores(r.payload):{},volume:typeof r.payload.volume_ml==='number'?r.payload.volume_ml:undefined,source:'record'});
  }
  return out.sort((a,b)=>a.at.localeCompare(b.at));
 }
@@ -53,4 +54,45 @@ export function dayEntries(events:EventLike[],records:RecordLike[],date:string):
 export function weekEvolution(events:EventLike[],records:RecordLike[],end:string,days=7){
  return Array.from({length:days},(_,i)=>{const date=new Date(Date.parse(end+'T12:00:00Z')-(days-1-i)*86400000).toISOString().slice(0,10);const entries=dayEntries(events,records,date);const scored=entries.map(e=>overall(e.scores)).filter((v):v is number=>typeof v==='number');
   return {date,count:entries.length,wellbeing:mean(scored)??null,water:entries.reduce((t,e)=>t+(e.kind==='water'?e.volume??0:0),0),byKind:Object.fromEntries((Object.keys(entryLabels) as EntryKind[]).map(k=>[k,entries.filter(e=>e.kind===k).length])) as Record<EntryKind,number>};});
+}
+
+/** What each Registrar routine contains (same list the MCP tool describes). */
+export const supplementRoutines:Record<string,string[]>={'Vitaminas do dia':['Vitamina D','Vitamina E','Ômega-3','CoQ10','Selênio','Vitamina C','Glucosamina'],'Vitaminas da noite':['Magnésio','Ashwagandha']};
+function supplementNames(payload:Record<string,unknown>){
+ const items=Array.isArray(payload.items)?(payload.items as unknown[]).map(String):[];
+ const routines=Array.isArray(payload.routines)?(payload.routines as unknown[]).map(String):[];
+ const period=payload.period==='noite'?'Vitaminas da noite':payload.period==='dia'?'Vitaminas do dia':null;
+ const names=[...items,...routines.flatMap(r=>supplementRoutines[r]??[r])];
+ return names.length?names:period?supplementRoutines[period]:[];
+}
+/** Supplements taken on a day, one row per supplement with every time it was logged. */
+export function supplementIntake(records:RecordLike[],date:string){
+ const map=new Map<string,{name:string;times:string[];notes:string[]}>();
+ for(const r of records){if(r.recorded_on!==date||r.category!=='supplement'||(r.payload.record_type&&r.payload.record_type!=='vitamins'))continue;
+  for(const name of supplementNames(r.payload)){const key=name.toLowerCase();const row=map.get(key)??{name,times:[],notes:[]};row.times.push(r.recorded_at??`${date}T12:00:00Z`);if(r.payload.notes)row.notes.push(String(r.payload.notes));map.set(key,row);}}
+ return [...map.values()].map(r=>({...r,times:r.times.sort()})).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+}
+
+type MealItem={name:string;grams:number;nutrition:Record<string,number|null|undefined>};
+/**
+ * Foods behind a nutrient on a day. Only relevant contributions are listed:
+ * at least 10% of the day's total for that nutrient (smaller amounts are left out).
+ */
+export function foodContributions(events:EventLike[],date:string,nutrient:string,minShare=0.1){
+ const rows:{food:string;meal:string;at:string;amount:number}[]=[];
+ for(const e of events){if(e.local_date!==date||e.type!=='meal')continue;for(const item of (e.data?.items??[]) as MealItem[]){const per100=item.nutrition?.[nutrient];if(typeof per100!=='number'||per100<=0)continue;rows.push({food:item.name,meal:e.data.name||e.data.meal_type||'Refeição',at:e.timestamp,amount:per100*item.grams/100});}}
+ const total=rows.reduce((t,r)=>t+r.amount,0);
+ return {total,items:rows.map(r=>({...r,share:total?r.amount/total:0})).filter(r=>r.share>=minShare).sort((a,b)=>b.amount-a.amount)};
+}
+
+/** Average of each dimension over the check-ins of the given entries. */
+export function dimensionAverages(entries:DayEntry[]):Scores{
+ const out:Scores={};for(const d of dimensions){const v=mean(entries.map(e=>e.scores[d.key]).filter((x):x is number=>typeof x==='number'));if(v!==undefined)out[d.key]=v;}return out;
+}
+/** Wellbeing next to the previous night's sleep, one row per day. */
+export function wellbeingAndSleep(events:EventLike[],records:RecordLike[],end:string,days=14){
+ return Array.from({length:days},(_,i)=>{const date=new Date(Date.parse(end+'T12:00:00Z')-(days-1-i)*86400000).toISOString().slice(0,10);
+  const scored=dayEntries(events,records,date).map(e=>overall(e.scores)).filter((v):v is number=>typeof v==='number');
+  const night=records.filter(r=>r.category==='sleep'&&r.recorded_on===date).map(r=>sleepData(r.payload).total).find((v):v is number=>typeof v==='number');
+  return {date,wellbeing:mean(scored)??null,sleep:night===undefined?null:Math.round(night/6)/10};});
 }

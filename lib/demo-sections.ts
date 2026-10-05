@@ -270,7 +270,7 @@ export function demoHealthApp(){
   {id:`demo-week-c-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'10:00'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:[mental],emotions:[emotion],body:[body],digestion:['Sem desconforto'],notes:''}},
   {id:`demo-week-v-${i}`,category:'supplement',recorded_on:date,recorded_at:iso(date,'07:00'),source:'manual',payload:{kind:'vitamins',record_type:'vitamins',routines:['Vitaminas do dia'],notes:''}},
   ...(i%2?[{id:`demo-week-a-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'18:00'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Caminhando com Caju'],notes:''}}]:[])];});
- return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:week,periodEvents:[...demoPeriodEvents(),...base.events]};
+ return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[...week,...demoSleepRecords()],periodEvents:[...demoPeriodEvents(),...base.events]};
 }
 
 /** Same box and results as the seed league, with fictitious names, countries and kit. */

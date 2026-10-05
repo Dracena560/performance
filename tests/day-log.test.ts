@@ -29,3 +29,17 @@ test('week evolution counts items and averages wellbeing per day',()=>{
  assert.equal(week[0].date,'2026-10-04');assert.equal(week[0].count,1);assert.equal(week[0].water,590);assert.equal(week[0].wellbeing,null);
  assert.equal(week[1].count,5);assert.equal(week[1].byKind.checkin,2);assert.equal(week[1].wellbeing,7.7);
 });
+import { supplementIntake,foodContributions,dimensionAverages,wellbeingAndSleep } from '../lib/day-log';
+test('supplements from the Registrar routines and from the MCP list, one row per supplement',()=>{
+ const recs=[...records,{id:'r5',category:'supplement',recorded_on:date,recorded_at:'2026-10-05T21:00:00Z',payload:{period:'noite',items:['Magnésio'],notes:'antes de dormir'}}];
+ const list=supplementIntake(recs,date);assert.ok(list.some(s=>s.name==='Vitamina D'));assert.equal(list.find(s=>s.name==='Magnésio')?.notes[0],'antes de dormir');
+ const log=dayEntries(events,recs,date);assert.deepEqual(log.find(e=>e.id==='r5')?.details,['Magnésio']);
+});
+test('only foods with a relevant share of a nutrient are listed',()=>{
+ const meal={id:'m',type:'meal',timestamp:'2026-10-05T12:00:00Z',local_date:date,data:{kind:'meal',name:'Almoço',items:[{name:'Laranja',grams:200,nutrition:{vitamin_c:50}},{name:'Arroz',grams:100,nutrition:{vitamin_c:1}},{name:'Brócolis',grams:100,nutrition:{vitamin_c:40}}]}};
+ const r=foodContributions([meal],date,'vitamin_c');assert.equal(r.total,141);assert.deepEqual(r.items.map(i=>i.food),['Laranja','Brócolis']);
+});
+test('dimension averages and wellbeing beside the night of sleep',()=>{
+ const log=dayEntries(events,records,date);assert.deepEqual(dimensionAverages(log),{mente:9.5,humor:5.8,corpo:8});
+ const rows=wellbeingAndSleep(events,[...records,{id:'s',category:'sleep',recorded_on:date,recorded_at:null,payload:{time_asleep_minutes:450}}],date,2);assert.equal(rows[1].sleep,7);assert.equal(rows[1].wellbeing,7.7);assert.equal(rows[0].sleep,null);
+});
