@@ -35,3 +35,14 @@ export function demoPath(path: string): string | null {
   if (key === 'perfil') return '/demo/minhas-informacoes';
   return (demoRoutes as readonly string[]).includes(key) ? `/demo/${key}${suffix}` : null;
 }
+
+/** Parent screen in the navigation hierarchy (for the toolbar Back button), or null on top-level screens. */
+export function parentScreen(pathname: string): { key: NavigationKey; label: string } | null {
+  const path = pathname.replace(/^\/demo(?=\/|$)/, '').replace(/^\/+|\/+$/g, '');
+  const [first, second] = path.split('/');
+  if (!first) return null;
+  if ((healthSections as readonly string[]).includes(first)) return { key: 'saude', label: 'Saúde' };
+  if (first === 'financeiro' && second) return { key: 'financeiro', label: 'Financeiro' };
+  if (first === 'viagens' || first === 'perfil') return { key: 'minhas-informacoes', label: 'Minhas informações' };
+  return null;
+}

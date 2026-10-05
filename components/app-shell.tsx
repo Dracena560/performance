@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowUpRight, HeartPulse, LogOut, Plus, RotateCw } from 'lucide-react';
-import { demoPath, siteNavigation, type NavigationKey } from './site-navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { ArrowUpRight, ChevronLeft, HeartPulse, LogOut, Plus, RotateCw } from 'lucide-react';
+import { demoPath, parentScreen, siteNavigation, type NavigationKey } from './site-navigation';
 import { logout } from '@/app/actions';
 
 type Props = {
@@ -24,6 +24,8 @@ type Props = {
  */
 export function AppShell({ title, active, demo = false, onNavigate, onQuickAction, quickActionLabel = 'Registrar', children }: Props) {
   const router = useRouter();
+  const parent = parentScreen(usePathname() ?? '');
+  const parentHref = parent ? (demo ? (demoPath(parent.key) ?? '/demo') : `/${parent.key}`) : null;
   /** Demo mode: links inside unchanged components point at private routes; send them to the fictitious pages instead. */
   const demoLinks = demo ? (event: React.MouseEvent) => {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -65,7 +67,12 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
 
     <main className="workspace">
       <header className="toolbar scroll-edge">
-        <span className="toolbar-title"><span className="toolbar-crumb">Meu diário</span><span className="slash" aria-hidden>/</span><strong>{title}</strong></span>
+        <span className="toolbar-title">
+          {parent && parentHref
+            ? <Link href={parentHref} className="toolbar-back" aria-label={`Voltar para ${parent.label}`} title={`Voltar para ${parent.label}`}><ChevronLeft size={22} strokeWidth={2.2} aria-hidden /><span>{parent.label}</span></Link>
+            : <><span className="toolbar-crumb">Meu diário</span><span className="slash" aria-hidden>/</span></>}
+          <strong>{title}</strong>
+        </span>
         <span className="toolbar-note">
           <button className="refresh-button" onClick={() => router.refresh()} title="Atualizar dados"><RotateCw size={15} aria-hidden />Atualizar</button>
           <span className="status-pill"><span className="tiny-dot" aria-hidden /><span>{demo ? 'Dados fictícios' : 'Espaço privado'}</span></span>

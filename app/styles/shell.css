@@ -37,6 +37,12 @@
 .toolbar-crumb{font-size:var(--fs-subhead);font-weight:500;color:var(--label-2);white-space:nowrap}
 .toolbar .slash{color:var(--label-4);font-weight:400}
 .toolbar-note{display:flex;align-items:center;gap:var(--s-3)}
+.toolbar-title:has(.toolbar-back){align-items:center;gap:var(--s-2)}
+/* HIG Back button: chevron + parent title, accent colour, leading edge of the toolbar */
+.toolbar-back{display:inline-flex;align-items:center;gap:2px;min-height:var(--hit);padding:0 var(--s-3) 0 6px;margin-left:-6px;border-radius:var(--r-pill);font-size:var(--fs-body);font-weight:500;color:var(--accent);white-space:nowrap;transition:background-color var(--dur-fast) ease,transform var(--dur) var(--ease-spring)}
+.toolbar-back:hover{background:var(--fill-4)}
+.toolbar-back:active{transform:scale(.96)}
+.toolbar-back+strong{padding-left:var(--s-2);border-left:1px solid var(--separator-soft)}
 .status-pill{display:inline-flex;align-items:center;gap:7px;font-size:var(--fs-caption2);line-height:var(--lh-caption2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label-2);white-space:nowrap}
 .tiny-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px color-mix(in srgb,var(--success) 18%,transparent)}
 .refresh-button{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:var(--r-pill);font-size:var(--fs-footnote);font-weight:600;color:var(--accent);transition:background-color var(--dur-fast)}
@@ -113,6 +119,11 @@
   .workspace{padding-left:0}
   .toolbar{min-height:52px;padding:0 var(--s-4);padding-top:env(safe-area-inset-top)}
   .toolbar-crumb,.toolbar .slash{display:none}
+  /* Compact: iOS 26 style circular Liquid Glass back button */
+  .toolbar-back{width:var(--hit);height:var(--hit);padding:0;margin-left:0;justify-content:center;border-radius:50%;color:var(--label);background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));box-shadow:var(--glass-shadow),inset 0 1px 0 var(--glass-rim),inset 0 0 0 1px var(--glass-edge)}
+  .toolbar-back:hover{background:var(--glass-bg-strong)}
+  .toolbar-back span{display:none}
+  .toolbar-back+strong{border-left:0;padding-left:0}
   .status-pill span:not(.tiny-dot){display:none}
   .content{padding:var(--s-2) var(--s-4) calc(var(--tabbar-h) + var(--s-8) + env(safe-area-inset-bottom))}
   .demo-banner-wrap{padding:0 var(--s-4)}
