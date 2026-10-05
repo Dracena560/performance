@@ -1,0 +1,297 @@
+/* ==========================================================================
+   Today — Hoje, Hidratação, Alimentação, Timeline and Metas (health-app.tsx)
+   plus "Datas importantes" (deadline-summary.tsx).
+   Content layer only: standard materials (.panel, inset groups, hairlines).
+   Section tints: nutrition / fitness / sleep / mind. No Liquid Glass here.
+   ========================================================================== */
+
+/* Page scaffold ----------------------------------------------------------- */
+.today-redesign{display:grid;gap:var(--s-7);min-width:0}
+.today-redesign .panel-heading>.text-link{flex-shrink:0}
+.today-redesign .text-link,.food-page .text-link{min-height:var(--hit)}
+
+/* Datas importantes ------------------------------------------------------- */
+.deadline-summary>.field-help{margin-top:var(--s-4)}
+.deadline-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3)}
+.deadline-grid article{display:grid;gap:var(--s-1);align-content:start;min-width:0;padding:var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.deadline-grid article strong{font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;overflow-wrap:anywhere}
+.deadline-grid article time{font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:500;color:var(--label);font-variant-numeric:tabular-nums}
+.deadline-grid article small{font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2)}
+.deadline-badge{justify-self:start;margin-bottom:var(--s-1)}
+.deadline-grid article.urgent{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 30%,transparent)}
+.deadline-grid article.urgent time{color:var(--label);font-weight:600}
+
+/* Day strip (tipo do dia) -------------------------------------------------- */
+.day-strip{display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) var(--s-3) var(--s-2) var(--s-5);border-radius:var(--r-md);background:var(--bg-2);box-shadow:var(--shadow-1)}
+.day-strip>div{display:flex;align-items:center;gap:var(--s-3);flex:1;min-width:0}
+.day-strip strong{font-size:var(--fs-subhead);font-weight:600;white-space:nowrap}
+.day-strip select{width:auto;flex:0 1 440px;min-width:160px;min-height:var(--hit);padding-top:8px;padding-bottom:8px;font-size:var(--fs-subhead);font-weight:500;background-color:var(--fill-4)}
+.day-strip>div>span:last-child{font-size:var(--fs-footnote);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-strip>button{display:inline-flex;align-items:center;gap:4px;min-height:var(--hit);padding:0 var(--s-3);border-radius:var(--r-pill);font-size:var(--fs-subhead);font-weight:600;color:var(--accent);white-space:nowrap;transition:background-color var(--dur-fast) ease}
+.day-strip>button:hover{background:var(--fill-4)}
+.day-strip>button svg{width:16px;height:16px}
+
+/* Jump chips (Nutrição · Fitness · Sono · Bem-estar) ----------------------- */
+.today-jump{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-2)}
+.today-jump a{--chip-tint:var(--accent);display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);min-height:var(--hit);padding:0 var(--s-4);border-radius:var(--r-pill);background:var(--bg-2);box-shadow:var(--shadow-1);font-size:var(--fs-subhead);font-weight:600;color:var(--label);white-space:nowrap;transition:background-color var(--dur-fast) ease,transform var(--dur) var(--ease-spring),box-shadow var(--dur) var(--ease-out)}
+.today-jump a::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--chip-tint);flex-shrink:0}
+.today-jump a svg{width:14px;height:14px;color:var(--label-3);margin-left:-2px}
+.today-jump a:hover{background:var(--fill-4);transform:translateY(-1px);box-shadow:var(--shadow-2)}
+.today-jump a:active{transform:scale(.97)}
+.today-jump a:nth-child(1){--chip-tint:var(--tint-nutrition)}
+.today-jump a:nth-child(2){--chip-tint:var(--tint-fitness)}
+.today-jump a:nth-child(3){--chip-tint:var(--tint-sleep)}
+.today-jump a:nth-child(4){--chip-tint:var(--tint-mind)}
+
+/* Sections ---------------------------------------------------------------- */
+.today-section{--section-tint:var(--accent);--panel-tint:var(--section-tint);display:grid;gap:var(--s-4);min-width:0;scroll-margin-top:calc(var(--toolbar-h) + var(--s-4))}
+.nutrition-block{--section-tint:var(--tint-nutrition)}
+.fitness-block{--section-tint:var(--tint-fitness)}
+.sleep-block{--section-tint:var(--tint-sleep)}
+.wellbeing-block{--section-tint:var(--tint-mind)}
+.nutrition-section{display:grid;gap:var(--s-4)}
+.today-section-heading{display:flex;align-items:center;gap:var(--s-3);padding:0 var(--s-1)}
+.today-section-heading>div{min-width:0}
+.today-section-heading h2{font-size:var(--fs-title2);line-height:var(--lh-title2);letter-spacing:-.016em}
+.today-section-heading p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px}
+.today-section-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--section-tint) 16%,transparent);color:var(--section-tint);flex-shrink:0}
+.today-section-icon svg{width:22px;height:22px}
+.today-section>.data-note{padding:0 var(--s-1)}
+
+/* Nutrition: hydration + meals ------------------------------------------- */
+.today-nutrition-top{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:var(--s-4);align-items:stretch}
+.hydration{--panel-tint:var(--tint-water);display:flex;flex-direction:column}
+.water-main{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);margin:0 0 var(--s-5)}
+.water-main>div:first-child{min-width:0}
+.water-number{font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.water-unit{font-size:var(--fs-subhead);font-weight:500;color:var(--label-2)}
+.water-main p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:var(--s-1)}
+.water-ring{display:grid;place-items:center;width:92px;height:92px;border-radius:50%;flex-shrink:0}
+.water-ring span{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--bg-2);font-size:var(--fs-headline);font-weight:700;color:var(--label);font-variant-numeric:tabular-nums}
+.water-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2)}
+.water-buttons .button{min-height:var(--hit);padding:0 var(--s-3);background:color-mix(in srgb,var(--tint-water) 14%,transparent);color:var(--label)}
+.water-buttons .button:hover{background:color-mix(in srgb,var(--tint-water) 24%,transparent)}
+.water-buttons .button svg{color:var(--tint-water)}
+.water-buttons .button small{font-weight:500;color:var(--label-2);opacity:1}
+.hydration>.text-link{margin-top:auto;padding-top:var(--s-3);align-self:flex-start}
+
+.today-meals{display:flex;flex-direction:column;min-width:0;background:var(--bg-2);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
+.today-meals>.meal-timeline{flex:1;background:transparent;box-shadow:none;padding-bottom:var(--s-3)}
+.today-meals>.text-link{align-self:flex-start;margin:0 var(--s-6) var(--s-5)}
+
+.meal-timeline .panel-heading{align-items:flex-start}
+.meal-average{display:grid;justify-items:end;flex-shrink:0;text-align:right;font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;color:var(--label);font-variant-numeric:tabular-nums}
+.meal-average small{font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:500;color:var(--label-2);white-space:nowrap}
+.meal-timeline-list{display:flex;flex-direction:column}
+.meal-timeline-list article{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:var(--s-3);align-items:center;min-height:56px;padding:var(--s-3) 0}
+.meal-timeline-list article+article{border-top:1px solid var(--separator-soft)}
+.meal-timeline-list time{font-size:var(--fs-subhead);font-weight:600;color:var(--label-2);font-variant-numeric:tabular-nums}
+.meal-timeline-list article>div{min-width:0}
+.meal-timeline-list strong{display:block;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600}
+.meal-timeline-list article>div small{display:block;margin-top:2px;font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meal-grade{--grade:var(--gray);display:inline-flex;align-items:baseline;justify-content:center;gap:2px;min-width:52px;min-height:30px;padding:4px 10px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--grade) 14%,transparent);color:color-mix(in srgb,var(--grade) 45%,var(--label));font-size:var(--fs-subhead);line-height:22px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.meal-grade small{font-size:var(--fs-caption2);line-height:var(--lh-caption2);font-weight:600;color:inherit}
+.meal-grade.great{--grade:var(--sys-green)}
+.meal-grade.fair{--grade:var(--sys-orange)}
+.meal-grade.low{--grade:var(--sys-red)}
+.meal-grade.neutral{--grade:var(--gray);color:var(--label-2)}
+
+/* Nutrition: KPI grid, micronutrients, averages --------------------------- */
+.nutrition-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-3)}
+.nutrient-foods{display:block;margin-top:var(--s-2);font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);overflow-wrap:anywhere}
+.nutrient-foods a{color:var(--accent)}
+.metric>.nutrient-foods{margin:0 0 var(--s-3)}
+.micronutrients{--panel-tint:var(--tint-nutrition);min-width:0}
+.micronutrient-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s-3)}
+.micronutrient-grid>span{display:grid;gap:2px;align-content:start;min-width:0;padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.micronutrient-grid>span>small:first-child{font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2)}
+.micronutrient-grid strong{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;font-variant-numeric:tabular-nums}
+.micronutrient-grid em{font-size:var(--fs-caption);font-weight:500;color:var(--label-2)}
+.micronutrient-grid .nutrient-foods{margin-top:var(--s-1)}
+
+.nutrition-averages .panel-heading{align-items:flex-start}
+.average-table{display:flex;flex-direction:column;min-width:0}
+.average-head,.average-row{display:grid;grid-template-columns:minmax(0,1.6fr) repeat(3,minmax(0,1fr));gap:var(--s-3);align-items:center}
+.average-head{padding:0 0 var(--s-2);font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2)}
+.average-head span:not(:first-child),.average-row>span{text-align:right}
+.average-row{min-height:var(--hit);padding:var(--s-3) 0;border-top:1px solid var(--separator-soft);font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.average-row strong{font-weight:600;min-width:0}
+.average-row strong small{display:block;font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:400;color:var(--label-2)}
+.average-row>span{font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.average-row em{font-size:var(--fs-caption);font-weight:400;color:var(--label-2)}
+
+/* Fitness ----------------------------------------------------------------- */
+.today-exercise-summary{--panel-tint:var(--tint-fitness)}
+.today-exercise-summary>div:last-child{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-3)}
+.today-exercise-summary article{--stat-tint:var(--tint-fitness);display:grid;gap:var(--s-1);align-content:start;min-width:0;padding:var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.today-exercise-summary article:nth-child(2){--stat-tint:var(--sys-green)}
+.today-exercise-summary article:nth-child(3){--stat-tint:var(--sys-cyan)}
+.today-exercise-summary article:nth-child(4){--stat-tint:var(--tint-move)}
+.today-exercise-summary article small{display:flex;align-items:center;gap:6px;font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2)}
+.today-exercise-summary article small::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--stat-tint);flex-shrink:0}
+.today-exercise-summary article strong{display:block;font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;font-variant-numeric:tabular-nums}
+.today-exercise-summary article em{font-size:var(--fs-footnote);font-weight:500;color:var(--label-2);letter-spacing:0;margin-left:2px}
+
+/* Sleep ------------------------------------------------------------------- */
+.sleep-summary-card{--panel-tint:var(--tint-sleep)}
+.sleep-summary-card .panel-heading .field-help+.field-help{margin-top:2px}
+.sleep-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--s-3)}
+.sleep-summary-grid>span{display:grid;gap:2px;align-content:start;min-width:0;padding:var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.sleep-summary-grid small{font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2)}
+.sleep-summary-grid strong{font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;font-variant-numeric:tabular-nums}
+.sleep-summary-grid>span:first-child small{display:flex;align-items:center;gap:6px}
+.sleep-summary-grid>span:first-child small::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tint-sleep);flex-shrink:0}
+
+.today-empty{display:flex;align-items:center;gap:var(--s-4);flex-wrap:wrap}
+.today-empty>svg{width:44px;height:44px;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--section-tint,var(--accent)) 16%,transparent);color:var(--section-tint,var(--accent));flex-shrink:0}
+.today-empty>div{flex:1 1 220px;min-width:0}
+.today-empty h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.today-empty p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px}
+.today-empty>.field-help{flex-basis:100%;padding-top:var(--s-3);border-top:1px solid var(--separator-soft)}
+
+/* Wellbeing --------------------------------------------------------------- */
+.today-wellbeing-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:var(--s-4);align-items:stretch}
+.today-wellbeing-grid .lower-grid{display:block}
+.today-wellbeing-grid .lower-grid>.panel{height:100%}
+.lower-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--s-4)}
+.lower-grid:has(> :only-child){grid-template-columns:1fr}
+.current-state{--panel-tint:var(--tint-mind);display:flex;flex-direction:column}
+.current-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-4) var(--s-5);margin:0 0 var(--s-4)}
+.current-grid>div{min-width:0}
+.current-grid>div>span{display:block;font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.current-grid strong{display:block;font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;font-variant-numeric:tabular-nums}
+.current-grid strong small{font-size:var(--fs-caption);font-weight:500;color:var(--label-2);margin-left:2px;letter-spacing:0}
+.current-grid .mini-track{margin-top:var(--s-2)}
+.current-grid .mini-track i{background:var(--tint-mind)}
+.current-state>.field-help{margin-top:auto;padding-top:var(--s-2)}
+
+.chart{height:220px;min-width:0}
+.chart svg{overflow:visible}
+.chart .recharts-tooltip-wrapper{outline:none}
+.chart-legend{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin-bottom:var(--s-3);font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.chart-legend span{display:inline-flex;align-items:center;gap:6px}
+.chart-legend i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.today-checkin-history{--panel-tint:var(--tint-mind);min-width:0}
+.today-checkin-row{display:flex;align-items:center;gap:var(--s-3);min-height:52px;padding:var(--s-2) 0}
+.today-checkin-row+.today-checkin-row{border-top:1px solid var(--separator-soft)}
+.today-checkin-row>time{min-width:48px;font-size:var(--fs-subhead);font-weight:600;color:var(--label-2);font-variant-numeric:tabular-nums}
+.today-checkin-row>div{flex:1;min-width:0}
+.today-checkin-row strong{display:block;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600}
+.today-checkin-row p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px;overflow-wrap:anywhere}
+.today-checkin-row>.button{margin-left:auto;width:var(--hit);padding:0;border-radius:50%;color:var(--label-2)}
+.today-checkin-row>.button:hover{color:var(--accent)}
+
+/* Timeline (grouped list with tinted icon squircles) ---------------------- */
+.timeline{display:flex;flex-direction:column}
+.event{display:grid;grid-template-columns:48px 36px minmax(0,1fr) auto;grid-template-areas:"time icon main actions";align-items:start;column-gap:var(--s-3);padding:var(--s-3) 0}
+.event+.event{border-top:1px solid var(--separator-soft)}
+.event>time{grid-area:time;padding-top:8px;font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-weight:600;color:var(--label-2);font-variant-numeric:tabular-nums}
+.event-icon{--event-tint:var(--accent);grid-area:icon;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:color-mix(in srgb,var(--event-tint) 15%,transparent);color:var(--event-tint)}
+.event-icon svg{width:18px;height:18px}
+.event-icon.water{--event-tint:var(--tint-water)}
+.event-icon.meal{--event-tint:var(--tint-nutrition)}
+.event-icon.checkin{--event-tint:var(--tint-mind)}
+.event-main{grid-area:main;min-width:0;padding-top:7px;overflow-wrap:anywhere}
+.event-main strong{display:block;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600}
+.event-main p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px}
+.event-main small{display:block;font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);margin-top:4px}
+.event-actions,.event>.button{grid-area:actions;justify-self:end}
+.event-actions{display:flex;gap:0}
+.event-actions .button,.event>.button{width:var(--hit);height:var(--hit);min-height:var(--hit);padding:0;border-radius:50%;color:var(--label-2)}
+.event-actions .button:hover,.event>.button:hover{background:var(--fill-4);color:var(--accent)}
+.event-actions .button svg,.event>.button svg{width:17px;height:17px}
+.timeline>.empty{padding-top:var(--s-6)}
+
+/* Hidratação view --------------------------------------------------------- */
+.standalone-metric{max-width:520px}
+.quick-actions{display:flex;flex-wrap:wrap;gap:var(--s-2);margin:var(--s-4) 0 var(--s-6)}
+.water-log .library-row:first-of-type{border-top:0}
+
+/* Alimentação view -------------------------------------------------------- */
+.food-page{display:grid;gap:var(--s-4);min-width:0}
+.food-page>.section-heading{margin:var(--s-3) 0 0}
+.food-heading{flex-wrap:wrap}
+.food-hydration{--panel-tint:var(--tint-water)}
+.food-hydration-main{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(220px,.7fr);gap:var(--s-4);align-items:stretch}
+.food-hydration-main .metric{background:var(--bg-3);box-shadow:none}
+.food-hydration .water-buttons{grid-template-columns:1fr;align-content:center}
+.food-hydration .water-buttons .button{min-height:50px;justify-content:flex-start;padding:0 var(--s-4)}
+
+/* Metas ------------------------------------------------------------------- */
+.targets-form{max-width:880px}
+.targets-form>.field-help{margin-top:var(--s-1)}
+.targets-form>.button{margin:var(--s-4) 0 var(--s-2)}
+.target-list{display:flex;flex-direction:column;padding:0 var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.target-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,.8fr) 32px minmax(0,.8fr);gap:var(--s-2);align-items:center;min-height:60px;padding:var(--s-2) 0}
+.target-row+.target-row{border-top:1px solid var(--separator-soft)}
+.target-row .checkbox-label{grid-column:1;min-width:0}
+.target-row .checkbox-label>span{display:grid;min-width:0;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600}
+.target-row .checkbox-label small{font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:400;color:var(--label-2)}
+.target-kind{grid-column:2}
+.target-min{grid-column:3}
+.target-sep{grid-column:4;font-size:var(--fs-footnote);color:var(--label-2);text-align:center}
+.target-max{grid-column:5}
+.target-row>select,.target-row>input{background-color:var(--bg-2);font-size:var(--fs-subhead)}
+
+/* Medium widths ----------------------------------------------------------- */
+@media (max-width:1180px){
+  .nutrition-grid,.micronutrient-grid,.sleep-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:1050px){
+  .today-nutrition-top,.today-wellbeing-grid,.lower-grid{grid-template-columns:1fr}
+  .deadline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* Compact widths ---------------------------------------------------------- */
+@media (max-width:760px){
+  .today-redesign{gap:var(--s-6)}
+  .today-redesign .panel-heading,.food-page .panel-heading{flex-wrap:wrap}
+  /* Deadlines become a grouped list: badge + date on the first line, name and meta below */
+  .deadline-grid{grid-template-columns:1fr;gap:0;padding:0 var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+  .deadline-grid article{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"badge time" "name name" "meta meta";gap:2px var(--s-3);align-items:center;padding:var(--s-3) 0;border-radius:0;background:transparent}
+  .deadline-grid article+article{border-top:1px solid var(--separator-soft)}
+  .deadline-grid article.urgent{box-shadow:none}
+  .deadline-badge{grid-area:badge;margin:0 0 2px}
+  .deadline-grid article time{grid-area:time;font-size:var(--fs-footnote);line-height:var(--lh-footnote)}
+  .deadline-grid article strong{grid-area:name}
+  .deadline-grid article small{grid-area:meta}
+  .day-strip{flex-wrap:wrap;padding:var(--s-3) var(--s-4)}
+  .day-strip>div{flex:1 1 100%;flex-wrap:wrap}
+  .day-strip select{flex:1 1 100%;order:3;min-width:0}
+  .day-strip>div>span:last-child{flex:1 1 auto;min-width:0}
+  .day-strip>button{margin-left:auto}
+  .today-jump{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today-section-heading h2{font-size:var(--fs-title3);line-height:var(--lh-title3)}
+  .today-meals{border-radius:18px}
+  .today-meals>.text-link{margin:0 var(--s-5) var(--s-4)}
+  .water-number{font-size:34px}
+  .water-ring{width:80px;height:80px}
+  .water-ring span{width:66px;height:66px;font-size:var(--fs-subhead)}
+  .meal-timeline-list article{grid-template-columns:44px minmax(0,1fr) auto;gap:var(--s-2)}
+  .meal-timeline-list article>div small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .meal-average{display:flex;align-items:baseline;gap:6px;text-align:left;font-size:var(--fs-title3);line-height:var(--lh-title3)}
+  .nutrition-grid,.micronutrient-grid,.sleep-summary-grid,.today-exercise-summary>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2)}
+  .nutrition-grid .metric-top{flex-wrap:wrap;row-gap:2px}
+  .nutrition-grid .metric-top>span{flex:1 1 auto;min-width:0}
+  .sleep-summary-grid>span:first-child{grid-column:1/-1}
+  .average-head,.average-row{grid-template-columns:minmax(0,1.3fr) repeat(3,minmax(0,.9fr));gap:var(--s-2)}
+  .average-row{font-size:var(--fs-footnote)}
+  .average-row>span{white-space:normal}
+  .average-row em{display:block;font-size:var(--fs-caption2);line-height:var(--lh-caption2)}
+  .current-grid{gap:var(--s-3)}
+  .chart{height:200px}
+  .event{grid-template-columns:36px minmax(0,1fr);grid-template-areas:"icon time" "icon main" "icon actions";row-gap:0;padding:var(--s-2) 0}
+  .event>time{padding:0;font-size:var(--fs-caption);line-height:var(--lh-caption)}
+  .event-main{padding-top:0}
+  .event-actions,.event>.button{margin:calc(var(--s-2) * -1) 0 0}
+  /* Records with a single action keep it inline so each row stays one line shorter */
+  .event:has(>.event-actions>.button:only-child),.event:has(>.button){grid-template-columns:36px minmax(0,1fr) auto;grid-template-areas:"icon time actions" "icon main actions"}
+  .event:has(>.event-actions>.button:only-child) .event-actions,.event>.button{align-self:center;margin:0}
+  .food-hydration-main{grid-template-columns:1fr}
+  .target-row{display:flex;flex-wrap:wrap;gap:var(--s-2);padding:var(--s-3) 0}
+  .target-row .checkbox-label{flex:1 1 100%}
+  .target-row>select,.target-row>input{flex:1 1 120px;width:auto}
+  .target-sep{flex:0 0 auto}
+  .target-sep:empty{display:none}
+}

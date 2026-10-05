@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Base — reset, typography and focus. Everything inherits SF Pro.
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg);-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+body{margin:0;min-height:100dvh;color:var(--label);background:var(--bg);font-family:var(--font-sans);font-size:var(--fs-body);line-height:var(--lh-body);letter-spacing:-.022em;font-kerning:normal;overflow-x:clip}
+/* Ambient wallpaper that Liquid Glass can refract. Fixed so it reads as a surface, not content. */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:
+  radial-gradient(900px 520px at 8% -10%,var(--wall-a),transparent 62%),
+  radial-gradient(760px 480px at 100% 8%,var(--wall-b),transparent 60%),
+  radial-gradient(700px 600px at 55% 110%,var(--wall-c),transparent 62%),
+  var(--bg)}
+button,input,select,textarea{font:inherit;letter-spacing:inherit;color:inherit}
+button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
+button,a,summary{touch-action:manipulation}
+button{border:0;background:none;padding:0;cursor:pointer;border-radius:var(--r-sm)}
+button:disabled{cursor:default;opacity:.45}
+a{color:inherit;text-decoration:none}
+a.text-link,a[href^="http"]{color:var(--link)}
+img,svg{display:inline-block;vertical-align:middle}
+svg{flex-shrink:0}
+hr{border:0;border-top:1px solid var(--separator-soft);margin:var(--s-5) 0}
+h1,h2,h3,h4,p,figure,ul,ol,dl,dd{margin:0}
+ul,ol{padding:0;list-style:none}
+h1,h2,h3,h4{color:var(--label);font-weight:700;text-wrap:balance}
+h1{font-size:var(--fs-large-title);line-height:var(--lh-large-title);letter-spacing:-.012em}
+h2{font-size:var(--fs-title2);line-height:var(--lh-title2);letter-spacing:-.016em}
+h3{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;letter-spacing:-.014em}
+h4{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+p{text-wrap:pretty}
+small{font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);letter-spacing:-.004em}
+strong,b{font-weight:600}
+em{font-style:normal}
+time{font-variant-numeric:tabular-nums}
+table{border-collapse:collapse;border-spacing:0}
+::selection{background:var(--accent-soft);color:var(--label)}
+::placeholder{color:var(--placeholder)}
+:focus{outline:none}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px;border-radius:inherit}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:0}
+details>summary{list-style:none;cursor:pointer}
+details>summary::-webkit-details-marker{display:none}
+
+/* Type utilities (Dynamic Type names) */
+.t-large-title{font-size:var(--fs-large-title);line-height:var(--lh-large-title);font-weight:700;letter-spacing:-.012em}
+.t-title1{font-size:var(--fs-title1);line-height:var(--lh-title1);font-weight:700;letter-spacing:-.014em}
+.t-title2{font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em}
+.t-title3{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;letter-spacing:-.014em}
+.t-headline{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.t-body{font-size:var(--fs-body);line-height:var(--lh-body)}
+.t-callout{font-size:var(--fs-callout);line-height:var(--lh-callout)}
+.t-subhead{font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.t-footnote{font-size:var(--fs-footnote);line-height:var(--lh-footnote)}
+.t-caption{font-size:var(--fs-caption);line-height:var(--lh-caption)}
+.t-caption2{font-size:var(--fs-caption2);line-height:var(--lh-caption2)}
+.tabular,.num{font-variant-numeric:tabular-nums}
+.secondary{color:var(--label-2)}
+.tertiary{color:var(--label-3)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Scrollbars (macOS-like, unobtrusive) */
+@supports (scrollbar-width:thin){*{scrollbar-width:thin;scrollbar-color:var(--label-4) transparent}}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

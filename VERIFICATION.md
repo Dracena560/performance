@@ -1,15 +1,12 @@
-# Verificação da primeira etapa — 25/09/2026
+# Verificação — redesign Apple HIG + Liquid Glass (05/10/2026, branch `apple-clone`)
 
-- Compilação de produção Next.js: passou (`npm run build`, webpack).
-- TypeScript: passou.
-- Testes automatizados: 7 passaram, 0 falharam.
-- Migration executada em PostgreSQL/PGlite: criação de perfis e seis modelos por usuário, isolamento RLS entre duas identidades, bloqueio de leitura anônima, bloqueio de escrita cruzada, auditoria de edição/exclusão, volume inválido, data de Londres, snapshot de metas e remoção transacional do rascunho de check-in.
-- Domínio: quatro semânticas de metas, escalas e null/zero, horário de verão e meia-noite, nutrientes por porção, desconhecidos preservados, somente água pura na hidratação, validação de tipo e qualidade.
-- Navegador: dashboard inicial carregou; +650 ml elevou o total fictício de 1.240 para 1.890 ml e adicionou o evento à timeline.
-- Check-in: salvou um único campo com zero e demais campos não informados.
-- Alimentação: 200 g do alimento fictício adicionaram 250 kcal e 18 g de proteína; combinação salva apareceu na biblioteca.
-- Responsividade: inspeção visual em 390 × 844 e largura normal do navegador; atalhos inferiores e formulário de refeição utilizáveis no tamanho de iPhone.
-- Proteção de rota: abrir `/hoje` sem configuração/sessão terminou em `/login`, sem dados pessoais.
-- Prévia final voltou aos dados fictícios originais, sem registros de teste adicionais.
+- Compilação de produção Next.js: passou (`npm run build`, webpack), 36 rotas.
+- TypeScript: passou (`npm run typecheck`).
+- Testes automatizados: 39 passaram, 0 falharam (`npm test`).
+- Cobertura de estilos: todas as classes usadas nos componentes têm regra em `app/styles/` (script de cobertura da sessão).
+- Servidor de desenvolvimento na porta 4200 (`npm run dev`, `.claude/launch.json`).
+- Navegador (Chromium embutido): `/demo` (Hoje, Água, Alimentação, Metas, Timeline, Check-in), `/login` e as rotas `/demo/<seção>` (saúde, sono, exercícios, saúde geral, registros, histórico, tênis, financeiro, investimentos, minhas informações, viagens) inspecionadas em 1440×900 e 375×812, modos claro e escuro, sem erros de console.
+- Revisão adversarial por área (Hoje, formulários, saúde, tênis, financeiro, informações pessoais): contraste ≥ 4,5:1 nos rótulos secundários e pílulas de estado, alvos de toque ≥ 44 pt, sem Liquid Glass na camada de conteúdo, sem cores fixas fora dos tokens, sem rolagem horizontal em 375 px, gráficos com cores dos tokens e sem linhas verticais de grade.
+- Comportamento preservado: nenhuma server action, schema, texto ou campo de formulário foi alterado; apenas apresentação e estrutura de marcação.
 
-Não verificado: sessão Supabase real, persistência entre dispositivos, recuperação de acesso, hospedagem Vercel e restauração de backups. Dependem da criação e configuração das contas externas. Não foram importados dados pessoais nem publicada uma versão na internet.
+Não verificado: sessão Supabase real (as páginas privadas foram revisadas pelas rotas `/demo/<seção>` com dados fictícios, que respondem 404 em produção), Safari/iOS físico (Liquid Glass usa `backdrop-filter`, `color-mix` e `light-dark`; há fallback sólido para `prefers-reduced-transparency` e navegadores sem suporte).

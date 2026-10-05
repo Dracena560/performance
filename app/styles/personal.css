@@ -1,0 +1,225 @@
+/* ==========================================================================
+   Personal — Minhas informações: perfil de saúde, carro, documentos e datas,
+   viagens, contas e preferências. iOS Settings / Contacts feel: grouped inset
+   lists inside disclosure cards, two-column form grids that collapse to one,
+   tinted icon squircles, hairline separators. Standard materials only (no
+   Liquid Glass). Finance class names used by FinanceDashboard are styled in
+   finance.css.
+   --on-inset is the surface placed on top of an inset group (white on grey in
+   light; a lighter fill in dark, where the inset is already the lighter tone).
+   ========================================================================== */
+
+/* Page scaffolding ------------------------------------------------------- */
+.personal-page{display:grid;gap:var(--s-5);min-width:0;--on-inset:light-dark(var(--bg-2),var(--fill-3))}
+.personal-page>p[role=status],.information-sections>p[role=status]{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.personal-page>p[role=status]:empty,.information-sections>p[role=status]:empty{display:none}
+/* Text links are 44px targets here; the negative margin keeps the label optically aligned with the field edge */
+.personal-page .text-link,.information-body .text-link,.car-photo-control .text-link{min-height:var(--hit);padding:0 var(--s-2);margin:0 calc(var(--s-2) * -1)}
+.personal-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s-5)}
+.personal-heading>div{min-width:0}
+.personal-heading p{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);margin-top:6px;max-width:60ch}
+.personal-heading>.button{flex-shrink:0}
+
+/* Two-column form grid (labels above fields) ------------------------------ */
+.personal-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4);min-width:0}
+.personal-form-grid>label{min-width:0}
+.personal-form-grid>.text-link,.personal-form-grid>.field-help{grid-column:1/-1;justify-self:start}
+
+/* Filter row and action row ----------------------------------------------- */
+.personal-filters{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-3)}
+.personal-filters>.search{flex:1 1 180px;min-width:160px}
+.personal-filters>input{flex:1 1 200px;width:auto;min-width:0}
+.personal-filters>input[type=number]{flex:0 1 124px}
+.personal-filters>select{width:auto;flex:0 1 auto;min-width:0;max-width:100%}
+.personal-filters>.text-link{padding:0 10px;margin:0}
+.personal-filters>span{margin-left:auto;font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.personal-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:var(--s-3);padding-top:var(--s-4);border-top:1px solid var(--separator-soft)}
+
+/* Disclosure cards: per-section tint and inset content ------------------- */
+.information-card{--card-tint:var(--accent)}
+.information-card>summary .expand-arrow{width:20px;height:20px}
+.information-card .information-icon{background:color-mix(in srgb,var(--card-tint) 14%,transparent);color:var(--card-tint)}
+.information-card.tint-health{--card-tint:var(--tint-health)}
+.information-card.tint-finance{--card-tint:var(--tint-finance)}
+.information-card.tint-travel{--card-tint:var(--sys-cyan)}
+.information-card.tint-bills{--card-tint:var(--sys-orange)}
+.information-card.tint-documents{--card-tint:var(--sys-indigo)}
+.information-card.tint-preferences{--card-tint:var(--sys-purple)}
+.car-information-card{--card-tint:var(--sys-red)}
+/* Inside a disclosure card, cards become inset groups (grey on white / lighter on dark) */
+.information-body .panel,.information-body .metric{background:var(--bg-3);box-shadow:none;border-radius:var(--r-md)}
+.information-body .personal-heading h1{font-size:var(--fs-title2);line-height:var(--lh-title2);letter-spacing:-.016em}
+.information-body .personal-heading .eyebrow{margin-bottom:4px}
+.information-body .panel.personal-form-grid{padding:var(--s-5);border-radius:var(--r-md)}
+
+/* Health profile ---------------------------------------------------------- */
+.profile-layout{display:grid;gap:var(--s-5);min-width:0}
+.profile-layout>.form-page{max-width:none}
+.profile-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-3)}
+.profile-summary .metric{--metric-tint:var(--tint-health);padding:var(--s-4)}
+.profile-summary .metric-top{margin-bottom:6px}
+.profile-summary .metric-top>span::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--metric-tint);flex-shrink:0}
+.profile-summary .metric-value{font-size:var(--fs-title2);line-height:var(--lh-title2);white-space:normal;overflow-wrap:anywhere}
+.body-measurements>div:last-child{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));column-gap:var(--s-6)}
+.body-measurements article{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--hit);padding:10px 0;border-top:1px solid var(--separator-soft);min-width:0}
+.body-measurements article small{display:block;min-width:0;font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);letter-spacing:-.01em}
+.body-measurements article small::first-letter{text-transform:uppercase}
+.body-measurements article strong{font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;color:var(--label);font-variant-numeric:tabular-nums;white-space:nowrap}
+.profile-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.profile-sections article{min-width:0;padding:var(--s-3) var(--s-4) var(--s-2);border-radius:var(--r-md);background:var(--bg-3)}
+.profile-sections h2{display:flex;align-items:center;gap:8px;padding:4px 0 8px;font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.profile-sections h2::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--tint-health);flex-shrink:0}
+.profile-sections li{display:flex;align-items:center;min-height:40px;padding:8px 0;border-top:1px solid var(--separator-soft);font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label);text-wrap:pretty}
+.profile-layout .form-stack{grid-template-columns:repeat(2,minmax(0,1fr))}
+.profile-layout .form-stack>.error,.profile-layout .form-stack>.success,.profile-layout .form-stack>.button{grid-column:1/-1}
+.profile-layout .form-stack>.button{justify-self:end;min-width:0;min-height:var(--hit);padding:0 var(--s-5);font-size:var(--fs-subhead);margin-top:0}
+.profile-layout .form-stack>label{min-width:0}
+.profile-layout .form-stack>label::first-letter{text-transform:uppercase}
+.profile-layout .form-stack textarea{min-height:112px}
+
+/* Car ----------------------------------------------------------------------- */
+.car-information{min-width:0}
+/* Garage hero: a red-tinted inset panel (tokens only) that reads in both modes. */
+.eclipse-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);align-items:center;gap:var(--s-5);padding:var(--s-6) var(--s-7);border-radius:var(--r-md);overflow:hidden;color:var(--label);background:
+  radial-gradient(70% 90% at 88% 8%,color-mix(in srgb,var(--sys-red) 22%,transparent),transparent 62%),
+  color-mix(in srgb,var(--sys-red) 8%,var(--bg-3));
+  box-shadow:inset 0 0 0 1px var(--separator-soft)}
+.eclipse-hero>div{min-width:0}
+.mitsubishi-symbol{display:grid;place-items:center;width:var(--hit);height:var(--hit);border-radius:12px;background:color-mix(in srgb,var(--sys-red) 22%,transparent);color:var(--sys-red);margin-bottom:var(--s-4)}
+.mitsubishi-symbol svg{width:24px;height:21px}
+.eclipse-hero .eyebrow{color:var(--label-2);margin-bottom:6px}
+.eclipse-hero h2{font-size:var(--fs-title1);line-height:var(--lh-title1);letter-spacing:-.02em;color:inherit}
+.eclipse-hero h2 span{display:block;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:400;letter-spacing:-.01em;color:var(--label-2);margin-top:6px}
+.eclipse-art{width:100%;max-width:560px;height:auto;justify-self:end;filter:drop-shadow(0 12px 14px color-mix(in srgb,var(--label) 18%,transparent))}
+.car-fieldset{display:grid;gap:var(--s-6);margin:0;padding:0;border:0;min-width:0}
+.car-current{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s-6);align-items:start}
+.car-photo-control{display:flex;flex-direction:column;align-items:center;gap:var(--s-2);min-width:0}
+.car-avatar{display:grid;place-items:center;width:132px;height:132px;border-radius:var(--r-xl);background:var(--bg-3);color:var(--label-3);overflow:hidden;box-shadow:inset 0 0 0 1px var(--separator-soft)}
+.car-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.photo-upload{position:relative;overflow:hidden;cursor:pointer;min-height:var(--hit);padding:0 var(--s-4);font-size:var(--fs-footnote)}
+.photo-upload input{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;padding:0;opacity:0;cursor:pointer}
+.photo-upload:focus-within{outline:3px solid color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:2px}
+.car-photo-control .text-link{font-size:var(--fs-footnote)}
+.car-photo-control .error{text-align:center;max-width:22ch}
+.car-document-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.car-document-grid>.panel{display:grid;gap:var(--s-3);align-content:start;padding:var(--s-5);border-radius:var(--r-md)}
+.car-document-grid h3{display:flex;align-items:center;gap:10px;font-size:var(--fs-headline);line-height:var(--lh-headline);margin-bottom:2px}
+.car-document-grid h3 svg{width:20px;height:20px;color:var(--sys-red)}
+.car-document-grid .text-link{justify-self:start}
+.car-notes,.document-notes{display:grid;min-width:0}
+.car-history{display:grid;gap:var(--s-4);padding-top:var(--s-6);border-top:1px solid var(--separator-soft)}
+.car-history>.panel-heading{margin-bottom:0;align-items:center}
+.car-history h3{font-size:var(--fs-title3);line-height:var(--lh-title3)}
+.car-history>.field-help{margin-top:-4px}
+.previous-car-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.previous-car-grid:empty{display:none}
+.previous-car{display:grid;gap:var(--s-4);padding:var(--s-5);border-radius:var(--r-md)}
+.previous-car .car-photo-control{flex-direction:row;flex-wrap:wrap;justify-content:flex-start}
+.previous-car .car-avatar{width:72px;height:72px;border-radius:var(--r-lg);background:var(--on-inset,var(--bg-2))}
+.previous-car>.text-link{justify-self:start}
+.car-save{display:flex;align-items:center;justify-content:flex-end;gap:var(--s-4);padding-top:var(--s-5);border-top:1px solid var(--separator-soft)}
+.car-save span{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.car-save span:empty{display:none}
+.car-save .button{margin-left:auto}
+
+/* Inset disclosure groups (car details, preferences, investments) --------- */
+.life-stack{display:grid;gap:var(--s-3)}
+.life-details{padding:0;border-radius:var(--r-md);background:var(--bg-3);box-shadow:none}
+.life-details>summary{display:flex;align-items:center;gap:var(--s-3);min-height:var(--hit);padding:10px var(--s-4);border-radius:inherit;font-size:var(--fs-body);line-height:var(--lh-body);font-weight:600;color:var(--label);transition:background-color var(--dur-fast)}
+.life-details>summary:hover{background:var(--fill-4)}
+.life-details>summary:focus-visible{outline-offset:-3px}
+.life-details>summary>span:first-child{flex:1;min-width:0}
+.life-details>summary .expand-arrow{width:18px;height:18px}
+.life-details[open]>summary{border-bottom:1px solid var(--separator-soft);border-radius:var(--r-md) var(--r-md) 0 0}
+.life-details[open]>summary .expand-arrow{transform:rotate(180deg)}
+.life-details>summary~*{margin:var(--s-4) var(--s-4) 0}
+.life-details[open]{padding-bottom:var(--s-4)}
+.life-details>.button{justify-self:start}
+.life-row{display:grid;gap:var(--s-4);padding:var(--s-4);border-radius:var(--r-sm);background:var(--on-inset,var(--bg-2))}
+.life-details .summary-table td{padding:6px}
+.life-details .summary-table td:last-child{width:52px;padding:0;text-align:center}
+.life-details .summary-table .text-link{width:var(--hit);min-height:var(--hit);padding:0;margin:0;justify-content:center;border-radius:50%;color:var(--danger);background:color-mix(in srgb,var(--danger) 8%,transparent);transition:background-color var(--dur-fast),color var(--dur-fast)}
+.life-details .summary-table .text-link:hover{opacity:1;background:color-mix(in srgb,var(--danger) 14%,transparent)}
+.life-row>.text-link{justify-self:start}
+
+/* Documents and dates ------------------------------------------------------ */
+.document-list{display:grid;gap:var(--s-4)}
+.document-list:empty{display:none}
+.document-editor{min-width:0;background:var(--bg-3);border-radius:var(--r-md);overflow:hidden}
+.document-editor-heading{display:flex;align-items:center;gap:var(--s-3);min-height:72px;padding:var(--s-4) var(--s-5)}
+.document-editor-heading>div{flex:1;min-width:0}
+.document-editor-heading small{display:block;font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.document-editor-heading h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;overflow-wrap:anywhere;text-wrap:pretty}
+.document-editor-icon{display:grid;place-items:center;width:var(--hit);height:var(--hit);border-radius:12px;background:color-mix(in srgb,var(--sys-indigo) 14%,transparent);color:var(--sys-indigo);flex-shrink:0}
+.document-editor-icon svg{width:22px;height:22px}
+.document-remove{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--hit);padding:0 14px;border-radius:var(--r-pill);color:var(--danger);font-size:var(--fs-footnote);font-weight:600;flex-shrink:0;transition:background-color var(--dur-fast),transform var(--dur) var(--ease-spring)}
+.document-remove:hover{background:color-mix(in srgb,var(--danger) 10%,transparent)}
+.document-remove:active{transform:scale(.96)}
+.document-remove svg{width:16px;height:16px}
+.document-editor-body{display:grid;gap:var(--s-5);padding:var(--s-5);border-top:1px solid var(--separator-soft)}
+.document-fieldset{display:block;margin:0;padding:0;border:0;min-width:0}
+.document-fieldset>legend{display:flex;align-items:center;gap:8px;margin:0 0 var(--s-3);padding:0;font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-weight:600;color:var(--label-2)}
+.document-fieldset>legend svg{width:16px;height:16px;color:var(--sys-indigo)}
+.document-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.document-fields>label{min-width:0}
+
+/* Travel --------------------------------------------------------------------- */
+.travel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.travel-card{display:grid;gap:var(--s-4);align-content:start}
+.travel-card-head{display:flex;align-items:flex-end;gap:var(--s-3)}
+.travel-card-head>label{flex:1;min-width:0}
+.travel-icon{display:grid;place-items:center;width:var(--hit);height:var(--hit);border-radius:12px;background:color-mix(in srgb,var(--sys-cyan) 14%,transparent);color:var(--sys-cyan);flex-shrink:0}
+.travel-icon svg{width:22px;height:22px}
+.travel-rating{display:flex;align-items:flex-end;gap:var(--s-3)}
+.travel-rating>label{flex:1;min-width:0;font-variant-numeric:tabular-nums}
+.travel-rating input[type=range]{accent-color:var(--sys-cyan)}
+.travel-rating>.text-link{flex-shrink:0;margin-bottom:6px}
+.travel-card>footer{display:flex;justify-content:flex-end;padding-top:var(--s-3);border-top:1px solid var(--separator-soft)}
+
+/* Medium widths ---------------------------------------------------------- */
+@media (max-width:1180px){
+  .previous-car-grid{grid-template-columns:1fr}
+  .eclipse-hero{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
+}
+
+/* Compact widths --------------------------------------------------------- */
+@media (max-width:760px){
+  .personal-page{gap:var(--s-4)}
+  .personal-heading{flex-direction:column;align-items:stretch;gap:var(--s-3)}
+  .personal-heading>.button{width:100%}
+  .personal-form-grid,.document-fields,.car-document-grid,.travel-grid,.profile-sections,.body-measurements>div:last-child{grid-template-columns:1fr}
+  .profile-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .profile-layout .form-stack{grid-template-columns:1fr}
+  .profile-layout .form-stack>.button{justify-self:stretch}
+  .information-body .panel{border-radius:var(--r-md)}
+  .personal-filters>input,.personal-filters>select,.personal-filters>.search{flex:1 1 100%}
+  .personal-filters>input[type=number]{flex:1 1 calc(50% - var(--s-3))}
+  .personal-filters>span{margin-left:0;flex-basis:100%}
+  .personal-actions{flex-direction:column;align-items:stretch}
+  .personal-actions>.button{width:100%}
+  .eclipse-hero{grid-template-columns:1fr;padding:var(--s-5);gap:var(--s-4)}
+  .eclipse-hero h2{font-size:var(--fs-title2);line-height:var(--lh-title2)}
+  .eclipse-art{max-width:100%;justify-self:center}
+  .car-current{grid-template-columns:1fr}
+  .car-current>.car-photo-control{flex-direction:row;flex-wrap:wrap;justify-content:flex-start}
+  .car-current .car-avatar{width:96px;height:96px;border-radius:var(--r-lg)}
+  .car-save{flex-direction:column;align-items:stretch}
+  .car-save .button{margin-left:0;width:100%}
+  .car-history>.panel-heading{flex-direction:column;align-items:stretch}
+  .life-details>summary~*{margin:var(--s-3) var(--s-3) 0}
+  .life-details .summary-table{min-width:0;display:block}
+  .life-details .summary-table thead{display:none}
+  .life-details .summary-table tbody{display:block}
+  .life-details .summary-table tr{display:grid;grid-template-columns:minmax(0,1fr) var(--hit);gap:var(--s-2);align-items:center;padding:var(--s-2) 0;border-bottom:1px solid var(--separator-soft)}
+  .life-details .summary-table tr:last-child{border-bottom:0}
+  .life-details .summary-table tbody tr:hover td{background:transparent}
+  .life-details .summary-table td,.life-details .summary-table td:last-child{display:block;width:auto;min-width:0;padding:0;border-bottom:0}
+  .life-details .summary-table td:first-child{grid-column:1/-1}
+  .life-details[open]{padding-bottom:var(--s-3)}
+  .document-editor-heading{min-height:64px;padding:var(--s-3) var(--s-4)}
+  .document-editor-body{padding:var(--s-4)}
+  .document-remove{width:var(--hit);min-height:var(--hit);padding:0}
+  .document-remove span{display:none}
+  .travel-rating{flex-wrap:wrap}
+  .travel-rating>.text-link{margin-bottom:0}
+}

@@ -13,13 +13,13 @@ export function DocumentEditor({ value, onChange, onRemove }: {
   );
   return <article className="document-editor">
     <header className="document-editor-heading">
-      <span className="document-editor-icon"><FileText size={22} aria-hidden="true"/></span>
+      <span className="document-editor-icon"><FileText size={22} strokeWidth={1.9} aria-hidden="true"/></span>
       <div><small>{value.kind}</small><h3>{value.name || 'Novo documento'}</h3></div>
-      <button type="button" className="document-remove" onClick={onRemove} aria-label={`Remover ${value.name || 'documento'}`}><Trash2 size={16}/><span>Remover</span></button>
+      <button type="button" className="document-remove" onClick={onRemove} aria-label={`Remover ${value.name || 'documento'}`}><Trash2 size={16} strokeWidth={1.9}/><span>Remover</span></button>
     </header>
     <div className="document-editor-body">
       <fieldset className="document-fieldset">
-        <legend><FileText size={16} aria-hidden="true"/>Identificação</legend>
+        <legend><FileText size={16} strokeWidth={1.9} aria-hidden="true"/>Identificação</legend>
         <div className="document-fields">
           <label>Categoria<select value={value.kind} onChange={event => onChange({ ...value, kind: event.target.value as Deadline['kind'] })}>{['Documento','Visto','Passaporte','Garantia','Assinatura','Consulta','Outro'].map(kind => <option key={kind}>{kind}</option>)}</select></label>
           {field('name', 'Nome', 'text', 'Ex.: Passaporte')}
@@ -28,7 +28,7 @@ export function DocumentEditor({ value, onChange, onRemove }: {
         </div>
       </fieldset>
       <fieldset className="document-fieldset">
-        <legend><CalendarDays size={16} aria-hidden="true"/>Datas</legend>
+        <legend><CalendarDays size={16} strokeWidth={1.9} aria-hidden="true"/>Datas</legend>
         <div className="document-fields">
           {field('issued', 'Emissão / início', 'date')}
           {field('date', 'Vencimento / consulta', 'date')}

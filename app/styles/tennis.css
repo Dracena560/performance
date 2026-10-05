@@ -1,0 +1,295 @@
+/* ==========================================================================
+   Tennis — Apple Fitness-style workout summary for the Tênis section.
+   Tint: --tint-tennis (green). Content layer only: .panel, .metric, inset
+   groups (--bg-3 / --fill-4) and hairline separators. No Liquid Glass here.
+   ========================================================================== */
+.tennis-club-theme{--panel-tint:var(--tint-tennis);--tennis-soft:color-mix(in srgb,var(--tint-tennis) 14%,transparent)}
+/* Result pills: the system green/red are too light on their 15% tint in Light
+   Mode (2.0:1 / 3.0:1), so darken the text there; Dark Mode already passes. */
+.tennis-club-theme .badge.success{color:light-dark(color-mix(in srgb,var(--success) 55%,var(--label)),var(--success))}
+.tennis-club-theme .badge.danger{color:light-dark(color-mix(in srgb,var(--danger) 62%,var(--label)),color-mix(in srgb,var(--danger) 78%,var(--label)))}
+/* Section labels inside the tennis page are content, not decoration */
+.tennis-club-theme .panel-heading>.eyebrow{margin:4px 0 0}
+.match-score>.eyebrow,.tennis-insight>div>.eyebrow{margin:0}
+
+/* Page grid: 12 columns so the player card and the agenda can sit side by
+   side on regular widths; everything else spans the full width. */
+.tennis-dashboard{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--s-5);align-items:stretch}
+.tennis-dashboard>*{grid-column:1/-1;min-width:0}
+.tennis-dashboard>.tennis-hero{margin-bottom:0}
+.tennis-dashboard>.club-player{grid-column:1/8}
+.tennis-dashboard>.club-next{grid-column:8/-1}
+.tennis-hero .button svg{width:18px;height:18px}
+
+/* Player card — tinted gradient hero. The deep-green anchor keeps the white
+   on-accent text readable in both colour schemes. */
+.club-player{position:relative;overflow:hidden;display:flex;align-items:flex-end;min-height:224px;padding:var(--s-6);border-radius:var(--r-lg);color:var(--on-accent);
+  /* Overlays are kept weak and pushed off the text block (top-right / far
+     bottom-left) so white at 92% stays >= 4.5:1 everywhere the copy sits. */
+  background:
+    radial-gradient(420px 280px at 100% -30%,color-mix(in srgb,var(--sys-mint) 20%,transparent),transparent 70%),
+    radial-gradient(360px 240px at -10% 120%,color-mix(in srgb,var(--sys-teal) 16%,transparent),transparent 70%),
+    linear-gradient(135deg,color-mix(in srgb,var(--tint-tennis) 36%,#05231a) 0%,color-mix(in srgb,var(--tint-tennis) 50%,#05231a) 100%);
+  box-shadow:var(--shadow-1),0 18px 40px -20px color-mix(in srgb,var(--tint-tennis) 60%,transparent)}
+.club-player-content{position:relative;z-index:1;display:grid;gap:var(--s-4);width:100%}
+.club-kicker{display:inline-flex;align-items:center;gap:6px}
+.club-kicker svg{width:14px;height:14px}
+.club-player .club-kicker{color:color-mix(in srgb,var(--on-accent) 92%,transparent);margin:0}
+.club-player-title{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);flex-wrap:wrap}
+.club-player h2{font-size:var(--fs-title1);line-height:var(--lh-title1);font-weight:700;letter-spacing:-.018em;color:var(--on-accent)}
+.club-edit.button{background:color-mix(in srgb,var(--on-accent) 16%,transparent);color:var(--on-accent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--on-accent) 22%,transparent)}
+.club-edit.button:hover{background:color-mix(in srgb,var(--on-accent) 26%,transparent)}
+.club-player dl{display:flex;flex-wrap:wrap;gap:var(--s-3) var(--s-7);margin:0}
+.club-player dl>div{display:grid;gap:2px;min-width:0}
+.club-player dt{font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:color-mix(in srgb,var(--on-accent) 92%,transparent)}
+.club-player dd{margin:0;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;color:var(--on-accent);overflow-wrap:anywhere}
+
+/* Court illustration — decorative line art drawn from the on-accent token */
+.club-court{--court-line:color-mix(in srgb,var(--on-accent) 20%,transparent);position:absolute;right:-28px;top:-44px;width:340px;height:244px;border:1.5px solid var(--court-line);border-radius:6px;transform:rotate(-18deg);pointer-events:none}
+.club-court::before,.club-court::after{content:"";position:absolute;left:22%;right:22%;top:25%;border-top:1.5px solid var(--court-line)}
+.club-court::after{top:75%}
+.club-court span{position:absolute;top:0;bottom:0;left:50%;border-left:1.5px solid var(--court-line)}
+.club-court i{position:absolute;left:22%;right:22%;top:0;bottom:0;border-left:1.5px solid var(--court-line);border-right:1.5px solid var(--court-line)}
+
+/* Next match (agenda) — text block on top, action pinned to the bottom */
+.club-next{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:var(--s-5)}
+.club-next>div{display:grid;gap:6px;min-width:0;width:100%}
+.club-next .club-kicker svg{color:var(--tint-tennis)}
+.club-next h2{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;margin-top:2px}
+.club-next h3{font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;margin-top:var(--s-2);text-wrap:balance}
+.club-next p{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);font-variant-numeric:tabular-nums}
+.club-next p::first-letter{text-transform:uppercase}
+.club-location{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px}
+.club-location svg{width:14px;height:14px;color:var(--tint-tennis)}
+.club-next>.button{flex-shrink:0}
+
+/* Stats — tappable KPI tiles built on .metric */
+.club-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:1fr;gap:var(--s-3)}
+.club-stat{display:grid;grid-template-rows:auto 1fr auto;align-content:start;text-align:left;width:100%;--metric-tint:var(--tint-tennis);transition:transform var(--dur) var(--ease-spring),box-shadow var(--dur) var(--ease-out),background-color var(--dur-fast)}
+.club-stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.club-stat:active{transform:scale(.98)}
+.club-stat .metric-top{margin-bottom:var(--s-2)}
+.club-stat .metric-top>span{color:var(--label-2);min-width:0}
+.club-stat .metric-value{align-self:end}
+.club-stat .metric-value{font-size:var(--fs-title1);line-height:var(--lh-title1)}
+.club-stat .metric-foot{color:var(--accent-strong);font-weight:500;margin-top:6px;font-size:var(--fs-footnote);line-height:var(--lh-footnote)}
+.club-stat-doubles{--metric-tint:var(--sys-teal)}
+.club-stat-friendly{--metric-tint:var(--sys-mint)}
+.club-stat-wins{--metric-tint:var(--success);background:color-mix(in srgb,var(--success) 7%,var(--bg-2))}
+.club-stat-losses{--metric-tint:var(--danger);background:color-mix(in srgb,var(--danger) 6%,var(--bg-2))}
+
+/* Summary strip — four figures separated by hairlines */
+.club-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--bg-2);border-radius:var(--r-md);box-shadow:var(--shadow-1);overflow:hidden}
+.club-summary>span{display:grid;gap:2px;align-content:start;padding:var(--s-4) var(--s-5);font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);min-width:0}
+.club-summary>span+span{border-left:1px solid var(--separator-soft)}
+.club-summary b{font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em;color:var(--label);font-variant-numeric:tabular-nums}
+
+/* Insight — Health-style highlight: tinted symbol square + reading */
+.tennis-insight{display:grid;grid-template-columns:40px minmax(0,1fr);gap:var(--s-4);align-items:start}
+.tennis-insight>svg:first-child{width:40px;height:40px;padding:9px;border-radius:12px;background:var(--tennis-soft);color:var(--tint-tennis)}
+.tennis-insight>div{display:grid;gap:4px}
+.tennis-insight h2{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600}
+.tennis-insight p{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);max-width:72ch}
+
+/* Chart (Recharts) */
+.tennis-chart{height:260px;margin:0 calc(var(--s-2) * -1)}
+.tennis-chart .recharts-text{fill:var(--label-2);font-size:var(--fs-caption);font-variant-numeric:tabular-nums}
+.tennis-chart .recharts-cartesian-grid line{stroke:var(--separator-soft)}
+.tennis-chart .recharts-tooltip-wrapper{outline:none}
+.tennis-chart-legend{display:flex;flex-wrap:wrap;gap:6px var(--s-4);margin-top:var(--s-3);font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.tennis-chart-legend span{display:inline-flex;align-items:center;gap:7px}
+.tennis-chart-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--legend,var(--accent))}
+
+/* Match history — section on the grouped background, cards as panels */
+.match-history{display:grid;gap:var(--s-4);margin-top:var(--s-3)}
+.match-history-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-4)}
+.match-history-heading h2{font-size:var(--fs-title2);line-height:var(--lh-title2)}
+.match-history-heading p{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);margin-top:4px}
+.match-count{margin-top:6px;font-variant-numeric:tabular-nums}
+.history-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(max-content,1fr);width:100%;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.history-tabs::-webkit-scrollbar{display:none}
+.history-tabs>button{scroll-snap-align:start}
+.history-tabs>button:focus-visible,.club-match-list>button:focus-visible{outline-offset:-3px}
+.match-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.match-card-grid>p{grid-column:1/-1;padding:var(--s-7) var(--s-5);text-align:center;background:var(--bg-2);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
+.match-card{display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-5) var(--s-5) var(--s-4)}
+.match-card>header{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
+.match-card time{font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-weight:600;color:var(--label-2)}
+.match-card time::first-letter{text-transform:uppercase}
+.match-result{flex-shrink:0;text-transform:capitalize}
+.match-card-title{display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);margin-top:-2px}
+.match-card-title h3{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;min-width:0}
+.match-edit{color:var(--label-2);margin:-6px 0}
+.match-edit:hover{color:var(--label)}
+.match-opponent{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);margin-top:-8px}
+.match-score{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:var(--s-3);padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--bg-3)}
+.match-score>span{grid-column:1;color:var(--label-2)}
+.match-score strong{grid-column:1;font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin-top:2px}
+.match-score svg{grid-column:2;grid-row:1/3;width:28px;height:28px;color:var(--label-3)}
+.match-score .match-trophy{color:var(--tint-tennis)}
+.match-card footer{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);margin-top:auto;padding-top:var(--s-2)}
+.match-card footer>div{display:grid;gap:2px;min-width:0}
+.match-card footer>div>small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.match-rating{display:inline-flex;align-items:baseline;gap:5px;font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.match-rating small{font-size:var(--fs-footnote);font-weight:400;color:var(--label-2)}
+.match-grade{display:inline-flex;align-items:baseline;gap:3px;font-size:var(--fs-headline);font-weight:700;color:var(--tint-tennis);font-variant-numeric:tabular-nums}
+.match-grade em{font-size:var(--fs-caption2);font-weight:500;color:var(--label-2)}
+.match-card footer .button{flex-shrink:0}
+
+/* Sheets ------------------------------------------------------------------ */
+.dialog-content.tennis-details-dialog{width:min(760px,calc(100vw - 32px))}
+.dialog-content.club-dialog{width:min(820px,calc(100vw - 32px))}
+.tennis-details-dialog>.panel-heading{margin:var(--s-5) 0 var(--s-4);align-items:center}
+.tennis-details-dialog>.panel-heading .eyebrow{margin-bottom:4px}
+.tennis-details-dialog>.panel-heading h2{display:block;font-size:var(--fs-title3);line-height:var(--lh-title3)}
+.tennis-details-dialog>.panel-heading>.text-link{display:none}
+/* Text-link actions inside sheets are tappable: 44pt rows */
+.tennis-details-dialog .text-link,.club-dialog .text-link{min-height:var(--hit)}
+.tennis-detail-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s-2)}
+.tennis-detail-summary article{display:grid;gap:2px;align-content:start;min-width:0;padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--fill-4)}
+.tennis-detail-summary small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.tennis-detail-summary strong{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tennis-detail-summary strong::first-letter{text-transform:uppercase}
+.tennis-detail-summary em{font-size:var(--fs-footnote);font-weight:500;color:var(--label-2);margin-left:2px}
+.tennis-detail-section{margin-top:var(--s-6)}
+.tennis-detail-section>h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;margin-bottom:var(--s-3)}
+.tennis-detail-section>p{font-size:var(--fs-subhead);line-height:var(--lh-subhead);color:var(--label-2);white-space:pre-line}
+/* Disclosure variant (session editor): 44pt summary row with a chevron */
+details.tennis-detail-section{border-radius:var(--r-md);background:var(--fill-4);overflow:hidden}
+details.tennis-detail-section.personal-page{gap:0}
+details.tennis-detail-section>summary{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--hit);padding:10px var(--s-4);font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;color:var(--label);transition:background-color var(--dur-fast)}
+details.tennis-detail-section>summary:hover{background:var(--fill-3)}
+details.tennis-detail-section>summary:focus-visible{outline-offset:-4px}
+details.tennis-detail-section[open]>summary{border-bottom:1px solid var(--separator-soft)}
+details.tennis-detail-section[open]>summary .expand-arrow{transform:rotate(180deg)}
+details.tennis-detail-section>form{display:grid;gap:var(--s-4);padding:var(--s-4)}
+details.tennis-detail-section>form>.button.primary{justify-self:end}
+
+/* Score editor */
+.score-editor{display:grid;gap:var(--s-3);justify-items:start;margin-top:var(--s-5)}
+.scoreboard-entry{display:grid;gap:var(--s-3);width:100%;padding:var(--s-4);border-radius:var(--r-md);background:var(--fill-4)}
+.scoreboard-entry h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.scoreboard-entry>.text-link{justify-self:start}
+.scoreboard-entry>.button.tinted{justify-self:end}
+.set-row{display:grid;grid-template-columns:64px minmax(0,1fr) minmax(0,1fr);gap:var(--s-3);align-items:end}
+.set-row>span{padding-bottom:11px;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;color:var(--label);font-variant-numeric:tabular-nums}
+.set-row input{text-align:center}
+
+/* Matches inside the stat dialog (grouped list on a translucent fill) */
+.club-match-list{margin-top:var(--s-5)}
+.club-match-list.list{background:var(--fill-4);box-shadow:none}
+.club-match-list>button{justify-content:space-between;min-height:60px;padding:12px var(--s-4)}
+.club-match-list>button:hover{background:var(--fill-3)}
+.club-match-list>button>span{display:grid;gap:2px;min-width:0}
+.club-match-list>button>span:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;flex-shrink:0}
+.club-match-list strong{font-size:var(--fs-body);font-weight:600}
+.club-match-list small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);font-weight:400}
+.club-match-list small::first-letter{text-transform:uppercase}
+.club-match-list>p{font-size:var(--fs-subhead);color:var(--label-2)}
+
+/* Club dialog forms (profile + agenda) */
+.club-dialog .personal-page{display:grid;gap:var(--s-4);margin-top:var(--s-5)}
+.club-dialog .personal-page>.button{justify-self:start}
+.club-dialog .personal-page>.button.primary{justify-self:end}
+.club-dialog .personal-form-grid,.tennis-detail-section .personal-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.club-appointment{display:grid;gap:var(--s-4);padding:var(--s-4);border-radius:var(--r-md);background:var(--fill-4)}
+.club-appointment>.text-link{justify-self:start}
+
+/* Workout details (Apple Fitness summary) */
+.workout-details{display:grid;gap:var(--s-6);margin-top:var(--s-6)}
+.workout-details h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;margin-bottom:var(--s-3)}
+.workout-zones{display:flex;flex-direction:column;border-radius:var(--r-md);background:var(--fill-4);overflow:hidden}
+.workout-zones>div{--zone:var(--sys-cyan);position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:var(--s-3);min-height:var(--hit);padding:10px var(--s-4) 10px 22px;font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.workout-zones>div+div{border-top:1px solid var(--separator-soft)}
+.workout-zones>div::before{content:"";position:absolute;left:var(--s-3);top:50%;width:4px;height:22px;margin-top:-11px;border-radius:var(--r-pill);background:var(--zone)}
+.workout-zones>div:nth-child(2){--zone:var(--sys-teal)}
+.workout-zones>div:nth-child(3){--zone:var(--sys-green)}
+.workout-zones>div:nth-child(4){--zone:var(--sys-orange)}
+.workout-zones>div:nth-child(5){--zone:var(--sys-red)}
+.workout-zones strong{font-weight:600}
+.workout-zones span{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.workout-zones small{font-size:var(--fs-footnote);color:var(--label-2);text-align:right;font-variant-numeric:tabular-nums}
+.workout-recovery{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--s-2)}
+.workout-recovery article{display:grid;gap:2px;align-content:start;padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--fill-4)}
+.workout-recovery article>small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.workout-recovery strong{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;font-variant-numeric:tabular-nums}
+.workout-recovery strong small{font-size:var(--fs-footnote);font-weight:500;color:var(--label-2)}
+.workout-data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2);align-items:start}
+.workout-data-grid>div{display:grid;gap:2px;align-content:start;min-width:0;padding:10px var(--s-4);border-radius:var(--r-sm);background:var(--fill-4)}
+.workout-data-grid dt{font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2)}
+.workout-data-grid dt::first-letter{text-transform:uppercase}
+.workout-data-grid dd{margin:0;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.workout-data-grid .workout-data-grid{grid-template-columns:1fr;gap:0;margin-top:4px}
+.workout-data-grid .workout-data-grid>div{display:flex;justify-content:space-between;gap:var(--s-3);padding:6px 0;border-radius:0;background:transparent}
+.workout-data-grid .workout-data-grid>div+div{border-top:1px solid var(--separator-soft)}
+.workout-data-grid .workout-data-grid dt{font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-weight:400}
+.workout-data-grid .workout-data-grid dd{text-align:right;font-weight:500}
+/* Arrays (e.g. the sets of a match): one block per item, hairline between them */
+.workout-data-grid dd>div{counter-reset:item}
+.workout-data-grid dd>div>div{counter-increment:item}
+.workout-data-grid dd>div>div+div{margin-top:6px;padding-top:6px;border-top:1px solid var(--separator)}
+.workout-data-grid>div[data-key=sets] dd>div>div::before{content:"Set " counter(item);display:block;font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;color:var(--label-2);margin-top:2px}
+
+/* Responsive ---------------------------------------------------------------- */
+@media (max-width:1180px){
+  /* 3 category tiles on the first row, wins/losses on the second */
+  .club-stats{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .club-stat{grid-column:span 2}
+  .club-stat-wins,.club-stat-losses{grid-column:span 3}
+  .club-stat .metric-value{font-size:var(--fs-title2);line-height:var(--lh-title2)}
+}
+@media (max-width:980px){
+  .tennis-dashboard>.club-player,.tennis-dashboard>.club-next{grid-column:1/-1}
+  .club-player{min-height:0}
+  .club-next{flex-direction:row;align-items:flex-end}
+}
+@media (max-width:760px){
+  .tennis-dashboard{gap:var(--s-4)}
+  .tennis-hero h1{font-size:var(--fs-title1);line-height:var(--lh-title1)}
+  .tennis-hero>.button{align-self:stretch}
+  .club-player{padding:var(--s-5)}
+  .club-player h2{font-size:var(--fs-title2);line-height:var(--lh-title2)}
+  .club-court{right:-70px;top:-56px;width:250px;height:184px}
+  .club-player dl{gap:var(--s-3) var(--s-5)}
+  .club-next{flex-direction:column;align-items:stretch}
+  .club-next h3{font-size:var(--fs-title3);line-height:var(--lh-title3)}
+  .club-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .club-stat,.club-stat-wins,.club-stat-losses{grid-column:auto;padding:var(--s-4)}
+  .club-stat:last-child:nth-child(odd){grid-column:1/-1}
+  .club-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .club-summary>span{padding:var(--s-3) var(--s-4)}
+  .club-summary>span:nth-child(3){border-left:0}
+  .club-summary>span:nth-child(n+3){border-top:1px solid var(--separator-soft)}
+  .club-summary b{font-size:var(--fs-title3);line-height:var(--lh-title3)}
+  .tennis-insight{grid-template-columns:36px minmax(0,1fr);gap:var(--s-3)}
+  .tennis-insight>svg:first-child{width:36px;height:36px;padding:8px;border-radius:10px}
+  .tennis-chart{height:220px}
+  .match-history-heading{flex-direction:column;align-items:flex-start;gap:var(--s-2)}
+  .match-count{margin-top:0}
+  /* Five labels do not fit a 343px segmented control and HIG segments never
+     scroll, so on compact the same buttons are laid out as a wrapping chip row. */
+  .segmented.history-tabs{display:flex;flex-wrap:wrap;gap:var(--s-2);padding:0;border-radius:0;background:transparent;overflow:visible}
+  .segmented.history-tabs>button{min-height:var(--hit);padding:0 var(--s-4);border-radius:var(--r-pill);background:var(--fill-3);font-size:var(--fs-subhead);font-weight:500;box-shadow:none}
+  .segmented.history-tabs>button:hover{background:var(--fill-2)}
+  /* Selected chip: label text on the accent tint (accent-on-tint is only ~3:1) */
+  .segmented.history-tabs>button[aria-pressed=true]{background:var(--accent-soft);color:var(--label);font-weight:600;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent)}
+  .segmented.history-tabs>button:focus-visible{outline-offset:2px}
+  .match-card-grid{grid-template-columns:1fr}
+  .match-card{padding:var(--s-4)}
+  .match-card footer{flex-wrap:wrap}
+  .dialog-content.tennis-details-dialog,.dialog-content.club-dialog{width:100%}
+  .tennis-detail-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .club-dialog .personal-form-grid,.tennis-detail-section .personal-form-grid{grid-template-columns:1fr}
+  .club-dialog .personal-page>.button.primary,details.tennis-detail-section>form>.button.primary,.scoreboard-entry>.button.tinted{justify-self:stretch}
+  .set-row{grid-template-columns:52px minmax(0,1fr) minmax(0,1fr);gap:var(--s-2)}
+  .workout-data-grid{grid-template-columns:1fr}
+  .workout-zones>div{grid-template-columns:minmax(0,1fr) auto;font-size:var(--fs-footnote)}
+  .workout-zones small{grid-column:1/-1;text-align:left;font-size:var(--fs-caption)}
+}
+@media (max-width:420px){
+  .club-stats{gap:var(--s-2)}
+  .club-stat .metric-value{font-size:var(--fs-title3);line-height:var(--lh-title3)}
+}
+@media (prefers-reduced-motion:reduce){
+  .club-stat:hover,.club-stat:active{transform:none}
+}

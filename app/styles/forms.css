@@ -1,0 +1,139 @@
+/* ==========================================================================
+   Forms — iOS grouped forms for the content layer: form stacks, disclosure
+   sections, score sliders with a value bubble, chip groups, meal builder,
+   diary register and journal tabs. Standard materials only (no glass).
+   --inset is the grouped background for sections; --inset-card is the card
+   placed on top of an inset (white on grey in light, a lighter fill in dark).
+   ========================================================================== */
+
+/* Form page (panel that hosts a form) ------------------------------------ */
+.form-page{max-width:760px;--pad:var(--s-6)}
+.form-page>h2{font-size:var(--fs-title2);line-height:var(--lh-title2)}
+.form-page>h2+.field-help{margin-top:4px;max-width:60ch}
+.form-page>.form-stack{margin-top:var(--s-5)}
+.dialog-content .form-page{background:transparent;box-shadow:none;padding:0;border-radius:0;max-width:none}
+.dialog-content .form-page>.panel-heading{margin:var(--s-5) 0 var(--s-3)}
+.dialog-content .form-page>.panel-heading h2{font-size:var(--fs-headline);line-height:var(--lh-headline);color:var(--label-2)}
+.form-page>.panel-heading .subtle{color:var(--label-2)}
+
+/* Stack ------------------------------------------------------------------- */
+.form-stack{display:grid;gap:var(--s-4);--inset:var(--bg-3);--inset-card:light-dark(var(--bg-2),var(--fill-3))}
+.dialog-content .form-stack{--inset:light-dark(var(--fill-3),var(--fill-4))}
+.form-stack>.button{justify-self:start;min-width:220px;min-height:50px;padding:0 var(--s-6);font-size:var(--fs-headline);margin-top:var(--s-2)}
+.dialog-content .form-stack>.button{justify-self:end}
+.form-stack>.error,.form-stack>.success{margin-top:-4px}
+.form-stack input[type=file]{width:100%;min-height:var(--hit);padding:7px 7px 7px var(--s-3);border-radius:12px;background:var(--fill-3);color:var(--label-2);font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.form-stack input[type=file]:hover{background:var(--fill-2)}
+.form-stack input[type=file]::file-selector-button{margin-right:var(--s-3);min-height:30px;background:var(--accent-soft);color:var(--accent)}
+
+/* iOS circular check (Reminders style) for every checkbox in a form ------- */
+.form-stack .checkbox-label>input[type=checkbox]{appearance:none;-webkit-appearance:none;width:22px;height:22px;margin:0;border-radius:50%;border:1.5px solid var(--label-3);background:transparent center/14px no-repeat;transition:background-color var(--dur-fast),border-color var(--dur-fast),transform var(--dur) var(--ease-spring)}
+.form-stack .checkbox-label:hover>input[type=checkbox]{border-color:var(--label-2)}
+.form-stack .checkbox-label>input[type=checkbox]:active{transform:scale(.9)}
+.form-stack .checkbox-label>input[type=checkbox]:checked{border-color:var(--accent);background-color:var(--accent);background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><path d='M3 7.3l2.7 2.7L11 4.3' fill='none' stroke='white' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'/></svg>")}
+.form-stack .checkbox-label>input[type=checkbox]:focus-visible{outline-offset:2px}
+
+/* Disclosure section — inset group with a 44pt summary row and a chevron -- */
+.form-section{background:var(--inset);border-radius:var(--r-md);overflow:hidden}
+.form-section>summary{display:flex;align-items:center;gap:var(--s-3);min-height:var(--hit);padding:10px var(--s-4);font-size:var(--fs-body);line-height:var(--lh-body);font-weight:600;color:var(--label);transition:background-color var(--dur-fast)}
+.form-section>summary:hover{background:var(--fill-4)}
+.form-section>summary:focus-visible{outline-offset:-3px}
+.form-section>summary>span{margin-left:auto;font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-weight:500;color:color-mix(in srgb,var(--label) 68%,transparent);font-variant-numeric:tabular-nums}
+.form-section>summary::after{content:"";width:8px;height:8px;margin:0 5px 0 2px;border-right:2px solid var(--label-3);border-bottom:2px solid var(--label-3);transform:rotate(-45deg);transition:transform var(--dur) var(--ease-out);flex-shrink:0}
+.form-section[open]>summary::after{transform:translateY(-2px) rotate(45deg)}
+.form-section[open]>summary{box-shadow:inset 0 -1px 0 var(--separator-soft)}
+.form-section-body{display:grid;gap:var(--s-4);padding:var(--s-4)}
+
+/* Score grid (two columns of labelled fields) ----------------------------- */
+.score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4) var(--s-3)}
+.score-grid>label{align-content:end}
+.score-grid label>small{font-size:var(--fs-caption);line-height:var(--lh-caption);color:color-mix(in srgb,var(--label) 72%,transparent)}
+
+/* Slider with value bubble ------------------------------------------------ */
+.slider-field{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:var(--s-3)}
+.slider-field input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:var(--hit);margin:0;background:transparent;cursor:pointer}
+.slider-field input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:var(--r-pill);background:linear-gradient(var(--accent),var(--accent)) 0 0/var(--pct,50%) 100% no-repeat,var(--fill)}
+.slider-field input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-12px;border:0;border-radius:50%;background:var(--on-accent);box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16),0 0 0 .5px rgba(0,0,0,.04);transition:transform var(--dur-fast) var(--ease-out),box-shadow var(--dur-fast)}
+.slider-field input[type=range]:active::-webkit-slider-thumb{transform:scale(1.1)}
+.slider-field input[type=range]:focus-visible{outline:none}
+.slider-field input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 3px 8px rgba(0,0,0,.15),0 0 0 4px var(--accent-soft)}
+.slider-field input[type=range]::-moz-range-track{height:4px;border-radius:var(--r-pill);background:var(--fill)}
+.slider-field input[type=range]::-moz-range-progress{height:4px;border-radius:var(--r-pill);background:var(--accent)}
+.slider-field input[type=range]::-moz-range-thumb{width:28px;height:28px;border:0;border-radius:50%;background:var(--on-accent);box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.16)}
+.slider-field output{display:inline-grid;place-items:center;min-width:40px;height:30px;padding:0 10px;border-radius:var(--r-pill);background:var(--accent-soft);color:var(--label);font-size:var(--fs-subhead);font-weight:600;font-variant-numeric:tabular-nums;transition:background-color var(--dur-fast),color var(--dur-fast)}
+.slider-field output.unset{background:var(--fill-3);color:var(--label-2)}
+.slider-field:has(output.unset) input[type=range]::-webkit-slider-runnable-track{background:var(--fill)}
+.slider-field:has(output.unset) input[type=range]::-moz-range-progress{background:transparent}
+.slider-field:has(output.unset) input[type=range]:not(:focus-visible)::-webkit-slider-thumb,.slider-field:has(output.unset) input[type=range]:not(:focus-visible)::-moz-range-thumb{box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 1px var(--separator)}
+
+/* Chips sitting on an inset: card-like pills, tinted when selected -------- */
+.form-section .tags,.choice-chips{gap:var(--s-2) var(--s-2)}
+.form-section .tags button,.choice-chips button{min-height:40px;padding:0 var(--s-4)}
+.form-section .tags button:not(.selected),.choice-chips button:not(.selected){background:var(--inset-card);box-shadow:var(--shadow-1)}
+.form-section .tags button.selected,.choice-chips button.selected{background:var(--accent-soft);color:var(--label);border-color:color-mix(in srgb,var(--accent) 55%,transparent);box-shadow:none}
+.form-section .tags button.selected svg,.choice-chips button.selected svg{color:var(--accent);flex-shrink:0}
+.form-section .tags button:not(.selected):hover,.choice-chips button:not(.selected):hover{background:var(--fill-2)}
+
+/* Meal builder (inset group with a nested item list) ---------------------- */
+.meal-builder{display:grid;gap:var(--s-3);padding:var(--s-4);border-radius:var(--r-md);background:var(--inset)}
+.meal-builder>h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.meal-builder>p{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.meal-builder .inline-fields .button{min-height:var(--hit)}
+.meal-items{display:flex;flex-direction:column;margin-top:var(--s-1);border-radius:var(--r-sm);background:var(--inset-card);box-shadow:var(--shadow-1);overflow:hidden}
+.meal-item{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--hit);padding:6px var(--s-2) 6px var(--s-4);font-size:var(--fs-body);line-height:var(--lh-body)}
+.meal-item+.meal-item{border-top:1px solid var(--separator-soft)}
+.meal-item>span{display:flex;flex-direction:column;min-width:0}
+.meal-item>span small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);font-variant-numeric:tabular-nums}
+.meal-item .button{width:var(--hit);height:var(--hit);min-height:var(--hit);margin:-6px -4px -6px 0;color:var(--danger)}
+.meal-item .button svg{width:18px;height:18px}
+.form-stack>.choice-row .button{min-height:var(--hit)}
+
+/* Diary register: chip groups carry their own headers, so breathe a bit more */
+.diary-register .form-stack{gap:var(--s-5)}
+.form-stack>.success{display:flex;align-items:center;gap:8px;min-height:var(--hit);padding:10px var(--s-4);border-radius:var(--r-md);background:color-mix(in srgb,var(--success) 12%,transparent);color:var(--label);font-size:var(--fs-subhead);font-weight:600}
+.form-stack>.success svg{color:var(--success);flex-shrink:0}
+
+/* Choice groups — fieldset rendered as iOS section header + inset group --- */
+.diary-choice{display:block;border:0;border-radius:0;padding:0;margin:0}
+.diary-choice>legend{float:left;width:100%;padding:0 var(--s-4);margin:0 0 var(--s-2);font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:color-mix(in srgb,var(--label) 68%,transparent)}
+.choice-chips{display:flex;flex-wrap:wrap;gap:var(--s-2);clear:both;padding:var(--s-3);border-radius:var(--r-md);background:var(--inset)}
+.choice-list{display:flex;flex-direction:column;clear:both;border-radius:var(--r-md);background:var(--inset);overflow:hidden}
+.choice-list>.checkbox-label{padding:0 var(--s-4)}
+.choice-list>.checkbox-label+.checkbox-label{background:linear-gradient(var(--separator-soft),var(--separator-soft)) 50px 0/calc(100% - 50px) 1px no-repeat}
+.medicine-list{display:flex;flex-direction:column;clear:both;border-radius:var(--r-md);background:var(--inset);overflow:hidden}
+.medicine-list>div{padding:9px var(--s-4)}
+.medicine-list>div+div{background:linear-gradient(var(--separator-soft),var(--separator-soft)) 50px 0/calc(100% - 50px) 1px no-repeat}
+.medicine-list .checkbox-label{align-items:flex-start;min-height:0;padding:2px 0}
+.medicine-list .checkbox-label>span{display:grid;min-width:0}
+.medicine-list .checkbox-label strong{font-weight:500}
+.medicine-list .checkbox-label small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);margin-top:2px}
+.medicine-list input[placeholder]{width:100%;margin:var(--s-2) 0 var(--s-1);font-size:var(--fs-subhead)}
+
+/* Journal tabs → segmented control (chip row on narrow widths) ------------ */
+.journal-tabs{margin-bottom:var(--s-5)}
+.journal-tabs.segmented{display:grid;width:100%}
+.journal-tabs.segmented>button{min-width:0;padding:0 var(--s-2);overflow:hidden}
+.journal-tabs.segmented>button svg{width:17px;height:17px;flex-shrink:0}
+.journal-tabs.segmented>button:disabled{opacity:.6}
+@media (max-width:900px){
+  .journal-tabs.segmented{display:flex;flex-wrap:nowrap;gap:var(--s-2);width:auto;max-width:none;margin:0 calc(var(--pad) * -1) var(--s-5);padding:2px var(--pad);border-radius:0;background:transparent;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-padding-inline:var(--pad)}
+  .journal-tabs.segmented::-webkit-scrollbar{display:none}
+  .journal-tabs.segmented>button{flex:0 0 auto;min-height:var(--hit);padding:0 14px;border-radius:var(--r-pill);background:var(--fill-3);font-size:var(--fs-subhead);font-weight:500;box-shadow:none;scroll-snap-align:start}
+  .journal-tabs.segmented>button:hover{background:var(--fill-2)}
+  .journal-tabs.segmented>button.selected{background:var(--accent-soft);color:var(--label);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 45%,transparent);font-weight:600}
+  .journal-tabs.segmented>button.selected svg{color:var(--accent)}
+}
+
+/* Compact ----------------------------------------------------------------- */
+@media (max-width:760px){
+  .form-page{--pad:var(--s-5)}
+  .form-stack>.button,.dialog-content .form-stack>.button{justify-self:stretch;min-width:0}
+  .form-section .score-grid{grid-template-columns:1fr}
+  .form-section>summary{padding:10px var(--s-3) 10px var(--s-4)}
+  .form-section-body{padding:var(--s-3)}
+  .meal-builder{padding:var(--s-3)}
+  .choice-chips{padding:var(--s-2)}
+}
+@media (max-width:560px){
+  .score-grid:has(select,input[type=datetime-local],input[type=date]){grid-template-columns:1fr}
+}

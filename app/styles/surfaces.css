@@ -1,0 +1,110 @@
+/* ==========================================================================
+   Surfaces — content-layer cards, headings, lists, metrics, empty states.
+   Standard materials only (no Liquid Glass here).
+   ========================================================================== */
+.panel{position:relative;background:var(--bg-2);border-radius:var(--r-lg);padding:var(--s-6);box-shadow:var(--shadow-1);min-width:0}
+.panel.inset{background:var(--bg-3);box-shadow:none}
+.panel-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s-4);margin-bottom:var(--s-5)}
+.panel-heading h2{display:flex;align-items:center;gap:10px;font-size:var(--fs-title3);line-height:var(--lh-title3)}
+.panel-heading h2 svg{width:20px;height:20px;color:var(--panel-tint,var(--accent))}
+.panel-heading>button:not(.button){display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-subhead);font-weight:600;color:var(--accent)}
+.panel-heading .field-help{margin-top:4px}
+.section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:var(--s-4);margin:var(--s-7) 0 var(--s-4)}
+.section-heading>div{display:flex;align-items:baseline;gap:12px}
+.section-heading span{font-size:var(--fs-footnote);color:var(--label-2)}
+.section-heading button:not(.button){display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-subhead);font-weight:600;color:var(--accent)}
+.eyebrow{display:block;font-size:var(--fs-caption);line-height:var(--lh-caption);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label-2);margin-bottom:var(--s-2)}
+.subtle{font-size:var(--fs-caption2);line-height:var(--lh-caption2);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--label-2);white-space:nowrap}
+.data-note{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
+.data-note a{color:var(--accent)}
+
+/* Page hero (used by Tênis, Sono, Exercícios, Saúde geral) */
+.tennis-hero,.page-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s-5);margin-bottom:var(--s-6)}
+.tennis-hero h1,.page-hero h1{margin:0 0 6px}
+.tennis-hero p,.page-hero p{color:var(--label-2);font-size:var(--fs-subhead);line-height:var(--lh-subhead);max-width:60ch}
+
+/* Grouped list (inset) --------------------------------------------------- */
+.list{display:flex;flex-direction:column;background:var(--bg-2);border-radius:var(--r-md);box-shadow:var(--shadow-1);overflow:hidden}
+.list>*{display:flex;align-items:center;gap:var(--s-3);min-height:var(--hit);padding:10px var(--s-4);color:var(--label);text-align:left;width:100%}
+.list>*+*{border-top:1px solid var(--separator-soft)}
+.list>a:hover,.list>button:hover{background:var(--fill-4)}
+.list .chevron{margin-left:auto;color:var(--label-3)}
+.library-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:var(--hit);padding:8px 0;border-top:1px solid var(--separator-soft);font-size:var(--fs-subhead)}
+.library-row:first-of-type{border-top:0}
+.library-row small{display:block;color:var(--label-2)}
+
+/* Summary / data tables -------------------------------------------------- */
+.summary-table{width:100%;font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.summary-table th{text-align:left;font-size:var(--fs-caption);font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--label-2);padding:8px 12px;border-bottom:1px solid var(--separator-soft)}
+.summary-table td{padding:12px;border-bottom:1px solid var(--separator-soft);vertical-align:middle;font-variant-numeric:tabular-nums}
+.summary-table tr:last-child td{border-bottom:0}
+.summary-table tbody tr:hover td{background:var(--fill-4)}
+.personal-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 calc(var(--s-2) * -1);padding:0 var(--s-2)}
+
+/* Metric (KPI) card ------------------------------------------------------- */
+.metric{position:relative;padding:var(--s-5);background:var(--bg-2);border-radius:var(--r-md);box-shadow:var(--shadow-1);min-width:0;--metric-tint:var(--accent)}
+.metric-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:var(--s-3)}
+.metric-top>span{display:flex;align-items:center;gap:7px;font-size:var(--fs-footnote);font-weight:600;color:var(--label-2)}
+.metric-top>span svg{width:16px;height:16px;color:var(--metric-tint)}
+.metric-top>small{font-size:var(--fs-caption2);font-weight:600;letter-spacing:.06em;color:var(--label-2)}
+.metric-value{font-size:var(--fs-title1);line-height:var(--lh-title1);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.metric-value>span{font-size:var(--fs-footnote);font-weight:500;color:var(--label-2);margin-left:5px;letter-spacing:0}
+.metric-meta{font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);margin:4px 0 var(--s-3)}
+.metric-foot{display:flex;justify-content:space-between;gap:6px;font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);margin-top:8px;font-variant-numeric:tabular-nums}
+.metric-foot.over-text{color:var(--warning-text)}
+.metric-large{padding:var(--s-6)}
+.metric-large .metric-top>span{font-size:var(--fs-subhead)}
+.metric-large .metric-value{font-size:44px;line-height:1.1}
+.metric-large .metric-meta,.metric-large .metric-foot{font-size:var(--fs-footnote)}
+.progress{height:6px;background:var(--fill-3);border-radius:var(--r-pill);overflow:hidden}
+.progress>div{height:100%;border-radius:var(--r-pill);background:var(--metric-tint,var(--accent));transition:width var(--dur-slow) var(--ease-out)}
+.progress.over>div{background:var(--warning)}
+.mini-track{height:4px;background:var(--fill-3);border-radius:var(--r-pill);margin-top:8px;overflow:hidden}
+.mini-track i{display:block;height:100%;border-radius:var(--r-pill);background:var(--accent);transition:width var(--dur-slow) var(--ease-out)}
+
+/* Empty states ----------------------------------------------------------- */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--s-3);text-align:center;padding:var(--s-8) var(--s-5);color:var(--label-2)}
+.empty svg{width:32px;height:32px;color:var(--label-3)}
+.empty h3{color:var(--label)}
+.empty p{font-size:var(--fs-subhead);max-width:36ch}
+.empty.compact{min-height:180px;padding:var(--s-6)}
+
+/* Disclosure cards (Minhas informações) ---------------------------------- */
+.information-sections{display:grid;gap:var(--s-4)}
+.information-card{background:var(--bg-2);border-radius:var(--r-lg);box-shadow:var(--shadow-1);overflow:hidden}
+.information-card>summary{display:flex;align-items:center;gap:var(--s-4);padding:var(--s-5) var(--s-6);min-height:var(--hit);transition:background-color var(--dur-fast)}
+.information-card>summary:hover{background:var(--fill-4)}
+.information-card>summary:focus-visible{outline-offset:-4px}
+.information-card>summary strong{display:block;font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;letter-spacing:-.014em}
+.information-card>summary small{display:block;color:var(--label-2);font-size:var(--fs-footnote);line-height:var(--lh-footnote);margin-top:2px}
+.information-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex-shrink:0}
+.information-icon svg{width:22px;height:22px}
+.expand-arrow{margin-left:auto;color:var(--label-3);flex-shrink:0;transition:transform var(--dur) var(--ease-out)}
+.information-card[open]>summary .expand-arrow{transform:rotate(180deg)}
+.information-card[open]>summary{border-bottom:1px solid var(--separator-soft)}
+.information-body{padding:var(--s-6)}
+
+/* Hub cards (Saúde) ------------------------------------------------------ */
+.health-hub{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:var(--s-4)}
+.health-hub>a{position:relative;display:block;padding:var(--s-6);padding-right:56px;transition:transform var(--dur) var(--ease-spring),box-shadow var(--dur) var(--ease-out)}
+.health-hub>a:hover{transform:translateY(-2px);box-shadow:var(--shadow-2)}
+.health-hub>a>svg:first-child{width:28px;height:28px;color:var(--accent)}
+.health-hub h2{margin:var(--s-4) 0 6px;font-size:var(--fs-title3);line-height:var(--lh-title3)}
+.health-hub p{color:var(--label-2);font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.hub-arrow{position:absolute;right:var(--s-5);top:var(--s-5);color:var(--label-3)}
+
+/* Badges ----------------------------------------------------------------- */
+.badge{display:inline-flex;align-items:center;gap:4px;min-height:22px;padding:0 9px;border-radius:var(--r-pill);background:var(--fill-3);color:var(--label-2);font-size:var(--fs-caption2);font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.badge.accent{background:var(--accent-soft);color:var(--accent)}
+.badge.success{background:color-mix(in srgb,var(--success) 15%,transparent);color:var(--success-text)}
+.badge.warning{background:color-mix(in srgb,var(--warning) 16%,transparent);color:var(--warning-text)}
+.badge.danger{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger-text)}
+
+@media (max-width:760px){
+  .panel{padding:var(--s-5);border-radius:18px}
+  .panel-heading,.section-heading{flex-wrap:wrap}
+  .information-card>summary{padding:var(--s-4) var(--s-5)}
+  .information-body{padding:var(--s-4)}
+  .tennis-hero,.page-hero{flex-direction:column;align-items:stretch}
+  .metric-large .metric-value{font-size:36px}
+}

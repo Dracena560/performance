@@ -1,0 +1,6 @@
+import { notFound } from 'next/navigation';
+import { AppShell } from '@/components/app-shell';
+import { TennisDashboard } from '@/components/tennis-dashboard';
+import { demoTennisProfile,demoTennisRecords } from '@/lib/demo-sections';
+export const dynamic='force-dynamic';
+export default function Page(){if(process.env.NODE_ENV==='production')notFound();return <AppShell title="Tênis" active="tenis" demo><div className="content"><TennisDashboard records={demoTennisRecords()} profile={demoTennisProfile()}/></div></AppShell>;}

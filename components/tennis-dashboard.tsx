@@ -27,6 +27,9 @@ import {
   Brain,
   Clock3,
   Medal,
+  Minus,
+  Plus,
+  Sparkles,
   Trophy,
   Users,
   XCircle,
@@ -172,7 +175,7 @@ function ScoreEditor({ id, initial }: { id: string; initial: TennisSet[] }) {
           )}
           <button
             type="button"
-            className="button primary"
+            className="button tinted"
             disabled={busy}
             onClick={save}
           >
@@ -436,6 +439,10 @@ export function TennisDashboard({
     },
   ];
   const activeGroup = groups.find((g) => g.key === statFilter);
+  // Recharts drives its line animation from JS, so base.css cannot zero it.
+  const reduceMotion =
+    typeof matchMedia !== "undefined" &&
+    matchMedia("(prefers-reduced-motion: reduce)").matches;
   return (
     <div className="tennis-dashboard tennis-club-theme">
       <div className="tennis-hero">
@@ -445,6 +452,7 @@ export function TennisDashboard({
           <p>Tênis · resultados, preparação e próximos encontros.</p>
         </div>
         <button className="button primary" onClick={() => setRegistering(true)}>
+          <Plus size={18} strokeWidth={2.2} aria-hidden="true" />
           Registrar partida
         </button>
       </div>
@@ -453,13 +461,17 @@ export function TennisDashboard({
         {groups.map(({ key, label, icon: Icon, items }) => (
           <button
             key={key}
-            className={`club-stat club-stat-${key}`}
+            className={`metric club-stat club-stat-${key}`}
             onClick={() => setStatFilter(key)}
           >
-            <Icon size={21} />
-            <small>{label}</small>
-            <strong>{items.length}</strong>
-            <span>Ver partidas ↗</span>
+            <span className="metric-top">
+              <span>
+                <Icon size={16} strokeWidth={1.9} aria-hidden="true" />
+                {label}
+              </span>
+            </span>
+            <strong className="metric-value">{items.length}</strong>
+            <span className="metric-foot">Ver partidas ↗</span>
           </button>
         ))}
       </div>
@@ -478,80 +490,137 @@ export function TennisDashboard({
         </span>
       </div>
       <section className="panel tennis-insight">
-        <span className="subtle">LEITURA DO DIÁRIO</span>
-        <h2>Insight para a próxima sessão</h2>
-        <p>{insight}</p>
+        <Sparkles strokeWidth={1.9} aria-hidden="true" />
+        <div>
+          <span className="eyebrow">LEITURA DO DIÁRIO</span>
+          <h2>Insight para a próxima sessão</h2>
+          <p>{insight}</p>
+        </div>
       </section>
       <section className="panel">
         <div className="panel-heading">
           <h2>Energia, clareza e desempenho</h2>
-          <span className="subtle">ÚLTIMAS 14 SESSÕES</span>
+          <span className="eyebrow">ÚLTIMAS 14 SESSÕES</span>
         </div>
         {chart.length ? (
-          <div className="tennis-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chart}
-                margin={{ left: -25, right: 12, top: 8, bottom: 0 }}
-              >
-                <CartesianGrid vertical={false} stroke="#e9edef" />
-                <XAxis
-                  dataKey="date"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11 }}
-                />
-                <YAxis
-                  domain={[0, 10]}
-                  ticks={[0, 5, 10]}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip />
-                <Line
-                  name="Energia"
-                  dataKey="energia"
-                  stroke="#287d85"
-                  strokeWidth={2.5}
-                  dot={{ r: 3 }}
-                  connectNulls
-                />
-                <Line
-                  name="Clareza"
-                  dataKey="clareza"
-                  stroke="#7f6cce"
-                  strokeWidth={2.5}
-                  dot={{ r: 3 }}
-                  connectNulls
-                />
-                <Line
-                  name="Desempenho"
-                  dataKey="desempenho"
-                  stroke="#d39444"
-                  strokeWidth={2.5}
-                  dot={{ r: 3 }}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <>
+            <div className="tennis-chart">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chart}
+                  margin={{ left: 0, right: 12, top: 8, bottom: 0 }}
+                >
+                  <CartesianGrid
+                    vertical={false}
+                    stroke="var(--separator-soft)"
+                  />
+                  <XAxis
+                    dataKey="date"
+                    axisLine={false}
+                    tickLine={false}
+                    tickMargin={8}
+                    tick={{ fontSize: 12, fill: "var(--label-2)" }}
+                  />
+                  <YAxis
+                    domain={[0, 10]}
+                    ticks={[0, 5, 10]}
+                    width={28}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: "var(--label-2)" }}
+                  />
+                  <Tooltip
+                    cursor={{ stroke: "var(--separator)", strokeWidth: 1 }}
+                    contentStyle={{
+                      background: "var(--bg-elevated)",
+                      border: "1px solid var(--separator-soft)",
+                      borderRadius: 12,
+                      boxShadow: "var(--shadow-2)",
+                      padding: "8px 12px",
+                      fontSize: 13,
+                      lineHeight: "18px",
+                      color: "var(--label)",
+                    }}
+                    labelStyle={{
+                      color: "var(--label-2)",
+                      fontWeight: 600,
+                      marginBottom: 4,
+                    }}
+                    itemStyle={{ color: "var(--label)", padding: 0 }}
+                  />
+                  <Line
+                    name="Energia"
+                    dataKey="energia"
+                    stroke="var(--tint-fitness)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 0, fill: "var(--tint-fitness)" }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                    isAnimationActive={!reduceMotion}
+                    animationDuration={280}
+                    connectNulls
+                  />
+                  <Line
+                    name="Clareza"
+                    dataKey="clareza"
+                    stroke="var(--tint-sleep)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 0, fill: "var(--tint-sleep)" }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                    isAnimationActive={!reduceMotion}
+                    animationDuration={280}
+                    connectNulls
+                  />
+                  <Line
+                    name="Desempenho"
+                    dataKey="desempenho"
+                    stroke="var(--tint-tennis)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, strokeWidth: 0, fill: "var(--tint-tennis)" }}
+                    activeDot={{ r: 5, strokeWidth: 0 }}
+                    isAnimationActive={!reduceMotion}
+                    animationDuration={280}
+                    connectNulls
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="tennis-chart-legend" aria-hidden="true">
+              <span>
+                <i style={{ ["--legend" as string]: "var(--tint-fitness)" }} />
+                Energia
+              </span>
+              <span>
+                <i style={{ ["--legend" as string]: "var(--tint-sleep)" }} />
+                Clareza
+              </span>
+              <span>
+                <i style={{ ["--legend" as string]: "var(--tint-tennis)" }} />
+                Desempenho
+              </span>
+            </div>
+          </>
         ) : (
           <p className="field-help">
             Ainda não há sessões suficientes para o gráfico.
           </p>
         )}
       </section>
-      <section className="panel match-history">
+      <section className="match-history">
         <header className="match-history-heading">
           <div>
             <span className="eyebrow">SEU DIÁRIO DE QUADRA</span>
             <h2>Resultados e histórico</h2>
             <p>Cada partida, uma nova história.</p>
           </div>
-          <span className="match-count">{historySessions.length} sessões</span>
+          <span className="badge match-count">
+            {historySessions.length} sessões
+          </span>
         </header>
-        <div className="history-tabs">
+        <div
+          className="segmented large history-tabs"
+          role="group"
+          aria-label="Filtrar histórico"
+        >
           {[
             ["all", "Todos os eventos"],
             ["training", "Treinos"],
@@ -575,7 +644,7 @@ export function TennisDashboard({
               .slice()
               .reverse()
               .map((s) => (
-                <article className="match-card" key={s.record.id}>
+                <article className="panel match-card" key={s.record.id}>
                   <header>
                     <time dateTime={s.record.recorded_on}>
                       {new Date(
@@ -588,7 +657,7 @@ export function TennisDashboard({
                     </time>
                     {s.competitive && (
                       <span
-                        className={`match-result ${s.outcome === "vitória" ? "won" : s.outcome === "derrota" ? "lost" : ""}`}
+                        className={`badge match-result ${s.outcome === "vitória" ? "success won" : s.outcome === "derrota" ? "danger lost" : ""}`}
                       >
                         {s.outcome ?? "Sem resultado"}
                       </span>
@@ -597,12 +666,12 @@ export function TennisDashboard({
                   <div className="match-card-title">
                     <h3>{s.type ?? "Sessão de tênis"}</h3>
                     <button
-                      className="match-edit"
+                      className="button icon ghost match-edit"
                       title="Editar sessão"
                       aria-label={`Editar ${s.type ?? "sessão de tênis"} de ${s.record.recorded_on}`}
                       onClick={() => setEditingSession(s)}
                     >
-                      <Pencil size={16} />
+                      <Pencil size={18} strokeWidth={1.9} />
                     </button>
                   </div>
                   <p className="match-opponent">
@@ -610,9 +679,18 @@ export function TennisDashboard({
                   </p>
                   {s.competitive && s.score && (
                     <div className="match-score">
-                      <span>PLACAR</span>
+                      <span className="eyebrow">PLACAR</span>
                       <strong>{s.score}</strong>
-                      <Trophy size={27} aria-hidden="true" />
+                      {s.outcome === "vitória" ? (
+                        <Trophy
+                          className="match-trophy"
+                          size={28}
+                          strokeWidth={1.9}
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <Minus size={28} strokeWidth={1.9} aria-hidden="true" />
+                      )}
                     </div>
                   )}
                   <footer>
@@ -681,7 +759,7 @@ export function TennisDashboard({
             <DialogDescription>
               {activeGroup.items.length} partidas registradas nesta categoria.
             </DialogDescription>
-            <div className="club-match-list">
+            <div className="list club-match-list">
               {activeGroup.items.length ? (
                 activeGroup.items
                   .slice()

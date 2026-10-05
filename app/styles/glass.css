@@ -1,0 +1,51 @@
+/* ==========================================================================
+   Liquid Glass — material for the navigation/control layer only.
+   Layers: translucent fill + blur/saturation, specular highlight (::before),
+   refractive rim (::after) and a soft ambient shadow. Elements using .glass
+   must not define their own ::before/::after.
+   ========================================================================== */
+.glass,.glass-clear,.glass-tint{position:relative;isolation:isolate;color:var(--glass-label)}
+.glass{background:var(--glass-bg);-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate));box-shadow:var(--glass-shadow)}
+.glass.strong{background:var(--glass-bg-strong)}
+.glass::before,.glass-clear::before,.glass-tint::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;background:
+  linear-gradient(118deg,rgba(255,255,255,.46) 0%,rgba(255,255,255,.10) 26%,rgba(255,255,255,0) 48%,rgba(255,255,255,.05) 70%,rgba(255,255,255,.22) 100%);
+  box-shadow:inset 0 14px 34px -18px rgba(255,255,255,.9),inset 0 -10px 24px -18px rgba(0,0,0,.08)}
+.glass::after,.glass-clear::after,.glass-tint::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;padding:1px;background:
+  linear-gradient(155deg,var(--glass-rim) 0%,var(--glass-edge) 32%,var(--glass-rim-dark) 64%,var(--glass-rim) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+
+/* Clear variant — only over media / visually rich backgrounds */
+.glass-clear{background:rgba(255,255,255,.16);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);box-shadow:var(--glass-shadow)}
+
+/* Tinted glass — the one prominent action on screen */
+.glass-tint{--glass-label:#fff;background:color-mix(in srgb,var(--accent) 86%,transparent);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 38%,transparent),0 1px 2px rgba(0,0,0,.12)}
+.glass-tint::before{background:linear-gradient(118deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.08) 34%,rgba(255,255,255,0) 55%,rgba(255,255,255,.14) 100%)}
+.glass-tint::after{background:linear-gradient(155deg,rgba(255,255,255,.8) 0%,rgba(255,255,255,.25) 36%,rgba(0,0,0,.08) 66%,rgba(255,255,255,.55) 100%)}
+
+/* Interaction — glass lifts on hover and compresses on press (spring) */
+.glass-interactive{transition:transform var(--dur) var(--ease-spring),box-shadow var(--dur) var(--ease-out),background-color var(--dur-fast) ease}
+.glass-interactive:hover{transform:translateY(-1px) scale(1.015);box-shadow:var(--glass-shadow-lg)}
+.glass-interactive:active{transform:scale(.96);transition-duration:var(--dur-fast)}
+.glass-tint.glass-interactive:hover{box-shadow:0 16px 40px color-mix(in srgb,var(--accent) 45%,transparent),0 2px 4px rgba(0,0,0,.12)}
+
+/* Glass pill used for selection inside a glass container (vibrant fill, never glass on glass) */
+.glass-pill{background:var(--glass-pill);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(0,0,0,.06)}
+
+/* Scroll edge effect — fades content under a bar without a solid background */
+.scroll-edge{position:sticky;top:0;z-index:30}
+.scroll-edge::before{content:"";position:absolute;inset:0 0 -28px;z-index:-1;pointer-events:none;background:linear-gradient(to bottom,color-mix(in srgb,var(--bg) 92%,transparent) 0%,color-mix(in srgb,var(--bg) 70%,transparent) 55%,transparent 100%);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);-webkit-mask:linear-gradient(#000 50%,transparent);mask:linear-gradient(#000 50%,transparent)}
+
+/* Fallbacks and accessibility */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .glass{background:var(--glass-bg-strong)}.glass-clear{background:var(--glass-bg)}.glass-tint{background:var(--accent)}
+}
+@media (prefers-reduced-transparency:reduce){
+  .glass,.glass-clear{background:var(--bg-elevated);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .glass-tint{background:var(--accent);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .glass::before,.glass-clear::before,.glass-tint::before{display:none}
+  .scroll-edge::before{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none;-webkit-mask:none;mask:none;inset:0}
+}
+@media (prefers-contrast:more){
+  .glass::after,.glass-clear::after{background:var(--separator-opaque)}
+}
+@media (prefers-reduced-motion:reduce){.glass-interactive,.glass-interactive:hover,.glass-interactive:active{transform:none}}
