@@ -260,9 +260,17 @@ export function demoHealthApp(){
  const base=demoData(),today=base.day.local_date,yesterday=shiftDate(today,-1);
  const diary:DemoRecord[]=[
   {id:'demo-diary-1',category:'supplement',recorded_on:today,recorded_at:iso(today,'07:05'),source:'manual',payload:{kind:'vitamins',record_type:'vitamins',routines:['Vitaminas do dia'],notes:''}},
-  {id:'demo-diary-2',category:'checkin_history',recorded_on:today,recorded_at:iso(today,'12:30'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Leitura','Ambiente com luz natural'],interest:'Alta',notes:'Registro fictício.'}}
+  {id:'demo-diary-2',category:'checkin_history',recorded_on:today,recorded_at:iso(today,'12:30'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Leitura','Ambiente com luz natural'],interest:'Alta',notes:'Registro fictício.'}},
+  {id:'demo-diary-3',category:'checkin_history',recorded_on:today,recorded_at:iso(today,'09:10'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:['Boa clareza'],emotions:['Tranquilo','Motivado'],body:['Leve'],digestion:['Sem desconforto'],notes:''}},
+  {id:'demo-diary-4',category:'checkin_history',recorded_on:today,recorded_at:iso(today,'15:40'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:['Levemente cansado'],emotions:['Neutro'],body:['Tenso'],digestion:['Gases leve'],notes:'Depois do almoço.'}}
  ];
- return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[] as DemoRecord[],periodEvents:[...demoPeriodEvents(),...base.events]};
+ // Six earlier days of Registrar check-ins and vitamins, for the weekly evolution.
+ const moods=[['Ativo','Bem-humorado','Descansado'],['Levemente cansado','Ansioso','Cansado'],['Boa clareza','Motivado','Leve'],['Neutro','Tranquilo','Leve'],['Turbo','Animado','Ativo'],['Sonolento','Entediado','Pesado']];
+ const week:DemoRecord[]=moods.flatMap(([mental,emotion,body],i)=>{const date=shiftDate(today,-(6-i));return [
+  {id:`demo-week-c-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'10:00'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:[mental],emotions:[emotion],body:[body],digestion:['Sem desconforto'],notes:''}},
+  {id:`demo-week-v-${i}`,category:'supplement',recorded_on:date,recorded_at:iso(date,'07:00'),source:'manual',payload:{kind:'vitamins',record_type:'vitamins',routines:['Vitaminas do dia'],notes:''}},
+  ...(i%2?[{id:`demo-week-a-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'18:00'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Caminhando com Caju'],notes:''}}]:[])];});
+ return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:week,periodEvents:[...demoPeriodEvents(),...base.events]};
 }
 
 /** Same box and results as the seed league, with fictitious names, countries and kit. */

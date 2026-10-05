@@ -15,7 +15,7 @@ export async function loadData(date?:string){
  healthDb.from('days').select('*').eq('user_id',healthUser).eq('local_date',selected).maybeSingle(),healthDb.from('meal_templates').select('*').eq('user_id',healthUser).order('name'),
  healthDb.from('checkin_drafts').select('payload').eq('user_id',healthUser).maybeSingle(),
  healthDb.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',healthUser).gte('recorded_on',new Date(`${selected}T12:00:00Z`).getTime()-86400000 ? new Date(new Date(`${selected}T12:00:00Z`).getTime()-86400000).toISOString().slice(0,10) : selected).lte('recorded_on',selected).order('recorded_at'),
- healthDb.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',healthUser).gte('recorded_on',`${selected.slice(0,4)}-01-01`).lte('recorded_on',selected).in('category',['meal_history','hydration_history']).order('recorded_on'),
+ healthDb.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',healthUser).gte('recorded_on',`${selected.slice(0,4)}-01-01`).lte('recorded_on',selected).in('category',['meal_history','hydration_history','checkin_history','supplement','bowel']).order('recorded_on'),
  healthDb.from('health_profiles').select('profile').eq('user_id',healthUser).maybeSingle()
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
