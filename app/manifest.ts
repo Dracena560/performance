@@ -1,9 +1,9 @@
 import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Felipe Health Dashboard',
-    short_name: 'Felipe Saúde',
-    description: 'Diário de saúde e performance',
+    name: 'Felipe · Painel pessoal',
+    short_name: 'Felipe',
+    description: 'Saúde, finanças, carro, documentos, viagens e rotina em um só lugar',
     start_url: '/hoje',
     display: 'standalone',
     background_color: '#F2F2F7',

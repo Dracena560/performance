@@ -7,7 +7,7 @@
 /* Sidebar ----------------------------------------------------------------- */
 .sidebar{position:fixed;top:var(--sidebar-gap);left:var(--sidebar-gap);bottom:var(--sidebar-gap);width:var(--sidebar-w);z-index:40;display:flex;flex-direction:column;gap:var(--s-5);padding:var(--s-4) var(--s-3);border-radius:var(--r-lg);overflow:hidden auto;overscroll-behavior:contain}
 .brand{display:flex;align-items:center;gap:12px;padding:6px 8px;border-radius:var(--r-md);color:var(--label)}
-.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,var(--sys-pink),#FF6B3D);color:#fff;flex-shrink:0;box-shadow:0 6px 14px -4px color-mix(in srgb,var(--sys-pink) 55%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
+.brand-mark{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:linear-gradient(145deg,var(--sys-blue),var(--sys-indigo));color:#fff;flex-shrink:0;box-shadow:0 6px 14px -4px color-mix(in srgb,var(--sys-indigo) 55%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
 .brand-mark svg{width:22px;height:22px}
 .brand-text{display:grid;min-width:0;line-height:1.15}
 .brand-text b{font-size:var(--fs-headline);font-weight:700;letter-spacing:-.02em}

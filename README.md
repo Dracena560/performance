@@ -1,4 +1,4 @@
-# Felipe Health Dashboard — primeira etapa
+# Felipe · Painel pessoal
 
 Aplicativo pessoal em português, com interface adaptada ao iPhone. O PostgreSQL é a fonte principal dos registros; a planilha existente não é uma dependência do aplicativo.
 

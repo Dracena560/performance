@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: Dashboard Saúde Felipe
+  title: Painel pessoal do Felipe
   version: 1.0.0
-  description: API privada para registrar e consultar dados pessoais de saúde. Só grave dados que o usuário confirmou.
+  description: API privada para registrar e consultar dados pessoais (saúde, finanças, carro, documentos e rotina). Só grave dados que o usuário confirmou.
 servers:
   - url: https://performance-felipe-bd10.vercel.app
 paths:

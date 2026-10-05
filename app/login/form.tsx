@@ -1,17 +1,17 @@
 'use client';
 import { useActionState } from 'react';
 import Link from 'next/link';
-import { HeartPulse, ArrowRight, LockKeyhole } from 'lucide-react';
+import { LayoutGrid, ArrowRight, LockKeyhole } from 'lucide-react';
 import { login } from '../actions';
 import { Button } from '@/components/ui/button';
 export default function LoginForm({ configured, next }: { configured: boolean; next?: string }) {
   const [state, action, pending] = useActionState(login, { error: '' });
   return <main className="login">
-    <div className="login-brand"><span className="brand-mark" aria-hidden><HeartPulse /></span><span className="brand-text"><b>Felipe</b><small>Saúde & Performance</small></span></div>
+    <div className="login-brand"><span className="brand-mark" aria-hidden><LayoutGrid /></span><span className="brand-text"><b>Felipe</b><small>Painel pessoal</small></span></div>
     <section className="login-card glass strong">
       <span className="eyebrow">Seu espaço pessoal</span>
       <h1>Um dia de cada vez.</h1>
-      <p>Alimentação, hidratação e como você se sente. Tudo no mesmo lugar.</p>
+      <p>Saúde, finanças, carro, documentos, viagens e rotina. Tudo no mesmo lugar.</p>
       {configured ? <form action={action}>
         <input name="next" type="hidden" value={next ?? ''} />
         <label>E-mail<input name="email" type="email" autoComplete="email" inputMode="email" required /></label>

@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 export const metadata: Metadata = {
-  title: 'Felipe · Saúde',
-  description: 'Seu diário pessoal de saúde e performance.',
+  title: 'Felipe · Painel pessoal',
+  description: 'Seu painel pessoal: saúde, finanças, carro, documentos, viagens e rotina.',
   robots: { index: false, follow: false },
   manifest: '/manifest.webmanifest',
   icons: { icon: '/favicon.svg', apple: '/icon-192.png' },
-  appleWebApp: { capable: true, title: 'Felipe Saúde', statusBarStyle: 'black-translucent' },
+  appleWebApp: { capable: true, title: 'Felipe', statusBarStyle: 'black-translucent' },
 };
 export const viewport: Viewport = {
   width: 'device-width',

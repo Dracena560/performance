@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpRight, ChevronLeft, HeartPulse, LogOut, Plus, RotateCw } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, HeartPulse, LayoutGrid, LogOut, Plus, RotateCw } from 'lucide-react';
 import { demoPath, parentScreen, siteNavigation, type NavigationKey } from './site-navigation';
 import { logout } from '@/app/actions';
 
@@ -48,11 +48,11 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
   return <div className="app-shell" onClickCapture={demoLinks}>
     <aside className="sidebar glass" aria-label="Navegação principal">
       <Link href={demo ? '/demo' : '/hoje'} className="brand" onClick={onNavigate ? (event) => { event.preventDefault(); onNavigate('hoje'); } : undefined}>
-        <span className="brand-mark" aria-hidden><HeartPulse /></span>
-        <span className="brand-text"><b>Felipe</b><small>Saúde & Performance</small></span>
+        <span className="brand-mark" aria-hidden><LayoutGrid /></span>
+        <span className="brand-text"><b>Felipe</b><small>Painel pessoal</small></span>
       </Link>
       <nav className="sidebar-nav" aria-label="Seções">
-        <span className="nav-label">Meu diário</span>
+        <span className="nav-label">Meu painel</span>
         {siteNavigation.map(([key, label, Icon, compact]) => item(key, label, Icon, compact))}
       </nav>
       <div className="sidebar-bottom">
@@ -70,7 +70,7 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
         <span className="toolbar-title">
           {parent && parentHref
             ? <Link href={parentHref} className="toolbar-back" aria-label={`Voltar para ${parent.label}`} title={`Voltar para ${parent.label}`}><ChevronLeft size={22} strokeWidth={2.2} aria-hidden /><span>{parent.label}</span></Link>
-            : <><span className="toolbar-crumb">Meu diário</span><span className="slash" aria-hidden>/</span></>}
+            : <><span className="toolbar-crumb">Meu painel</span><span className="slash" aria-hidden>/</span></>}
           <strong>{title}</strong>
         </span>
         <span className="toolbar-note">
