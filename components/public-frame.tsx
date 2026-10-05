@@ -1,4 +1,5 @@
 'use client';
+import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 import { LayoutGrid } from 'lucide-react';
 import { LanguageToggle, useLang, usePageReady } from './i18n';
@@ -7,7 +8,7 @@ export function PublicFrame({children}:{children:React.ReactNode}){
  const {t}=useLang();
  usePageReady();
  return <div className="public-frame">
-  <header className="public-bar"><Link href="/liga" className="brand"><span className="brand-mark" aria-hidden><LayoutGrid/></span><span className="brand-text"><b>{t('league.title')}</b><small>{t('league.public')}</small></span></Link><LanguageToggle/></header>
+  <header className="public-bar"><Link href="/liga" className="brand"><span className="brand-mark" aria-hidden><LayoutGrid/></span><span className="brand-text"><b>{t('league.title')}</b><small>{t('league.public')}</small></span></Link><span className="public-actions"><LanguageToggle/><ThemeToggle/></span></header>
   <main className="public-main">{children}</main>
  </div>;
 }

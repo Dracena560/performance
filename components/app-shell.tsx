@@ -1,4 +1,5 @@
 'use client';
+import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ArrowUpRight, ChevronLeft, HeartPulse, LayoutGrid, LogOut, Plus, RotateCw } from 'lucide-react';
@@ -85,6 +86,7 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
         </span>
         <span className="toolbar-note">
           <LanguageToggle />
+          <ThemeToggle />
           <button className="refresh-button" onClick={() => router.refresh()} title={t('shell.refreshTitle')}><RotateCw size={15} aria-hidden />{t('shell.refresh')}</button>
           <span className="status-pill"><span className="tiny-dot" aria-hidden /><span>{demo ? t('shell.demoData') : t('shell.privateSpace')}</span></span>
         </span>

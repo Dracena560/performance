@@ -209,7 +209,7 @@
 .wb-h2h-record em{display:block;height:100%;background:var(--wb-green)}
 
 /* Honours board: dark panel, gold lettering, ruled rows */
-.wb-honours{position:relative;display:grid;align-content:start;gap:var(--s-3);padding:var(--s-6);border-radius:var(--r-lg);color:var(--wb-cream);background:radial-gradient(600px 300px at 100% 0%,rgba(226,194,110,.10),transparent 60%),linear-gradient(180deg,#123F29,#0B2E1D);box-shadow:var(--shadow-1),inset 0 0 0 1px rgba(226,194,110,.28),inset 0 0 0 6px #0B2E1D,inset 0 0 0 7px rgba(226,194,110,.22)}
+.wb-honours{position:relative;display:grid;align-content:start;gap:var(--s-3);padding:var(--s-6);border-radius:var(--r-lg);color:var(--wb-cream);background:linear-gradient(180deg,rgba(9,38,22,.9) 0%,rgba(9,38,22,.82) 45%,rgba(9,38,22,.66) 100%),#0B2E1D url(/images/grass-court.jpg) center 72%/cover no-repeat;box-shadow:var(--shadow-1),inset 0 0 0 1px rgba(226,194,110,.28),inset 0 0 0 6px #0B2E1D,inset 0 0 0 7px rgba(226,194,110,.22)}
 .wb-honours-kicker{font-size:var(--fs-caption);font-weight:700;letter-spacing:.14em;color:var(--wb-gold);text-align:center}
 .wb-honours h2{font-family:ui-serif,"New York",Georgia,serif;font-size:var(--fs-title1);line-height:var(--lh-title1);font-weight:700;text-align:center;color:var(--wb-gold);letter-spacing:.01em}
 .wb-honours dl{margin:var(--s-2) 0 0}

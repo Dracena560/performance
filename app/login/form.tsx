@@ -1,4 +1,5 @@
 'use client';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { useActionState } from 'react';
 import Link from 'next/link';
 import { LayoutGrid, ArrowRight, LockKeyhole } from 'lucide-react';
@@ -12,7 +13,7 @@ export default function LoginForm({ configured, next }: { configured: boolean; n
   return <main className="login">
     <div className="login-brand"><span className="brand-mark" aria-hidden><LayoutGrid /></span><span className="brand-text"><b>Felipe</b><small>{t('shell.tagline')}</small></span></div>
     <section className="login-card glass strong">
-      <LanguageToggle className="login-lang" />
+      <span className="login-lang"><LanguageToggle /><ThemeToggle /></span>
       <span className="eyebrow">{t('login.eyebrow')}</span>
       <h1>{t('login.title')}</h1>
       <p>{t('login.lead')}</p>

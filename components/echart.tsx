@@ -35,7 +35,7 @@ export function EChart({option,height=260,className,label}:{option:(t:ChartTheme
  useEffect(()=>{const el=ref.current;if(!el)return;const instance=echarts.init(el,undefined,{renderer:'svg'});chart.current=instance;
   const resize=new ResizeObserver(()=>instance.resize());resize.observe(el);
   const media=matchMedia('(prefers-color-scheme: dark)'),change=()=>setScheme(s=>s+1);media.addEventListener('change',change);
-  const attr=new MutationObserver(change);attr.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+  const attr=new MutationObserver(change);attr.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','data-lang','class']});
   return()=>{resize.disconnect();media.removeEventListener('change',change);attr.disconnect();instance.dispose();chart.current=null;};},[]);
  useEffect(()=>{const el=ref.current;if(!el||!chart.current)return;const {color,done}=resolver(el);const t=theme(color);const value=option(t);done();chart.current.setOption({animation:!t.reduceMotion,animationDuration:400,textStyle:{fontFamily:font},...value},{notMerge:true});});
  return <div ref={ref} className={className} role="img" aria-label={label} style={{height,width:'100%'}} data-scheme={scheme}/>;
