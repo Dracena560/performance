@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { LangProvider } from '@/components/i18n';
+import { DomTranslator } from '@/components/dom-translator';
 import { getLang } from '@/lib/i18n-server';
 import { locales } from '@/lib/i18n';
 export const metadata: Metadata = {
@@ -22,5 +23,5 @@ export const viewport: Viewport = {
 };
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();
-  return <html lang={locales[lang]}><body><LangProvider lang={lang}>{children}</LangProvider></body></html>;
+  return <html lang={locales[lang]} data-lang={lang}><body><LangProvider lang={lang}>{children}<DomTranslator lang={lang} /></LangProvider></body></html>;
 }

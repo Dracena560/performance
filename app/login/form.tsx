@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { LayoutGrid, ArrowRight, LockKeyhole } from 'lucide-react';
 import { login } from '../actions';
 import { Button } from '@/components/ui/button';
-import { LanguageToggle, useLang } from '@/components/i18n';
+import { LanguageToggle, useLang, usePageReady } from '@/components/i18n';
 export default function LoginForm({ configured, next }: { configured: boolean; next?: string }) {
   const [state, action, pending] = useActionState(login, { error: '' });
   const { t } = useLang();
+  usePageReady();
   return <main className="login">
     <div className="login-brand"><span className="brand-mark" aria-hidden><LayoutGrid /></span><span className="brand-text"><b>Felipe</b><small>{t('shell.tagline')}</small></span></div>
     <section className="login-card glass strong">

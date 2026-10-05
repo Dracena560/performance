@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ArrowUpRight, ChevronLeft, HeartPulse, LayoutGrid, LogOut, Plus, RotateCw } from 'lucide-react';
 import { demoPath, parentScreen, siteNavigation, type NavigationKey } from './site-navigation';
 import { logout } from '@/app/actions';
-import { LanguageToggle, useLang } from './i18n';
+import { LanguageToggle, useLang, usePageReady } from './i18n';
 import type { MessageKey } from '@/lib/i18n';
 
 type Props = {
@@ -27,6 +27,7 @@ type Props = {
 export function AppShell({ title, active, demo = false, onNavigate, onQuickAction, quickActionLabel = 'Registrar', children }: Props) {
   const router = useRouter();
   const { t } = useLang();
+  usePageReady();
   const navLabel = (key: NavigationKey, compact = false) => {
     const short = `nav.${key}.short` as MessageKey;
     return compact && t(short) !== short ? t(short) : t(`nav.${key}` as MessageKey);

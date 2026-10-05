@@ -337,3 +337,7 @@
  .day-log-row{grid-template-columns:40px 30px minmax(0,1fr);}
  .day-log-actions{grid-column:3;justify-content:flex-end}
 }
+
+.wellbeing-side{display:grid;gap:var(--s-4);align-content:start;min-width:0}
+.wellbeing-side .day-log-row{grid-template-columns:44px 30px minmax(0,1fr)}
+.wellbeing-side .day-log-actions{grid-column:3;justify-content:flex-end;margin-top:-6px}

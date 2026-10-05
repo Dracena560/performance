@@ -65,3 +65,7 @@ details>summary::-webkit-details-marker{display:none}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* English: hide the Portuguese first paint until the translator runs (fallback reveal after 1.5s). */
+html[data-lang=en]:not([data-translated]) body{visibility:hidden;animation:reveal-body 0s 1.5s forwards}
+@keyframes reveal-body{to{visibility:visible}}

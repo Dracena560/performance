@@ -1,5 +1,5 @@
 'use client';
-import {createContext,useContext,useTransition} from 'react';
+import {createContext,useContext,useEffect,useTransition} from 'react';
 import {useRouter} from 'next/navigation';
 import {LANG_COOKIE,locales,translate,type Lang,type MessageKey} from '@/lib/i18n';
 
@@ -10,8 +10,14 @@ export function useLang(){const lang=useContext(LangContext);return {lang,locale
 /** PT-BR / EN-UK switch: stores the choice in a cookie for a year and re-renders the server pages. */
 export function LanguageToggle({className=''}:{className?:string}){
  const {lang,t}=useLang();const router=useRouter();const [pending,start]=useTransition();
- const choose=(next:Lang)=>{if(next===lang)return;document.cookie=`${LANG_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;document.documentElement.lang=locales[next];start(()=>router.refresh());};
+ const choose=(next:Lang)=>{if(next===lang)return;document.cookie=`${LANG_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;document.documentElement.lang=locales[next];
+  // English is applied on top of the rendered page; going back to Portuguese needs a clean render.
+  if(next==='pt'){window.location.reload();return;}
+  document.documentElement.setAttribute('data-lang','en');start(()=>router.refresh());};
  return <div className={`segmented lang-toggle ${className}`} role="group" aria-label={t('shell.language')} aria-busy={pending||undefined}>
   {([['pt','🇧🇷','PT'],['en','🇬🇧','EN']] as const).map(([value,flag,label])=><button key={value} type="button" aria-pressed={lang===value} className={lang===value?'selected':''} onClick={()=>choose(value)} title={value==='pt'?'Português (Brasil)':'English (UK)'}><span aria-hidden>{flag}</span>{label}</button>)}
  </div>;
 }
+
+/** Mounted by each page frame: tells the translator that React has taken over this page's HTML. */
+export function usePageReady(){useEffect(()=>{(window as any).__pageReady=true;window.dispatchEvent(new Event('page-ready'));},[]);}
