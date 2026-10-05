@@ -2,7 +2,7 @@
 import { InvestmentOverview } from './investment-overview';
 import { useRouter } from 'next/navigation';
 import { useEffect,useState } from 'react';
-import { ArrowLeft,ChevronDown,NotebookText,PencilLine,TrendingUp } from 'lucide-react';
+import { ChevronDown,NotebookText,PencilLine,TrendingUp } from 'lucide-react';
 import { LineChart,Line,XAxis,YAxis,Tooltip,ResponsiveContainer,CartesianGrid } from 'recharts';
 import { investmentChange,monthlyAsset,monthlyPortfolio,inPounds,investmentType,investmentsSchema,type InvestmentSnapshot } from '@/lib/investments';
 import { saveInvestment } from '@/app/actions';
@@ -22,7 +22,7 @@ export function InvestmentsDashboard({initial,embedded=false}:{initial:unknown;e
  const ids=[...new Set(history.flatMap(s=>s.items.map(i=>i.asset_id)))];const asset=selected||ids[0]||'';const converted=inPounds(history);const comparison=investmentChange(converted,asset);const monthly=monthlyAsset(converted,asset);const totals=monthlyPortfolio(converted).map(m=>({date:m.month+'-15T12:00:00Z',value:m.totals.reduce((sum,t)=>sum+t.value,0)}));
  const [form,setForm]=useState({asset_id:'',name:'',account:'',currency:'GBP',value:'',net_flow:'',date:new Date().toISOString().slice(0,10),notes:''});
  return <div className="finance-page investments-page">
-  {!embedded&&<header className="page-heading"><div><span className="eyebrow">FINANCEIRO</span><h1>Investimentos</h1><p>Atualizações enviadas pelo GPT e evolução de cada investimento.</p></div><div className="heading-actions"><a className="button secondary" href="/financeiro"><ArrowLeft size={16} aria-hidden/>Voltar ao Financeiro</a></div></header>}
+  {!embedded&&<header className="page-heading"><div><span className="eyebrow">FINANCEIRO</span><h1>Investimentos</h1><p>Atualizações enviadas pelo GPT e evolução de cada investimento.</p></div></header>}
   <p className="field-help">Envie o print ao Felipe MCP e peça para registrar seus investimentos. Apenas valores legíveis são registrados. Ausência de um ativo em um print não significa saldo zero.</p>
   {!embedded&&<InvestmentOverview history={history}/>}
   <section className="panel investment-panel"><div className="panel-heading"><div><h2>Evolução mensal · total em libras</h2><p className="field-help">Último saldo conhecido por ativo. Atualizações parciais mantêm os saldos anteriores; aportes, resgates e câmbio podem alterar a variação.</p></div></div><div className="investment-chart"><ResponsiveContainer width="100%" height="100%"><LineChart data={totals} margin={{top:8,right:8,left:0,bottom:0}}><CartesianGrid vertical={false} stroke="var(--separator-soft)"/><XAxis dataKey="date" tickLine={false} axisLine={false} tick={axisTick} tickFormatter={v=>new Date(v).toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}/><YAxis domain={['auto','auto']} width={64} tickLine={false} axisLine={false} tick={axisTick} tickFormatter={compactNumber}/><Tooltip labelFormatter={v=>new Date(String(v)).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})} formatter={v=>money(Number(v),'GBP')} cursor={tooltipCursor} contentStyle={tooltipStyle} labelStyle={tooltipLabel} itemStyle={tooltipItem}/><Line dataKey="value" name="Total em libras" type="monotone" stroke="var(--tint-invest)" strokeWidth={2.5} dot={lineDot} activeDot={activeDot}/></LineChart></ResponsiveContainer></div></section>
