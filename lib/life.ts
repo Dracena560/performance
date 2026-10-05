@@ -27,10 +27,21 @@ export const preferencesSchema=z.object({series:z.array(seriesPreferenceSchema).
 export type Preferences={series?:z.infer<typeof seriesPreferenceSchema>[]} & {[key:string]:string|z.infer<typeof seriesPreferenceSchema>[]|undefined};
 export function cleanPreferences(input:Record<string,any>):Preferences{return Object.fromEntries(Object.entries(input).filter(([key])=>!['Carros.','Música.','Filmes.'].some(prefix=>key.startsWith(prefix))&&key!=='Comida.Intolerâncias')) as Preferences;}
 
-export type Reminder={id:string;name:string;date:string;days:number;level:string;thisMonth:boolean};
+export const reminderWindowDays=5;
+export type Reminder={id:string;name:string;source:string;date:string;days:number;level:string;amount:string|null};
+const dayMs=86400000;
+const daysBetween=(from:string,to:string)=>Math.round((Date.parse(to+'T12:00:00Z')-Date.parse(from+'T12:00:00Z'))/dayMs);
+const money=(value:number|null|undefined,currency='GBP')=>typeof value==='number'&&Number.isFinite(value)?new Intl.NumberFormat('en-GB',{style:'currency',currency}).format(value):null;
+function monthDay(year:number,month:number,day:number){const last=new Date(Date.UTC(year,month+1,0)).getUTCDate();return new Date(Date.UTC(year,month,Math.min(day,last),12)).toISOString().slice(0,10);}
+export function nextMonthlyDate(day:number,today:string){const year=Number(today.slice(0,4)),month=Number(today.slice(5,7))-1;const current=monthDay(year,month,day);return current>=today?current:monthDay(year,month+1,day);}
+function upcoming(date:string,today:string,monthly:boolean){if(!date||!dateValue.safeParse(date).success)return '';return date>=today||!monthly?date:nextMonthlyDate(Number(date.slice(8,10)),today);}
 export function reminders(profile:Record<string,any>,today:string):Reminder[]{
- const all:{id:string;name:string;date:string}[]=[];const car=profile.personal_car??{},extra=car.extra??{};
- for(const [id,name,date] of [['insurance','Seguro do carro',car.insuranceExpiry],['permit','Parking Permit',car.permitExpiry],['mot','MOT',extra.mot?.next],['tax','Road Tax',extra.tax?.renewal],['renewal','Renovação do seguro',extra.insurance?.renewal],['payment','Parcela do carro',extra.financing?.nextPayment]])if(date)all.push({id:String(id),name:String(name),date:String(date)});
- const parsed=datesSchema.safeParse(profile.personal_dates??[]);if(parsed.success)for(const d of parsed.data)if(d.date)all.push({id:d.id,name:`${d.kind}: ${d.name}`,date:d.date});
- return all.filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=Math.round((Date.parse(r.date+'T12:00:00Z')-Date.parse(today+'T12:00:00Z'))/86400000);return {...r,days,thisMonth:r.date.slice(0,7)===today.slice(0,7),level:days<0?'Vencido':days===0?'Hoje':days<=1?'Até 1 dia':days<=7?'Até 7 dias':days<=30?'Até 30 dias':'Até 90 dias'};}).filter(r=>(r.days>=0&&r.days<=90)||r.thisMonth).sort((a,b)=>a.date.localeCompare(b.date));
+ const all:Omit<Reminder,'days'|'level'>[]=[];const car=profile.personal_car??{},extra=car.extra??{},financing=extra.financing??{};
+ const paymentDay=Number(financing.paymentDay);const carPayment=upcoming(financing.nextPayment??'',today,true)||(Number.isInteger(paymentDay)&&paymentDay>=1&&paymentDay<=31?nextMonthlyDate(paymentDay,today):'');
+ for(const [id,name,date] of [['insurance','Seguro do carro',car.insuranceExpiry],['permit','Parking Permit',car.permitExpiry],['mot','MOT',extra.mot?.next],['tax','Road Tax',extra.tax?.renewal],['renewal','Renovação do seguro',extra.insurance?.renewal],['payment','Parcela do carro',carPayment]])if(date)all.push({id:`car-${id}`,name:String(name),source:'Carro',date:String(date),amount:id==='payment'?financing.instalment||null:null});
+ const bills=billsSchema.safeParse(profile.personal_bills??[]);if(bills.success)for(const b of bills.data){const date=upcoming(b.date,today,b.monthly);if(date)all.push({id:`bill-${b.id}`,name:b.name,source:'Conta',date,amount:money(b.value,b.currency)});}
+ const rows:unknown[]=Array.isArray(profile.personal_finance?.rows)?profile.personal_finance.rows:[];
+ for(const row of rows){const r=row as Record<string,unknown>;if(r.type!=='Fixo'||typeof r.item!=='string'||!Number.isInteger(r.day)||(r.day as number)<1||(r.day as number)>31)continue;all.push({id:`expense-${String(r.id??r.item)}`,name:r.item,source:'Gasto fixo',date:nextMonthlyDate(r.day as number,today),amount:money(typeof r.value==='number'?r.value:null)});}
+ const dates=datesSchema.safeParse(profile.personal_dates??[]);if(dates.success)for(const d of dates.data)if(d.date)all.push({id:`date-${d.id}`,name:d.name,source:d.kind,date:d.date,amount:null});
+ return all.filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=reminderWindowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
 }
