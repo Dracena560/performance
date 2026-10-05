@@ -40,21 +40,16 @@
 .button.wb-glass svg{width:16px;height:16px}
 
 /* Match header on the grass (Apple Sports: fixture over the court surface) - */
-.wb-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;gap:var(--s-5);min-height:300px;padding:var(--s-5) var(--s-6) var(--s-5);border-radius:var(--r-xl,28px);color:#fff;background:var(--wb-green-deep);box-shadow:var(--shadow-2),0 24px 48px -28px color-mix(in srgb,var(--wb-green) 80%,transparent)}
-.wb-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(4,26,14,.55) 0%,rgba(4,26,14,.18) 38%,rgba(4,26,14,.30) 62%,rgba(4,26,14,.82) 100%)}
-.wb-grass{position:absolute;inset:0;z-index:-2;width:100%;height:100%}
-.wb-grass .stripe-light{fill:var(--wb-grass-2)}
-.wb-grass .stripe-dark{fill:var(--wb-grass-1)}
-.wb-grass .court-lines path{fill:none;stroke:rgba(255,255,255,.62);stroke-width:1.6;stroke-linejoin:round}
-.wb-grass .court-lines .net{stroke:rgba(255,255,255,.9);stroke-width:2.4}
-.wb-grass .worn{fill:#B9A26A;opacity:.28}
+.wb-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;gap:var(--s-5);min-height:300px;padding:var(--s-5) var(--s-6) var(--s-5);border-radius:var(--r-xl,28px);color:#fff;background:#3a1d12 url(/images/tennis-ball.jpg) 70% 62%/cover no-repeat;box-shadow:var(--shadow-2),0 24px 48px -28px rgba(80,30,10,.7)}
+/* Photo: clay court and ball. Darken the text side and the bottom so white copy keeps >= 4.5:1; the ball stays visible on the right. */
+.wb-hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(8,20,12,.86) 0%,rgba(8,20,12,.62) 42%,rgba(8,20,12,.12) 78%,rgba(8,20,12,0) 100%),linear-gradient(180deg,rgba(8,20,12,.35) 0%,rgba(8,20,12,0) 30%,rgba(8,20,12,0) 60%,rgba(8,20,12,.7) 100%)}
 .wb-hero-top{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
 .wb-chip{display:inline-flex;align-items:center;min-height:28px;padding:0 var(--s-3);border-radius:var(--r-pill);background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);font-size:var(--fs-footnote);font-weight:600;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .wb-live{display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-footnote);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .wb-live i{width:8px;height:8px;border-radius:50%;background:var(--wb-ball);box-shadow:0 0 0 4px color-mix(in srgb,var(--wb-ball) 28%,transparent)}
 .wb-hero-players{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:var(--s-4);text-align:center}
-.wb-hero-player{display:grid;justify-items:center;gap:6px;min-width:0}
-.wb-hero-player strong{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;letter-spacing:-.01em;max-width:100%;overflow-wrap:anywhere;text-shadow:0 1px 8px rgba(0,0,0,.35)}
+.wb-hero-player{display:grid;justify-items:center;gap:6px;min-width:0;padding:var(--s-3);border-radius:var(--r-lg);background:rgba(6,20,12,.5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.wb-hero-player strong{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:700;letter-spacing:-.01em;max-width:100%;overflow-wrap:break-word;text-shadow:0 1px 8px rgba(0,0,0,.35)}
 .wb-hero-player small{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:rgba(255,255,255,.88)}
 .wb-hero-center{display:grid;justify-items:center;gap:2px;padding:var(--s-3) var(--s-5);border-radius:var(--r-lg);background:rgba(6,32,18,.55);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .wb-hero-kicker{font-size:var(--fs-caption2,11px);font-weight:700;letter-spacing:.08em;color:var(--wb-gold)}
@@ -383,7 +378,9 @@ details.tennis-detail-section>form>.button.primary{justify-self:end}
   .tennis-hero>.button{align-self:stretch}
   .wb-masthead{flex-direction:column;align-items:stretch}
   .wb-hero{min-height:0;padding:var(--s-4);border-radius:var(--r-lg);gap:var(--s-4)}
-  .wb-hero-players{gap:var(--s-2)}
+  .wb-hero-players{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-2)}
+  .wb-hero-center{grid-column:1/-1;order:-1;justify-self:center}
+  .wb-hero-player{padding:var(--s-2)}
   .wb-hero .wb-avatar{width:48px;height:48px;font-size:var(--fs-headline)}
   .wb-hero-player strong{font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
   .wb-hero-player small{font-size:var(--fs-caption);line-height:var(--lh-caption)}

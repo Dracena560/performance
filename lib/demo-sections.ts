@@ -4,6 +4,7 @@
 import { localDate, type HealthEvent } from './domain';
 import { demoData } from './demo';
 import { creditCardSchema, type CreditCard } from './credit-card';
+import { initialTennisLeague, tennisLeagueSchema, type TennisLeague } from './tennis-league';
 import { reminders, billsSchema, datesSchema, preferencesSchema, type Bill, type Deadline, type Preferences } from './life';
 import { tennisProfileSchema, type TennisProfile } from './tennis-club';
 import { investmentsSchema, type InvestmentSnapshot } from './investments';
@@ -262,4 +263,16 @@ export function demoHealthApp(){
   {id:'demo-diary-2',category:'checkin_history',recorded_on:today,recorded_at:iso(today,'12:30'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Leitura','Ambiente com luz natural'],interest:'Alta',notes:'Registro fictício.'}}
  ];
  return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[] as DemoRecord[],periodEvents:[...demoPeriodEvents(),...base.events]};
+}
+
+/** Same box and results as the seed league, with fictitious names, countries and kit. */
+export function demoTennisLeague():TennisLeague{
+ const seed=initialTennisLeague();
+ const people:[string,string,string,string][]=[['Exemplo Andrade','PT','Destro','Wilson Blade 98'],['Exemplo Ferreira','ES','Canhoto','Babolat Pure Aero'],['Exemplo Pereira','IN','Destro','Head Speed MP'],['Exemplo Ribeiro','PL','Destro','Yonex Ezone 100'],['Jogador Exemplo','BR','Destro','Raquete Exemplo Pro 98'],['Exemplo Martins','GB','Destro','Prince Phantom 100'],['Exemplo Costa','IN','Canhoto','Head Gravity MP'],['Exemplo Lima','IN','Destro','Babolat Pure Drive'],['Exemplo Souza','IE','Destro','Wilson Clash 100'],['Exemplo Dias','GB','Destro','Tecnifibre TF40'],['Exemplo Rocha','ZA','Destro','Head Radical MP'],['Exemplo Alves','GB','Destro','Dunlop CX 200']];
+ const ids=new Map(seed.players.map((p,i)=>[p.id,`demo-player-${i+1}`]));
+ const players=seed.players.map((p,i)=>({...p,id:ids.get(p.id)!,name:people[i][0],country:people[i][1],hand:people[i][2] as 'Destro'|'Canhoto',racket:people[i][3],backhand:(i%3===0?'Uma mão':'Duas mãos') as 'Uma mão'|'Duas mãos',level:`NTRP ${(3.5+(i%3)*0.5).toFixed(1)}`}));
+ const seasons=seed.seasons.map(s=>({...s,league:'Liga Exemplo (noite, inclusive fins de semana)',notes:'',players:s.players.map(id=>ids.get(id)!),matches:s.matches.map(m=>({...m,id:`demo-${m.id}`,home:ids.get(m.home)!,away:ids.get(m.away)!}))}));
+ const q4=seasons.find(s=>s.id==='2026-q4')!;const pick=(a:number,b:number,h:number,w:number,d:string)=>({id:`demo-q4-${a}-${b}`,home:`demo-player-${a}`,away:`demo-player-${b}`,homeSets:h,awaySets:w,score:'',date:d,notes:''});
+ q4.matches=[pick(5,12,2,0,'2026-10-02'),pick(1,4,2,1,'2026-10-03'),pick(3,8,2,0,'2026-10-04')];
+ return tennisLeagueSchema.parse({title:'Liga Exemplo',players,seasons});
 }

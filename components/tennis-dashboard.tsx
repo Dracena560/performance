@@ -48,6 +48,15 @@ import {
 } from "@/lib/tennis-stats";
 import { updateTennisScore } from "@/app/actions";
 import { EChart, escapeHtml, type ChartTheme } from "./echart";
+import Link from "next/link";
+import { PlayerPhoto, seasonLabel } from "./tennis-league-view";
+import { useLang } from "./i18n";
+import {
+  currentSeason,
+  seasonStatus,
+  standings,
+  type TennisLeague,
+} from "@/lib/tennis-league";
 type RecordRow = {
   id: string;
   recorded_on: string;
@@ -388,37 +397,6 @@ const minutesLabel = (minutes: number) => {
   return hours ? (rest ? `${hours} h ${rest} min` : `${hours} h`) : `${rest} min`;
 };
 
-/** Mown-lawn court seen from the umpire's chair: stripes, tramlines and the net. */
-function GrassCourt() {
-  return (
-    <svg
-      className="wb-grass"
-      viewBox="0 0 400 220"
-      preserveAspectRatio="xMidYMid slice"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {Array.from({ length: 10 }, (_, i) => (
-        <rect
-          key={i}
-          x={i * 40}
-          y="0"
-          width="40"
-          height="220"
-          className={i % 2 ? "stripe-dark" : "stripe-light"}
-        />
-      ))}
-      <g className="court-lines">
-        <path d="M70 196 L130 30 H270 L330 196 Z" />
-        <path d="M100 196 L148 30 M300 196 L252 30" />
-        <path d="M118 80 H282 M88 160 H312 M200 80 V160" />
-        <path d="M96 112 H304" className="net" />
-      </g>
-      <ellipse cx="200" cy="196" rx="70" ry="10" className="worn" />
-    </svg>
-  );
-}
-
 function Avatar({ name, tone }: { name: string | null; tone: "me" | "them" }) {
   return (
     <span className={`wb-avatar ${tone}`} aria-hidden="true">
@@ -523,7 +501,6 @@ function MatchHero({
     const training = matchGroup(next.type) === "training";
     return (
       <section className="wb-hero" aria-labelledby="wb-hero-title">
-        <GrassCourt />
         <div className="wb-hero-top">
           <span className="wb-chip">{next.type}</span>
           <span className="wb-live">
@@ -582,7 +559,6 @@ function MatchHero({
   }
   return (
     <section className="wb-hero" aria-labelledby="wb-hero-title">
-      <GrassCourt />
       <div className="wb-hero-top">
         <span className="wb-chip">{last?.type ?? "Quadra livre"}</span>
         {last && (
@@ -833,14 +809,97 @@ function PlayerCard({
   );
 }
 
+/** Current box league season at a glance, linking to the league screen and the public page. */
+function LeagueCard({ league, today }: { league: TennisLeague; today: string }) {
+  const { t, locale } = useLang();
+  const season = currentSeason(league, today);
+  if (!season) return null;
+  const table = standings(league, season),
+    status = seasonStatus(season, today);
+  const mine = table.find((r) => r.player.me);
+  const myPending = mine
+    ? status.pending.filter((pair) => pair.includes(mine.player.id)).length
+    : 0;
+  const top = table.slice(0, 5);
+  if (mine && !top.includes(mine)) top.push(mine);
+  return (
+    <section className="panel wb-league" aria-labelledby="wb-league-title">
+      <div className="wb-league-main">
+        <span className="eyebrow">
+          {t("tennis.league")} · {season.division || league.title}
+        </span>
+        <h2 id="wb-league-title">{seasonLabel(season, locale)}</h2>
+        <p>{t("tennis.leagueLead")}</p>
+        <div className="lg-progress light">
+          <div>
+            <b>{t("league.matchesPlayed", { played: status.played, total: status.total })}</b>
+            <span>
+              {status.state === "live"
+                ? t("league.daysLeft", { days: status.daysLeft })
+                : status.state === "finished"
+                  ? t("league.ended", { date: new Date(season.end + "T12:00:00Z").toLocaleDateString(locale, { timeZone: "UTC" }) })
+                  : t("league.startsIn", { date: new Date(season.start + "T12:00:00Z").toLocaleDateString(locale, { timeZone: "UTC" }) })}
+            </span>
+          </div>
+          <i>
+            <em style={{ width: `${status.percent}%` }} />
+          </i>
+        </div>
+        {mine && (
+          <dl className="wb-league-me">
+            <div>
+              <dt>{t("league.standings")}</dt>
+              <dd>#{mine.position}</dd>
+            </div>
+            <div>
+              <dt>{t("league.record")}</dt>
+              <dd>
+                {mine.won}–{mine.lost}
+              </dd>
+            </div>
+            <div>
+              <dt>{t("league.yourPending")}</dt>
+              <dd>{myPending}</dd>
+            </div>
+          </dl>
+        )}
+        <div className="wb-league-actions">
+          <Link className="button wb-primary" href="/tenis/liga">
+            <Trophy size={16} aria-hidden="true" />
+            {t("league.manage")}
+          </Link>
+          <a className="button secondary" href="/liga" target="_blank" rel="noreferrer">
+            {t("league.public")} ↗
+          </a>
+        </div>
+      </div>
+      <ol className="wb-league-table">
+        {top.map((r) => (
+          <li key={r.player.id} className={r.player.me ? "me" : ""}>
+            <span className="lg-pos">{r.position}</span>
+            <PlayerPhoto player={r.player} size={30} />
+            <strong>{r.player.name}</strong>
+            <span>
+              {r.won}–{r.lost}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
 export function TennisDashboard({
   records,
   profile,
+  league,
 }: {
   records: RecordRow[];
   profile: TennisProfile;
+  league?: TennisLeague;
 }) {
   const router = useRouter();
+  const { t } = useLang();
   const sessions: Session[] = records
     .filter((record) => record.recorded_on <= localDate())
     .map((record) => {
@@ -994,12 +1053,12 @@ export function TennisDashboard({
         <div>
           <span className="wb-stripe" aria-hidden="true" />
           <span className="eyebrow">CENTRE COURT · DIÁRIO DE QUADRA</span>
-          <h1>Tênis</h1>
-          <p>Na grama de Wimbledon: resultados, programação e a sua campanha.</p>
+          <h1>{t("tennis.title")}</h1>
+          <p>{t("tennis.lead")}</p>
         </div>
         <button className="button wb-primary" onClick={() => setRegistering(true)}>
           <Plus size={18} strokeWidth={2.2} aria-hidden="true" />
-          Registrar partida
+          {t("tennis.register")}
         </button>
       </header>
       <TennisClub initial={profile}>
@@ -1022,6 +1081,7 @@ export function TennisDashboard({
               onAgenda={manageAgenda}
               onDetails={setSelected}
             />
+            {league && <LeagueCard league={league} today={today} />}
             <div className="wb-split">
               <section className="wb-board" aria-labelledby="wb-board-title">
                 <header>

@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { LangProvider } from '@/components/i18n';
+import { getLang } from '@/lib/i18n-server';
+import { locales } from '@/lib/i18n';
 export const metadata: Metadata = {
   title: 'Felipe · Painel pessoal',
   description: 'Seu painel pessoal: saúde, finanças, carro, documentos, viagens e rotina.',
@@ -17,6 +20,7 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#000000' },
   ],
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="pt-BR"><body>{children}</body></html>;
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const lang = await getLang();
+  return <html lang={locales[lang]}><body><LangProvider lang={lang}>{children}</LangProvider></body></html>;
 }

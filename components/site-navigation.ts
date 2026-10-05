@@ -24,7 +24,7 @@ export function activeNavigation(pathOrView: string): NavigationKey {
 }
 
 /** Private routes that have a fictitious counterpart under /demo. */
-export const demoRoutes = ['saude', 'tenis', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'saude-geral', 'viagens', 'registros', 'historico', 'alimentacao', 'metas', 'agua', 'check-in', 'timeline'] as const;
+export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'saude-geral', 'viagens', 'registros', 'historico', 'alimentacao', 'metas', 'agua', 'check-in', 'timeline'] as const;
 
 /** Maps a private path (e.g. "/sono?date=…") to its demo page, or null when there is none. */
 export function demoPath(path: string): string | null {
@@ -43,6 +43,7 @@ export function parentScreen(pathname: string): { key: NavigationKey; label: str
   if (!first) return null;
   if ((healthSections as readonly string[]).includes(first)) return { key: 'saude', label: 'Saúde' };
   if (first === 'financeiro' && second) return { key: 'financeiro', label: 'Financeiro' };
+  if (first === 'tenis' && second) return { key: 'tenis', label: 'Tênis' };
   if (first === 'viagens' || first === 'perfil') return { key: 'minhas-informacoes', label: 'Minhas informações' };
   return null;
 }

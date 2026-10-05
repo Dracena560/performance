@@ -10,4 +10,4 @@ export async function proxy(request: NextRequest) {
   await client.auth.getUser();
   return response;
 }
-export const config={matcher:['/((?!_next/static|_next/image|favicon.svg|icon.svg|manifest.webmanifest).*)']};
+export const config={matcher:['/((?!_next/static|_next/image|favicon.svg|icon.svg|images/|icon-192.png|icon-512.png|manifest.webmanifest).*)']};
