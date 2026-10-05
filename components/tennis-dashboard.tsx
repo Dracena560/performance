@@ -32,7 +32,7 @@ import {
   MapPin,
   Medal,
   Plus,
-  Sparkles,
+  Wrench,
   Trophy,
   Users,
   XCircle,
@@ -43,17 +43,11 @@ import {
   honours,
   leaguePath,
   initials,
+  momentum,
+  courtDays,
 } from "@/lib/tennis-stats";
 import { updateTennisScore } from "@/app/actions";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { EChart, escapeHtml, type ChartTheme } from "./echart";
 type RecordRow = {
   id: string;
   recorded_on: string;
@@ -99,7 +93,15 @@ const flatten = (value: unknown, prefix = ""): Record<string, unknown> =>
     : prefix
       ? { [prefix]: value }
       : {};
-function ScoreEditor({ id, initial }: { id: string; initial: TennisSet[] }) {
+function ScoreEditor({
+  id,
+  initial,
+  me,
+}: {
+  id: string;
+  initial: TennisSet[];
+  me: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
@@ -147,7 +149,7 @@ function ScoreEditor({ id, initial }: { id: string; initial: TennisSet[] }) {
             <div className="set-row" key={index}>
               <span>Set {index + 1}</span>
               <label>
-                Felipe
+                {me}
                 <input
                   value={set.felipe}
                   onChange={(event) =>
@@ -197,27 +199,76 @@ function ScoreEditor({ id, initial }: { id: string; initial: TennisSet[] }) {
     </div>
   );
 }
+/** Payload keys already shown elsewhere in the details sheet. */
+const shownKeys = [
+  "sets",
+  "score",
+  "Resultado",
+  "outcome",
+  "result",
+  "resultado",
+  "analysis",
+  "Contexto / observações",
+  "match_type",
+  "type",
+  "Tipo de sessão",
+  "Tipo informado",
+  "opponent_or_partner",
+  "Adversário",
+  "Parceiro",
+  "duration_minutes",
+  "Duração min",
+  "Duração (min)",
+  "Min tênis",
+  "physical_energy",
+  "Energia física",
+  "Energia/disposição física",
+  "clarity",
+  "Clareza mental",
+  "performance",
+  "Performance geral",
+  "Desempenho geral",
+];
 function TennisDetails({
   session,
+  me,
   onClose,
 }: {
-  session: {
-    record: RecordRow;
-    type: string | null;
-    opponent: string | null;
-    score: string | null;
-    outcome: string | null;
-    duration: number | null;
-    energy: number | null;
-    clarity: number | null;
-    performance: number | null;
-    analysis: string | null;
-    postScore: number | null;
-    sets: TennisSet[];
-    competitive: boolean;
-  };
+  session: Session;
+  me: string;
   onClose: () => void;
 }) {
+  const checkin = [
+    ["Energia física", session.energy],
+    ["Clareza mental", session.clarity],
+    ["Desempenho", session.performance],
+  ].filter((item): item is [string, number] => item[1] !== null);
+  const facts: [string, string][] = [
+    ...(session.competitive
+      ? ([
+          [
+            "Resultado",
+            session.outcome === "vitória"
+              ? "Vitória"
+              : session.outcome === "derrota"
+                ? "Derrota"
+                : "Sem resultado",
+          ],
+        ] as [string, string][])
+      : []),
+    ...(session.competitive && session.score && !session.sets.length
+      ? ([["Placar", session.score]] as [string, string][])
+      : []),
+    ...(session.duration !== null
+      ? ([["Duração", minutesLabel(session.duration)]] as [string, string][])
+      : []),
+    ...(session.postScore !== null
+      ? ([["Nota pós-jogo", `${formatNumber(session.postScore)}/10`]] as [
+          string,
+          string,
+        ][])
+      : []),
+  ];
   return (
     <Dialog
       open
@@ -225,80 +276,56 @@ function TennisDetails({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="dialog-content tennis-details-dialog">
-        <DialogTitle>Detalhes da sessão</DialogTitle>
+      <DialogContent className="dialog-content tennis-details-dialog wimbledon">
+        <DialogTitle>
+          {session.type ?? "Sessão de tênis"}
+          {session.opponent ? ` · ${session.opponent}` : ""}
+        </DialogTitle>
         <DialogDescription>
-          Check-in e informações registradas nesta sessão.
+          {dateLabel(session.record.recorded_on, {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}
         </DialogDescription>
-        <div className="panel-heading">
-          <div>
-            <span className="eyebrow">TÊNIS</span>
-            <h2>
-              {session.type ?? "Sessão de tênis"}
-              {session.opponent ? ` · ${session.opponent}` : ""}
-            </h2>
+        {session.competitive && session.sets.length > 0 && (
+          <div className="wb-board wb-detail-board">
+            <SetScore
+              me={me}
+              opponent={session.opponent}
+              sets={session.sets}
+              outcome={session.outcome}
+              variant="board"
+            />
           </div>
-          <button className="text-link" onClick={onClose}>
-            Fechar
-          </button>
-        </div>
-        <div className="tennis-detail-summary">
-          {session.competitive && (
-            <>
-              <article>
-                <small>Resultado</small>
-                <strong>{session.outcome ?? "Sem resultado"}</strong>
-              </article>
-              {session.score && (
-                <article>
-                  <small>Placar</small>
-                  <strong>{session.score}</strong>
-                </article>
-              )}
-            </>
-          )}
-          <article>
-            <small>Nota pós-jogo</small>
-            <strong>
-              {formatNumber(session.postScore)}
-              <em>/10</em>
-            </strong>
-          </article>
-          <article>
-            <small>Duração</small>
-            <strong>
-              {session.duration === null
-                ? "—"
-                : `${formatNumber(session.duration)} min`}
-            </strong>
-          </article>
-        </div>
-        <section className="tennis-detail-section">
-          <h3>Check-in pós-jogo</h3>
+        )}
+        {facts.length > 0 && (
           <div className="tennis-detail-summary">
-            <article>
-              <small>Energia física</small>
-              <strong>
-                {formatNumber(session.energy)}
-                <em>/10</em>
-              </strong>
-            </article>
-            <article>
-              <small>Clareza mental</small>
-              <strong>
-                {formatNumber(session.clarity)}
-                <em>/10</em>
-              </strong>
-            </article>
-            <article>
-              <small>Desempenho</small>
-              <strong>
-                {formatNumber(session.performance)}
-                <em>/10</em>
-              </strong>
-            </article>
+            {facts.map(([label, value]) => (
+              <article key={label}>
+                <small>{label}</small>
+                <strong>{value}</strong>
+              </article>
+            ))}
           </div>
-        </section>
+        )}
+        {checkin.length > 0 && (
+          <section className="tennis-detail-section">
+            <h3>Check-in pós-jogo</h3>
+            <div className="tennis-detail-summary">
+              {checkin.map(([label, value]) => (
+                <article key={label}>
+                  <small>{label}</small>
+                  <strong>
+                    {formatNumber(value)}
+                    <em>/10</em>
+                  </strong>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
         {session.analysis && (
           <section className="tennis-detail-section">
             <h3>Análise e observações</h3>
@@ -306,7 +333,7 @@ function TennisDetails({
           </section>
         )}
         {session.competitive && (
-          <ScoreEditor id={session.record.id} initial={session.sets} />
+          <ScoreEditor id={session.record.id} initial={session.sets} me={me} />
         )}
         <TennisSessionEditor
           id={session.record.id}
@@ -316,7 +343,11 @@ function TennisDetails({
           analysis={session.analysis}
           onSaved={onClose}
         />
-        <WorkoutDetails payload={session.record.payload} />
+        <WorkoutDetails
+          payload={session.record.payload}
+          omit={shownKeys}
+          title="Outros dados registrados"
+        />
       </DialogContent>
     </Dialog>
   );
@@ -588,6 +619,220 @@ function MatchHero({
   );
 }
 
+function momentumOption(
+  t: ChartTheme,
+  games: ReturnType<typeof momentum>,
+) {
+  const green = t.color("--wb-line-green"),
+    purple = t.color("--wb-line-purple"),
+    gold = t.color("--wb-line-gold");
+  const axis = t.axis();
+  return {
+    grid: { left: 8, right: 8, top: 16, bottom: 4, containLabel: true },
+    tooltip: t.tooltip({
+      formatter: (params: unknown) => {
+        const g = games[(params as { dataIndex: number }[])[0].dataIndex];
+        return `<div style="font-weight:600;margin-bottom:4px;color:${t.label}">${escapeHtml(`${dateLabel(g.date, { day: "2-digit", month: "short" })} · ${g.opponent ?? "Adversário"}`)}</div><div style="color:${t.label2}">${g.result === "V" ? "Vitória" : "Derrota"} · games <b style="color:${t.label}">${g.gamesWon}–${g.gamesLost}</b> (${g.diff > 0 ? "+" : ""}${g.diff})</div><div style="color:${t.label2}">Aproveitamento acumulado: <b style="color:${t.label}">${g.rate}%</b></div>`;
+      },
+    }),
+    xAxis: {
+      type: "category",
+      data: games.map((g) => initials(g.opponent)),
+      ...axis,
+      splitLine: { show: false },
+    },
+    yAxis: [
+      { type: "value", ...axis, axisLabel: { ...(axis.axisLabel as object), formatter: (v: number) => (v > 0 ? `+${v}` : `${v}`) } },
+      { type: "value", min: 0, max: 100, interval: 50, ...axis, splitLine: { show: false }, axisLabel: { ...(axis.axisLabel as object), formatter: "{value}%" } },
+    ],
+    series: [
+      {
+        type: "bar",
+        name: "Saldo de games",
+        barMaxWidth: 26,
+        data: games.map((g) => ({
+          value: g.diff,
+          itemStyle: {
+            color: g.diff >= 0 ? green : purple,
+            borderRadius: g.diff >= 0 ? [6, 6, 0, 0] : [0, 0, 6, 6],
+          },
+        })),
+      },
+      {
+        type: "line",
+        name: "Aproveitamento acumulado",
+        yAxisIndex: 1,
+        data: games.map((g) => g.rate),
+        smooth: true,
+        symbol: "circle",
+        symbolSize: 6,
+        lineStyle: { color: gold, width: 2.5 },
+        itemStyle: { color: gold, borderColor: t.surface, borderWidth: 2 },
+      },
+    ],
+  };
+}
+
+const weekdayNames = ["D", "S", "T", "Q", "Q", "S", "S"];
+const monthNames = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+/** GitHub-style calendar of time on court over the last six months. */
+function CourtCalendar({
+  sessions,
+  today,
+}: {
+  sessions: Parameters<typeof courtDays>[0];
+  today: string;
+}) {
+  const start = new Date(Date.parse(today + "T12:00:00Z") - 181 * 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const days = courtDays(sessions, start, today);
+  const minutes = days.reduce((t, d) => t + d.minutes, 0);
+  return (
+    <section className="panel wb-calendar" aria-labelledby="wb-calendar-title">
+      <div className="panel-heading">
+        <div>
+          <span className="eyebrow">FREQUÊNCIA EM QUADRA</span>
+          <h2 id="wb-calendar-title">Últimos 6 meses</h2>
+        </div>
+      </div>
+      <dl className="wb-calendar-facts">
+        <div><dt>Dias em quadra</dt><dd>{days.length}</dd></div>
+        <div><dt>Por semana</dt><dd>{formatNumber(days.length / 26)}</dd></div>
+        <div><dt>Tempo total</dt><dd>{minutesLabel(minutes)}</dd></div>
+      </dl>
+      <EChart
+        height={196}
+        label={`Calendário de sessões de tênis: ${days.length} dias em quadra nos últimos seis meses`}
+        option={(t) => ({
+          tooltip: {
+            ...t.tooltip({ trigger: "item" }),
+            formatter: (p: { value: [string, number, number] }) =>
+              `<div style="font-weight:600;color:${t.label}">${dateLabel(p.value[0], { weekday: "short", day: "2-digit", month: "short" })}</div><div style="color:${t.label2}">${p.value[2]} ${p.value[2] === 1 ? "sessão" : "sessões"} · ${minutesLabel(p.value[1])}</div>`,
+          },
+          visualMap: {
+            show: false,
+            type: "piecewise",
+            dimension: 1,
+            pieces: [
+              { max: 0, color: t.color("--wb-green-soft") },
+              { min: 1, max: 60, color: t.color("color-mix(in srgb,var(--wb-line-green) 45%,transparent)") },
+              { min: 61, max: 100, color: t.color("color-mix(in srgb,var(--wb-line-green) 72%,transparent)") },
+              { min: 101, color: t.color("--wb-line-green") },
+            ],
+          },
+          calendar: {
+            range: [start, today],
+            top: 26,
+            left: 24,
+            right: 4,
+            bottom: 4,
+            cellSize: ["auto", 18],
+            splitLine: { show: false },
+            itemStyle: { color: t.color("--fill-4"), borderColor: t.surface, borderWidth: 3, borderRadius: 4 },
+            dayLabel: { firstDay: 1, nameMap: weekdayNames, color: t.label2, fontSize: 10 },
+            monthLabel: { nameMap: monthNames, color: t.label2, fontSize: 11 },
+            yearLabel: { show: false },
+          },
+          series: [
+            {
+              type: "heatmap",
+              coordinateSystem: "calendar",
+              data: days.map((d) => [d.date, d.minutes, d.sessions]),
+              itemStyle: { borderRadius: 4 },
+            },
+          ],
+        })}
+      />
+    </section>
+  );
+}
+
+function PlayerCard({
+  player,
+  record,
+  minutes,
+  today,
+  onEdit,
+}: {
+  player: TennisProfile;
+  record: ReturnType<typeof seasonRecord>;
+  minutes: number;
+  today: string;
+  onEdit: () => void;
+}) {
+  const style = [
+    player.level,
+    player.hand,
+    player.backhand && `backhand ${player.backhand.toLowerCase()}`,
+    player.since && `joga desde ${player.since}`,
+  ].filter(Boolean);
+  const strung = player.restrung ? dayDiff(player.restrung, today) : null;
+  const career: [string, string][] = [
+    ["Partidas", String(record.played)],
+    ["Vitórias–derrotas", `${record.wins}–${record.losses}`],
+    ["Aproveitamento", record.rate === null ? "—" : `${record.rate}%`],
+    ["Em quadra", minutes ? `${Math.round(minutes / 60)} h` : "—"],
+  ];
+  const kit: [string, string, string | null][] = [
+    ["Raquete", player.racket || "Não informada", null],
+    [
+      "Corda",
+      player.strings || "Não informada",
+      strung === null
+        ? "Informe a data da última encordoação"
+        : strung >= 90
+          ? `Encordoada há ${strung} dias · hora de trocar`
+          : `Encordoada há ${strung} ${strung === 1 ? "dia" : "dias"}`,
+    ],
+    ["Empunhadura", player.grip || "Não informada", null],
+    ["Superfície favorita", player.surface || "Não informada", null],
+  ];
+  return (
+    <section className="wb-player" aria-labelledby="wb-player-title">
+      <div className="wb-player-id">
+        <Avatar name={player.name} tone="me" />
+        <div>
+          <span className="eyebrow">FICHA DO JOGADOR</span>
+          <h2 id="wb-player-title">{player.name || "Seu perfil"}</h2>
+          <p>{style.length ? style.join(" · ") : "Complete a ficha: nível, mão dominante e backhand."}</p>
+          {(player.club || player.league) && (
+            <p className="wb-player-club">
+              {[player.club, player.league].filter(Boolean).join(" · ")}
+            </p>
+          )}
+        </div>
+        <button className="button secondary" onClick={onEdit}>
+          <Pencil size={16} strokeWidth={1.9} aria-hidden="true" />
+          Editar ficha
+        </button>
+      </div>
+      <dl className="wb-player-career">
+        {career.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <dl className="wb-player-kit">
+        {kit.map(([label, value, note]) => (
+          <div key={label} className={label === "Corda" && strung !== null && strung >= 90 ? "due" : ""}>
+            <dt>
+              {label === "Corda" && strung !== null && strung >= 90 && (
+                <Wrench size={13} strokeWidth={2} aria-hidden="true" />
+              )}
+              {label}
+            </dt>
+            <dd>{value}</dd>
+            {note && <small>{note}</small>}
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export function TennisDashboard({
   records,
   profile,
@@ -659,12 +904,6 @@ export function TennisDashboard({
       historyFilter === "all" ||
       matchGroup(session.type ?? "") === historyFilter,
   );
-  const chart = sessions.slice(-14).map((s) => ({
-    date: dateLabel(s.record.recorded_on, { day: "2-digit", month: "short" }),
-    energia: s.energy,
-    clareza: s.clarity,
-    desempenho: s.performance,
-  }));
   const stats = sessions.map((s) => ({
     id: s.record.id,
     date: s.record.recorded_on,
@@ -684,16 +923,8 @@ export function TennisDashboard({
   const lastMatch = [...sessions]
     .reverse()
     .find((s) => s.competitive && (s.sets.length || s.outcome));
-  const energy = avg(sessions.map((s) => s.energy)),
-    clarity = avg(sessions.map((s) => s.clarity)),
-    performance = avg(sessions.map((s) => s.performance));
-  const insight = !sessions.length
-    ? "Registre pré e pós-tênis para começar a identificar padrões entre carga, estado mental e desempenho."
-    : record.played && record.wins < record.losses
-      ? "Os resultados registrados ainda têm mais derrotas que vitórias. Compare os jogos por energia, clareza, sono e carga da semana antes de mudar a preparação."
-      : clarity !== null && energy !== null && clarity < energy
-        ? "A clareza média está abaixo da energia física. Compare sono, refeição pré-jogo e carga mental antes de atribuir uma causa."
-        : "Use pré e pós-jogo com o mesmo conjunto de escalas para revelar em quais contextos seu desempenho oscila.";
+  const performance = avg(sessions.map((s) => s.postScore));
+  const games = momentum(stats).filter((g) => g.hasSets);
   const groups = [
     {
       key: "doubles",
@@ -727,10 +958,6 @@ export function TennisDashboard({
     },
   ];
   const activeGroup = groups.find((g) => g.key === statFilter);
-  // Recharts drives its line animation from JS, so base.css cannot zero it.
-  const reduceMotion =
-    typeof matchMedia !== "undefined" &&
-    matchMedia("(prefers-reduced-motion: reduce)").matches;
   const me = profile.name || "Você";
   const honourRows: [string, string, string | null][] = [
     [
@@ -778,6 +1005,13 @@ export function TennisDashboard({
       <TennisClub initial={profile}>
         {({ profile: player, matches, today, editProfile, manageAgenda }) => (
           <>
+            <PlayerCard
+              player={player}
+              record={record}
+              minutes={board.minutes}
+              today={today}
+              onEdit={editProfile}
+            />
             <MatchHero
               next={matches[0]}
               last={lastMatch}
@@ -1103,54 +1337,27 @@ export function TennisDashboard({
                 ))}
               </div>
               <div className="wb-split">
-                <section className="panel wb-chart-panel">
+                <section className="panel wb-chart-panel" aria-labelledby="wb-momentum-title">
                   <div className="panel-heading">
-                    <h3>Energia, clareza e desempenho</h3>
-                    <span className="eyebrow">ÚLTIMAS 14 SESSÕES</span>
+                    <h3 id="wb-momentum-title">Saldo de games por partida</h3>
+                    <span className="eyebrow">ÚLTIMAS {games.length || 15}</span>
                   </div>
-                  {chart.length ? (
+                  {games.length ? (
                     <>
-                      <div className="tennis-chart">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={chart} margin={{ left: 0, right: 12, top: 8, bottom: 0 }}>
-                            <CartesianGrid vertical={false} stroke="var(--separator-soft)" />
-                            <XAxis dataKey="date" axisLine={false} tickLine={false} tickMargin={8} tick={{ fontSize: 12, fill: "var(--label-2)" }} />
-                            <YAxis domain={[0, 10]} ticks={[0, 5, 10]} width={28} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--label-2)" }} />
-                            <Tooltip
-                              cursor={{ stroke: "var(--separator)", strokeWidth: 1 }}
-                              contentStyle={{ background: "var(--bg-elevated)", border: "1px solid var(--separator-soft)", borderRadius: 12, boxShadow: "var(--shadow-2)", padding: "8px 12px", fontSize: 13, lineHeight: "18px", color: "var(--label)" }}
-                              labelStyle={{ color: "var(--label-2)", fontWeight: 600, marginBottom: 4 }}
-                              itemStyle={{ color: "var(--label)", padding: 0 }}
-                            />
-                            {[
-                              ["Energia", "energia", "var(--wb-line-green)"],
-                              ["Clareza", "clareza", "var(--wb-line-purple)"],
-                              ["Desempenho", "desempenho", "var(--wb-line-gold)"],
-                            ].map(([name, key, color]) => (
-                              <Line
-                                key={key}
-                                name={name}
-                                dataKey={key}
-                                stroke={color}
-                                strokeWidth={2.5}
-                                dot={{ r: 3, strokeWidth: 0, fill: color }}
-                                activeDot={{ r: 5, strokeWidth: 0 }}
-                                isAnimationActive={!reduceMotion}
-                                animationDuration={280}
-                                connectNulls
-                              />
-                            ))}
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <EChart
+                        className="tennis-chart"
+                        height={260}
+                        label={`Saldo de games nas últimas ${games.length} partidas com placar e aproveitamento acumulado`}
+                        option={(t) => momentumOption(t, games)}
+                      />
                       <div className="tennis-chart-legend" aria-hidden="true">
-                        <span><i style={{ ["--legend" as string]: "var(--wb-line-green)" }} />Energia</span>
-                        <span><i style={{ ["--legend" as string]: "var(--wb-line-purple)" }} />Clareza</span>
-                        <span><i style={{ ["--legend" as string]: "var(--wb-line-gold)" }} />Desempenho</span>
+                        <span><i style={{ ["--legend" as string]: "var(--wb-line-green)" }} />Games a favor</span>
+                        <span><i style={{ ["--legend" as string]: "var(--wb-line-purple)" }} />Games contra</span>
+                        <span><i style={{ ["--legend" as string]: "var(--wb-line-gold)" }} />Aproveitamento acumulado</span>
                       </div>
                     </>
                   ) : (
-                    <p className="field-help">Ainda não há sessões suficientes para o gráfico.</p>
+                    <p className="field-help">O gráfico aparece quando houver partidas com placar por set.</p>
                   )}
                 </section>
                 <section className="panel wb-h2h" aria-labelledby="wb-h2h-title">
@@ -1203,34 +1410,7 @@ export function TennisDashboard({
                   </p>
                 )}
               </section>
-              <div className="wb-side">
-                <section className="panel wb-player" aria-labelledby="wb-player-title">
-                  <div className="wb-player-head">
-                    <Avatar name={player.name} tone="me" />
-                    <div>
-                      <span className="eyebrow">FICHA DO JOGADOR</span>
-                      <h2 id="wb-player-title">{player.name || "Seu perfil"}</h2>
-                    </div>
-                    <button className="button icon ghost" aria-label="Editar ficha do jogador" title="Editar ficha" onClick={editProfile}>
-                      <Pencil size={17} strokeWidth={1.9} />
-                    </button>
-                  </div>
-                  <dl>
-                    <div><dt>Sexo</dt><dd>{player.sex || "Não informado"}</dd></div>
-                    <div><dt>Raquete</dt><dd>{player.racket || "Não informada"}</dd></div>
-                    <div><dt>Corda</dt><dd>{player.strings || "Não informada"}</dd></div>
-                    <div><dt>Traje</dt><dd>Todo branco, como manda a tradição</dd></div>
-                  </dl>
-                </section>
-                <section className="panel tennis-insight">
-                  <Sparkles strokeWidth={1.9} aria-hidden="true" />
-                  <div>
-                    <span className="eyebrow">LEITURA DO DIÁRIO</span>
-                    <h2>Para a próxima sessão</h2>
-                    <p>{insight}</p>
-                  </div>
-                </section>
-              </div>
+              <CourtCalendar sessions={stats} today={today} />
             </div>
           </>
         )}
@@ -1305,7 +1485,11 @@ export function TennisDashboard({
         </Dialog>
       )}
       {selected && (
-        <TennisDetails session={selected} onClose={() => setSelected(null)} />
+        <TennisDetails
+          session={selected}
+          me={me}
+          onClose={() => setSelected(null)}
+        />
       )}
       {registering && (
         <Dialog

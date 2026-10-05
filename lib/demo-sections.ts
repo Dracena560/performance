@@ -58,7 +58,7 @@ export function demoTennisRecords():DemoRecord[]{
 }
 export function demoTennisProfile():TennisProfile{
  const today=demoToday();
- return tennisProfileSchema.parse({name:'Jogador Exemplo',sex:'Masculino',racket:'Raquete Exemplo Pro 98 · 305 g',strings:'Corda Exemplo Poly 1.25 · 24 kg',upcoming:[
+ return tennisProfileSchema.parse({name:'Jogador Exemplo',sex:'Masculino',racket:'Raquete Exemplo Pro 98 · 305 g',strings:'Corda Exemplo Poly 1.25 · 24 kg',hand:'Destro',backhand:'Duas mãos',level:'NTRP 4.0',club:'Clube Exemplo',league:'Liga Exemplo · Divisão 2',surface:'Grama',grip:'L2',restrung:shiftDate(today,-48),since:'2015',upcoming:[
   {id:'demo-match-1',date:shiftDate(today,3),time:'19:00',opponent:'Exemplo Andrade',location:'Clube Exemplo · quadra 2',type:'Simples · Liga',notes:'Levar bolas novas e garrafa extra.',cancelled:false},
   {id:'demo-match-2',date:shiftDate(today,9),time:'10:30',opponent:'Exemplo Lima & Exemplo Costa',location:'Parque Exemplo · quadra coberta',type:'Duplas',notes:'',cancelled:false},
   {id:'demo-match-3',date:shiftDate(today,14),time:'',opponent:'',location:'Clube Exemplo',type:'Treino',notes:'Horário a confirmar com o treinador.',cancelled:false},

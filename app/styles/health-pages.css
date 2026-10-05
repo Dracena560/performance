@@ -26,7 +26,6 @@
 
 /* Recharts containers + dot legend (Footnote) --------------------------------- */
 .sleep-chart,.exercise-chart{position:relative;height:260px;margin-top:var(--s-3);font-variant-numeric:tabular-nums;overflow:hidden}
-.sleep-chart .recharts-tooltip-wrapper,.exercise-chart .recharts-tooltip-wrapper{outline:none}
 .health-chart-legend{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin-top:var(--s-3);font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
 .health-chart-legend span{display:inline-flex;align-items:center;gap:var(--s-2)}
 .health-chart-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--dot,var(--accent));flex-shrink:0}

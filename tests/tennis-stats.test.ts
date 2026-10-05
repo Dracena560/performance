@@ -25,3 +25,12 @@ test('league path numbers league matches in date order',()=>{
  assert.deepEqual(leaguePath(list).map(p=>[p.id,p.round]),[['a',1],['c',2]]);
  assert.equal(initials('Exemplo Lima & Exemplo Costa'),'EC');assert.equal(initials('Felipe'),'F');assert.equal(initials(null),'?');
 });
+import { momentum,courtDays } from '../lib/tennis-stats';
+test('momentum gives game difference and running win rate per decided match',()=>{
+ const rows=momentum(list);assert.deepEqual(rows.map(r=>[r.id,r.diff,r.rate]),[['a',9,100],['b',-5,50],['c',1,67],['e',8,75]]);
+ assert.equal(momentum(list,2).length,2);
+});
+test('court days sums minutes and sessions per day inside the range',()=>{
+ const days=courtDays([...list,m('f','2026-09-12',null,null,[],'Treino',30)],'2026-09-05','2026-09-15');
+ assert.deepEqual(days,[{date:'2026-09-05',minutes:95,sessions:1},{date:'2026-09-10',minutes:60,sessions:1},{date:'2026-09-12',minutes:150,sessions:2}]);
+});

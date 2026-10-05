@@ -167,7 +167,6 @@
 
 .chart{height:220px;min-width:0}
 .chart svg{overflow:visible}
-.chart .recharts-tooltip-wrapper{outline:none}
 .chart-legend{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin-bottom:var(--s-3);font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2)}
 .chart-legend span{display:inline-flex;align-items:center;gap:6px}
 .chart-legend i{width:8px;height:8px;border-radius:50%;flex-shrink:0}
