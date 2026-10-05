@@ -1,5 +1,5 @@
 'use client';
-import { siteNavigation, activeNavigation } from './site-navigation';
+import { siteNavigation, activeNavigation, demoPath } from './site-navigation';
 import { AppShell } from './app-shell';
 import { DeadlineSummary } from './deadline-summary';
 import type { Reminder } from '@/lib/life';
@@ -40,7 +40,7 @@ export default function HealthApp({initial,demo=false,view:initialView}:{initial
  const mealTimeline=<section className="panel meal-timeline"><div className="panel-heading"><div><h2>Refeições de hoje</h2><p className="field-help">Estimativa do diário, ponderada pelas calorias de cada refeição. Café e outros registros de até 30 kcal são neutros.</p></div><span className="meal-average">{dailyMealAverage===null?'—':format(dailyMealAverage)}<small>/10 média do dia</small></span></div>{mealEvents.length?<div className="meal-timeline-list">{mealEvents.map(event=>{const grade=mealGrade(event),data=event.data.kind==='meal'?event.data:null;return <article key={event.id}><time>{localTime(event.timestamp)}</time><div><strong>{data?.name||data?.meal_type||'Refeição'}</strong><small>{[data?.items.length&&`${data.items.length} item(ns)`,...grade.reasons,grade.weight>0&&mealWeights>0?`Peso na média: ${format(grade.weight/mealWeights*100)}%`:null].filter(Boolean).join(' · ')||'Inclua itens e nutrientes para detalhar a qualidade.'}</small></div><span className={`meal-grade ${grade.score===null?'neutral':grade.score>=7?'great':grade.score>=4?'fair':'low'}`}>{grade.score===null?'—':format(grade.score)}<small>{grade.score===null?(grade.reasons[0].startsWith('Registro de baixo')?'neutro':'sem nota'):'/10'}</small></span></article>;})}</div>:<p className="field-help">Registre uma refeição para acompanhar a qualidade e a distribuição do dia.</p>}</section>;
  const chart=checkins.map(e=>({time:localTime(e.timestamp),...(e.data.kind==='checkin'?e.data.scores:{})}));
  const filtered=selectedEvents.filter(e=>(category==='all'||category===e.type)&&JSON.stringify(e).toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));
- const go=(v:string)=>{if(demo)setView(v);else router.push(`/${v}?date=${day.local_date}`);};
+ const go=(v:string)=>{if(demo)router.push(demoPath(v)??'/demo');else router.push(`/${v}?date=${day.local_date}`);};
  const open=(kind:string,event?:HealthEvent)=>{setEditing(event);setModal(kind);setError('');};
  const save=async(input:EventInput,id?:string)=>{
  const parsed=eventSchema.parse(input);const result=demo?{...parsed,id:id??crypto.randomUUID(),local_date:localDate(new Date(parsed.timestamp))}:await saveEvent(parsed,id);

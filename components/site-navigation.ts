@@ -22,3 +22,16 @@ export function activeNavigation(pathOrView: string): NavigationKey {
   if (key === 'financeiro') return 'financeiro';
   return (siteNavigation.find(([k]) => k === key)?.[0] ?? 'hoje');
 }
+
+/** Private routes that have a fictitious counterpart under /demo. */
+export const demoRoutes = ['saude', 'tenis', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'saude-geral', 'viagens', 'registros', 'historico', 'alimentacao', 'metas', 'agua', 'check-in', 'timeline'] as const;
+
+/** Maps a private path (e.g. "/sono?date=…") to its demo page, or null when there is none. */
+export function demoPath(path: string): string | null {
+  const [pathname, rest = ''] = path.split(/(?=[?#])/);
+  const key = pathname.replace(/^\/+|\/+$/g, '');
+  const suffix = rest.startsWith('#') ? rest : '';
+  if (key === '' || key === 'hoje' || key === 'demo') return '/demo' + suffix;
+  if (key === 'perfil') return '/demo/minhas-informacoes';
+  return (demoRoutes as readonly string[]).includes(key) ? `/demo/${key}${suffix}` : null;
+}

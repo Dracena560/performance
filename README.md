@@ -17,7 +17,7 @@ Abra http://127.0.0.1:4200/demo (o servidor de desenvolvimento usa a porta 4200)
 
 A interface segue as Human Interface Guidelines da Apple, com Liquid Glass na camada de navegação (sidebar, barra de abas, folhas e toasts) e materiais padrão no conteúdo. Tokens, escala tipográfica e componentes estão documentados em `DESIGN.md` e implementados em `app/styles/`. Light e Dark Mode seguem a preferência do sistema.
 
-Em desenvolvimento, as rotas `/demo/<seção>` (por exemplo `/demo/tenis`, `/demo/financeiro`, `/demo/minhas-informacoes`, `/demo/sono`) mostram cada área com dados fictícios para revisão visual; elas respondem 404 em produção.
+Em desenvolvimento, as rotas `/demo/<seção>` (por exemplo `/demo/tenis`, `/demo/financeiro`, `/demo/minhas-informacoes`, `/demo/sono`) mostram cada área com dados fictícios. Na demonstração, a navegação e os links internos levam a essas páginas; salvar alterações nelas exige login.
 
 ## O que está implementado
 

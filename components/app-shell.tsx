@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, HeartPulse, LogOut, Plus, RotateCw } from 'lucide-react';
-import { siteNavigation, type NavigationKey } from './site-navigation';
+import { demoPath, siteNavigation, type NavigationKey } from './site-navigation';
 import { logout } from '@/app/actions';
 
 type Props = {
@@ -24,6 +24,15 @@ type Props = {
  */
 export function AppShell({ title, active, demo = false, onNavigate, onQuickAction, quickActionLabel = 'Registrar', children }: Props) {
   const router = useRouter();
+  /** Demo mode: links inside unchanged components point at private routes; send them to the fictitious pages instead. */
+  const demoLinks = demo ? (event: React.MouseEvent) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const anchor = (event.target as HTMLElement).closest('a[href]') as HTMLAnchorElement | null;
+    const href = anchor?.getAttribute('href');
+    if (!href || !href.startsWith('/') || href.startsWith('/demo') || href.startsWith('/login') || anchor?.target === '_blank') return;
+    const target = demoPath(href);
+    if (target) { event.preventDefault(); event.stopPropagation(); router.push(target); }
+  } : undefined;
   const activeIndex = Math.max(0, siteNavigation.findIndex(([key]) => key === active));
   const item = (key: NavigationKey, label: string, Icon: typeof HeartPulse, compact?: string, place: 'sidebar' | 'tabbar' = 'sidebar') => {
     const isActive = key === active;
@@ -34,7 +43,7 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
     };
     return <Link key={`${place}-${key}`} href={demo ? (key === 'hoje' ? '/demo' : `/demo/${key}`) : `/${key}`} {...props}><Icon size={place === 'tabbar' ? 22 : 20} strokeWidth={isActive ? 2.2 : 1.9} /><span>{place === 'tabbar' ? (compact ?? label) : label}</span>{key === 'hoje' && place === 'sidebar' && <span className="nav-today" aria-hidden />}</Link>;
   };
-  return <div className="app-shell">
+  return <div className="app-shell" onClickCapture={demoLinks}>
     <aside className="sidebar glass" aria-label="Navegação principal">
       <Link href={demo ? '/demo' : '/hoje'} className="brand" onClick={onNavigate ? (event) => { event.preventDefault(); onNavigate('hoje'); } : undefined}>
         <span className="brand-mark" aria-hidden><HeartPulse /></span>
