@@ -1,6 +1,6 @@
 # Edição completa do site pelo Felipe MCP
 
-O catálogo `estrutura_do_site` descreve os 17 recursos de dados editáveis, seus campos e formatos. Não há acesso arbitrário a SQL, credenciais, contas de outros usuários ou código do site.
+O catálogo `estrutura_do_site` descreve os 19 recursos de dados editáveis, seus campos e formatos. Não há acesso arbitrário a SQL, credenciais, contas de outros usuários ou código do site.
 
 1. Descubra o recurso com `estrutura_do_site`.
 2. Consulte com `consultar_dados_site`. Em tabelas, percorra `next_offset` quando necessário; use filtros de data e categoria.
@@ -12,6 +12,12 @@ O catálogo `estrutura_do_site` descreve os 17 recursos de dados editáveis, seu
 8. Confirme a alteração somente após retorno de sucesso, citando o item e os valores efetivamente retornados. Falhas não são confirmações de gravação.
 
 Fotos de carros aceitam URL HTTPS de imagem ou avatar JPEG em data URL dentro do limite do esquema. Não invente links ou conteúdo de arquivos. Documentos guardam links e metadados.
+
+## Cartão de crédito e caixa
+
+- `registrar_cartao_credito`: envie `balance` (valor atual da fatura, em £) e/ou `checking_balance` (saldo da conta corrente). Cada envio entra no histórico do gráfico do Financeiro; um novo envio na mesma data substitui o daquela data.
+- `previsao_financeira`: devolve a fatura atual, quanto ter na conta para os débitos automáticos dos próximos 10 dias (com a margem de £150), quanto pode ser pago no cartão agora e a previsão dos próximos 12 meses.
+- Limite, dia de vencimento, margem, juros e correções do histórico ficam no recurso `cartao_credito` (`editar_dados_site`, ex.: `replace /limit`, `remove /history/0`).
 
 Gráficos, médias, totais e notas automáticas são derivados: altere os registros de origem. Metas de sódio usam a mesma leitura/gravação do site, mesmo sendo armazenadas separadamente das outras metas.
 

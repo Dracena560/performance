@@ -7,8 +7,9 @@ import {investmentsSchema} from '@/lib/investments';
 import {FinanceDashboard} from './personal-dashboard';
 import {InvestmentOverview} from './investment-overview';
 import {InvestmentsDashboard} from './investments-dashboard';
+import {CreditCardPlan} from './credit-card-plan';
 const money=(value:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(value);
-export function FinanceSections({finance,investments}:{finance:unknown;investments:unknown}){
+export function FinanceSections({finance,investments,creditCard,car,today}:{finance:unknown;investments:unknown;creditCard:unknown;car:unknown;today:string}){
  const parsed=financeSchema.safeParse(finance);const [data,setData]=useState(parsed.success?parsed.data:initialFinance);
  useEffect(()=>{const parsed=financeSchema.safeParse(finance);if(parsed.success)setData(parsed.data);},[finance]);
  const history=investmentsSchema.parse(investments);
@@ -16,6 +17,7 @@ export function FinanceSections({finance,investments}:{finance:unknown;investmen
  const stats:[string,number][]=[['Despesas mensais',total],['Enviar para Wise',moneyTotal(data.rows.filter(r=>r.payment==='Wise Jar'))],['Débito Santander',moneyTotal(data.rows.filter(r=>r.payment==='Direct Debit Santander'))],['Saldo para guardar',data.incomeFelipe+data.incomeSara-total]];
  return <div className="finance-page">
   <header className="page-heading"><div><span className="eyebrow">SEU PATRIMÔNIO</span><h1>Financeiro</h1><p>Resumos à vista. Abra cada seção para consultar os detalhes.</p></div></header>
+  <CreditCardPlan initial={creditCard} finance={data} car={car} today={today}/>
   <FinanceInsights data={data} history={history}/>
   <details className="information-card finance-expand">
    <summary>

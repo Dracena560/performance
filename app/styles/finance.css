@@ -183,6 +183,29 @@
 .finance-form p[role=status]:empty{display:none}
 
 /* Responsive --------------------------------------------------------------- */
+/* Credit card commitment + cash plan (credit-card-plan.tsx) ----------------- */
+.credit-card-plan{display:grid;gap:var(--s-4);min-width:0}
+.finance-section-heading .eyebrow{color:color-mix(in srgb,var(--tint-finance) 58%,var(--label))}
+.finance-section-heading h2{font-size:var(--fs-title2);line-height:var(--lh-title2);font-weight:700;letter-spacing:-.016em}
+.finance-forecast{--panel-tint:var(--sys-orange)}
+.credit-card-alert{padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:color-mix(in srgb,var(--danger) 12%,transparent);color:color-mix(in srgb,var(--danger) 72%,var(--label));font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+.cash-total{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-2);margin:var(--s-2) 0 var(--s-3);padding:var(--s-3);border-radius:var(--r-md);background:var(--bg-3)}
+.cash-total span{display:grid;gap:2px;font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2)}
+.cash-total b{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600;color:var(--label);font-variant-numeric:tabular-nums}
+.cash-total span:last-child b{color:color-mix(in srgb,var(--tint-finance) 42%,var(--label))}
+.forecast-table>summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;font-size:var(--fs-subhead);line-height:var(--lh-subhead);font-weight:600;color:var(--accent)}
+.forecast-table>summary::-webkit-details-marker{display:none}
+.forecast-table[open]>summary svg{transform:rotate(180deg)}
+.forecast-table table{width:100%;min-width:520px;margin-top:var(--s-3);font-size:var(--fs-footnote);line-height:var(--lh-footnote);font-variant-numeric:tabular-nums}
+.forecast-table th{text-align:right;padding:var(--s-2);font-weight:600;color:var(--label-2);border-bottom:1px solid var(--separator-soft)}
+.forecast-table td{text-align:right;padding:var(--s-2);border-bottom:1px solid var(--separator-soft)}
+.forecast-table th:first-child,.forecast-table td:first-child{text-align:left}
+.forecast-table td.negative{color:color-mix(in srgb,var(--danger) 72%,var(--label))}
+.credit-card-form{display:grid;gap:var(--s-5)}
+.credit-card-form h3{font-size:var(--fs-headline);line-height:var(--lh-headline);font-weight:600}
+.credit-card-form .personal-form-grid>.button{align-self:end;justify-self:start}
+.credit-card-form .finance-due-list .button{flex-shrink:0}
+
 @media (max-width:1180px){
   .finance-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .finance-visual-grid{grid-template-columns:1fr}
@@ -206,4 +229,6 @@
   .investment-groups{grid-template-columns:1fr}
   .investment-group:has(.investment-card:nth-child(3)) .investment-cards{grid-template-columns:1fr}
   .budget-table{min-width:860px}
+  .cash-total b{font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
+  .credit-card-form .personal-form-grid{grid-template-columns:1fr}
 }

@@ -99,11 +99,12 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
  const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
  const {tennisProfileSchema}=await import('@/lib/tennis-club');
- const value=key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {creditCardSchema}=await import('@/lib/credit-card');
+ const value=key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
 

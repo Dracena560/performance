@@ -3,6 +3,7 @@
 // section renders every visual state without touching the private database.
 import { localDate, type HealthEvent } from './domain';
 import { demoData } from './demo';
+import { creditCardSchema, type CreditCard } from './credit-card';
 import { reminders, billsSchema, datesSchema, preferencesSchema, type Bill, type Deadline, type Preferences } from './life';
 import { tennisProfileSchema, type TennisProfile } from './tennis-club';
 import { investmentsSchema, type InvestmentSnapshot } from './investments';
@@ -138,6 +139,12 @@ export function demoCar():CarProfile{
   ]});
 }
 
+export function demoCreditCard():CreditCard{
+ const today=demoToday();
+ return creditCardSchema.parse({name:'Cartão Exemplo',limit:5000,dueDay:Number(shiftDate(today,9).slice(8,10)),apr:null,margin:150,checkingBalance:2600,checkingDate:today,history:[
+  {id:'demo-card-1',date:shiftDate(today,-62),balance:4200,notes:'Exemplo'},{id:'demo-card-2',date:shiftDate(today,-31),balance:3900,notes:''},{id:'demo-card-3',date:today,balance:3650,notes:''}
+ ]});
+}
 export function demoBills():Bill[]{
  const today=demoToday();
  return billsSchema.parse([
@@ -189,7 +196,7 @@ export function demoProfile():Record<string,unknown>{
   'Suplementos':'Dia: vitamina D e ômega-3. Noite: magnésio (exemplo).',
   'Objetivo':'Manter energia, mobilidade e clareza mental para trabalhar, viajar e jogar tênis por muitos anos (exemplo).',
   personal_finance:demoFinance(),personal_investments:demoInvestments(),personal_trips:demoTrips(),personal_car:demoCar(),
-  personal_bills:demoBills(),personal_dates:demoDates(),personal_preferences:demoPreferences(),personal_tennis:demoTennisProfile()
+  personal_bills:demoBills(),personal_dates:demoDates(),personal_preferences:demoPreferences(),personal_tennis:demoTennisProfile(),personal_credit_card:demoCreditCard()
  };
 }
 export function demoMeasurements(){return {recorded_on:shiftDate(demoToday(),-12),payload:{peso_kg:78.4,gordura_corporal_percent:17.2,massa_muscular_kg:36.1,imc:24.1,agua_corporal_percent:58.3,cintura_cm:84,massa_ossea_kg:3.2,idade_metabolica:31},source:'Bioimpedância (exemplo)'};}
