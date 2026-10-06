@@ -3,13 +3,14 @@ import { Activity,ArrowUpRight,BedDouble,ChevronDown,Droplets,Dumbbell,FlaskConi
 import { SleepDashboard } from './sleep-dashboard';
 import { ExerciseDashboard } from './exercise-dashboard';
 import { ExamsView } from './exams-view';
+import HealthApp from './health-app';
 import type { HealthSummary } from '@/lib/health-summary';
 import type { Exam } from '@/lib/exams';
 import type { DogActivity } from '@/lib/dog-food';
 import { metricInfo, targetLabel, type Targets } from '@/lib/domain';
 
 type RecordRow={id:string;category:string;recorded_on:string;recorded_at:string|null;payload:Record<string,unknown>;source:string};
-type Props={summary:HealthSummary;sleepRecords:RecordRow[];exerciseRecords:RecordRow[];exams:Exam[];taking:string[];dogActivities:DogActivity[];dogName:string;targets:Targets|null;dayType:string|null;today:string;demo?:boolean};
+type Props={food:Parameters<typeof HealthApp>[0]['initial'];summary:HealthSummary;sleepRecords:RecordRow[];exerciseRecords:RecordRow[];exams:Exam[];taking:string[];dogActivities:DogActivity[];dogName:string;targets:Targets|null;dayType:string|null;today:string;demo?:boolean};
 const fmt=(v:number|null,d=1)=>v===null?'—':new Intl.NumberFormat('pt-BR',{maximumFractionDigits:d}).format(v);
 const dateText=(d:string)=>new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(d+'T12:00:00Z'));
 
@@ -24,7 +25,7 @@ function Expand({id,icon,tint,title,subtitle,href,children,open=false}:{id:strin
 }
 
 /** Saúde: a short health summary on top, then each area as an expandable card (like Minhas informações). */
-export function HealthHub({summary:s,sleepRecords,exerciseRecords,exams,taking,dogActivities,dogName,targets,dayType,today,demo=false}:Props){
+export function HealthHub({food,summary:s,sleepRecords,exerciseRecords,exams,taking,dogActivities,dogName,targets,dayType,today,demo=false}:Props){
  const base=demo?'/demo/':'/';
  const sleepTone=s.sleep.avgHours===null?'':s.sleep.avgHours>=s.sleep.target-0.5?'good':s.sleep.avgHours>=s.sleep.target-1.5?'warn':'bad';
  const wellTone=s.wellbeing.avg===null?'':s.wellbeing.avg>=7?'good':s.wellbeing.avg>=5?'warn':'bad';
@@ -45,12 +46,7 @@ export function HealthHub({summary:s,sleepRecords,exerciseRecords,exams,taking,d
 
   <div className="information-sections health-sections">
    <Expand id="alimentacao" icon={<Utensils/>} tint="--tint-nutrition" title="Alimentação" subtitle="Refeições, hidratação, vitaminas e minerais" href={`${base}alimentacao`}>
-    <div className="health-mini-grid">
-     <div><small>Calorias consumidas · média 7 dias</small><strong>{`${fmt(s.energy.eaten,0)} kcal`}</strong></div>
-     <div><small>Calorias gastas · média 7 dias</small><strong>{`${fmt(s.energy.burned,0)} kcal`}</strong></div>
-     <div><small>Água · média 7 dias</small><strong>{`${fmt(s.water.avg,0)} ml`}</strong></div>
-    </div>
-    <p className="field-help">Refeições, nutrientes e o registro do dia ficam na tela de Alimentação.</p>
+    <HealthApp initial={food} view="alimentacao" demo={demo} embedded/>
    </Expand>
    <Expand id="exercicios" icon={<Activity/>} tint="--tint-fitness" title="Exercícios" subtitle="Carga semanal, sessões, zonas e recuperação" href={`${base}exercicios`}>
     <ExerciseDashboard records={exerciseRecords} date={today} dogActivities={dogActivities} dogName={dogName}/>

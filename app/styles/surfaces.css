@@ -130,3 +130,5 @@
 .health-mini-grid strong{font-size:var(--fs-headline);font-variant-numeric:tabular-nums}
 .health-foot{display:flex;align-items:center;gap:6px}
 @media (max-width:760px){.health-summary{grid-template-columns:1fr 1fr}.health-tile{padding:var(--s-3) var(--s-4)}.health-tile strong{font-size:24px;line-height:30px}}
+.health-embedded .page-heading h1,.health-embedded .page-heading .eyebrow{display:none}
+.health-embedded .page-heading{padding-top:0}
