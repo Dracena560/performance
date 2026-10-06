@@ -157,3 +157,32 @@
 .dog-bag-grid>article{grid-template-columns:150px minmax(0,1fr)}
 .dog-bag-body dd{white-space:nowrap}
 .dog-list li>button:disabled{opacity:.8;cursor:default}
+
+/* Layout estável: cartões em pares com a mesma altura, listas limitadas ------- */
+.dog-grid,.dog-health-grid{align-items:stretch}
+.dog-grid>.dog-panel{display:flex;flex-direction:column;min-width:0}
+.dog-panel>.panel-heading{flex-wrap:nowrap;gap:var(--s-3);align-items:flex-start}
+.dog-panel>.panel-heading>div{min-width:0}
+.dog-panel>.panel-heading .button{flex:none;white-space:nowrap}
+.dog-panel-body{flex:1;min-width:0}
+.dog-panel:not(.expanded) .dog-panel-body>.dog-list>li:nth-child(n+6){display:none}
+.dog-more{align-self:flex-start;margin-top:var(--s-3)}
+.dog-list li>button:first-child>div{min-width:0;flex:1}
+.dog-list li small{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.dog-list li strong{overflow-wrap:anywhere}
+.dog-state{min-width:104px}
+.dog-dates .dog-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));column-gap:var(--s-5)}
+.dog-health-grid>.dog-panel{display:flex;flex-direction:column}
+.dog-nutrition .dog-list{max-height:260px;overflow:auto}
+.dog-activity .dog-list{margin-top:var(--s-2)}
+.dog-weight .dog-panel-body{display:flex;flex-direction:column}
+.dog-weight .dog-panel-body>div:first-child{flex:1;min-height:200px}
+@media (max-width:760px){.dog-panel>.panel-heading{flex-wrap:wrap}.dog-state{min-width:88px}}
+@media (max-width:760px){
+ .dog-bag-grid>article{grid-template-columns:1fr}
+ .dog-bag-photos{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .dog-bag-photos>span{height:90px}
+ .dog-bag-body dl{grid-template-columns:1fr}
+}
+.dog-state{width:112px;min-width:0;white-space:normal;line-height:1.2;padding:4px 6px}
+@media (max-width:760px){.dog-state{width:96px}}

@@ -25,7 +25,7 @@ export async function photoData(file:File,maxSide=1100,maxLength=300000){
 export function DogActivityPanel({dog,walks,today,onAdd,onEdit}:{dog:Dog;walks:DogActivity[];today:string;onAdd:()=>void;onEdit:(a:DogActivity)=>void}){
  const days=activityByDay(dog.activities,walks,today,30);const now=days.at(-1)!;const total=now.walks+now.other;const goal=dog.activityGoalMinutes;
  const week=days.slice(-7);const weekAvg=Math.round(week.reduce((t,d)=>t+d.walks+d.other,0)/7);const hit=days.filter(d=>d.walks+d.other>=goal&&goal>0).length;
- const recent=[...walks,...dog.activities].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+ const recent=[...walks,...dog.activities].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
  return <section className="panel dog-panel dog-activity" aria-labelledby="dog-activity-title">
   <div className="panel-heading"><div><h2 id="dog-activity-title"><Activity size={19}/> {`Atividade do ${dog.name||'Caju'}`}</h2><p className="field-help">Suas caminhadas (Outdoor Walk) entram sozinhas; o resto do dia chega pelo ChatGPT ou pelo botão.</p></div><Button variant="secondary" size="small" onClick={onAdd}><Plus size={16}/>Adicionar</Button></div>
   <div className="dog-activity-now">
