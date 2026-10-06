@@ -9,8 +9,10 @@ import {InvestmentOverview} from './investment-overview';
 import {InvestmentsDashboard} from './investments-dashboard';
 import {CreditCardPlan} from './credit-card-plan';
 import {NetWorth} from './net-worth';
+import {LivePortfolio} from './live-portfolio';
+import type {Holding,LiveRow} from '@/lib/holdings';
 const money=(value:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(value);
-export function FinanceSections({finance,investments,creditCard,car,today}:{finance:unknown;investments:unknown;creditCard:unknown;car:unknown;today:string}){
+export function FinanceSections({finance,investments,creditCard,car,today,holdings=[],liveRows=[],liveAt=null,demo=false}:{finance:unknown;investments:unknown;creditCard:unknown;car:unknown;today:string;holdings?:Holding[];liveRows?:LiveRow[];liveAt?:string|null;demo?:boolean}){
  const parsed=financeSchema.safeParse(finance);const [data,setData]=useState(parsed.success?parsed.data:initialFinance);
  useEffect(()=>{const parsed=financeSchema.safeParse(finance);if(parsed.success)setData(parsed.data);},[finance]);
  const history=investmentsSchema.parse(investments);
@@ -18,7 +20,7 @@ export function FinanceSections({finance,investments,creditCard,car,today}:{fina
  const stats:[string,number][]=[['Despesas mensais',total],['Enviar para Wise',moneyTotal(data.rows.filter(r=>r.payment==='Wise Jar'))],['Débito Santander',moneyTotal(data.rows.filter(r=>r.payment==='Direct Debit Santander'))],['Saldo para guardar',data.incomeFelipe+data.incomeSara-total]];
  return <div className="finance-page">
   <header className="page-heading"><div><span className="eyebrow">SEU PATRIMÔNIO</span><h1>Financeiro</h1><p>Resumos à vista. Abra cada seção para consultar os detalhes.</p></div></header>
-  <NetWorth investments={history} creditCard={creditCard} car={car} finance={data}/>
+  <NetWorth investments={history} creditCard={creditCard} car={car} finance={data} liveTotal={liveRows.length&&liveRows.every(r=>r.valueGBP!==null)?liveRows.reduce((t,r)=>t+(r.valueGBP??0),0):null}/>
   <CreditCardPlan initial={creditCard} finance={data} car={car} today={today}/>
   <FinanceInsights data={data} history={history}/>
   <details className="information-card finance-expand">
@@ -33,7 +35,7 @@ export function FinanceSections({finance,investments,creditCard,car,today}:{fina
     <span className="finance-expand-heading"><span className="information-icon" aria-hidden><TrendingUp/></span><strong>Investimentos</strong><ChevronDown className="expand-arrow" aria-hidden/></span>
     <InvestmentOverview history={history} compact/>
    </summary>
-   <div className="information-body finance-page"><InvestmentOverview history={history} hideTotals/><InvestmentsDashboard initial={history} embedded/></div>
+   <div className="information-body finance-page"><LivePortfolio initial={holdings} rows={liveRows} updatedAt={liveAt} history={history} demo={demo}/><InvestmentOverview history={history} hideTotals/><InvestmentsDashboard initial={history} embedded/></div>
   </details>
  </div>;
 }

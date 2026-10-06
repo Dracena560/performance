@@ -9,10 +9,10 @@ const money=(v:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency
 const months=(v:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(v);
 
 /** Net worth and emergency fund side by side: the two numbers that sum up the finances. */
-export function NetWorth({investments,creditCard,car,finance}:{investments:InvestmentSnapshot[];creditCard:unknown;car:unknown;finance:Finance}){
+export function NetWorth({investments,creditCard,car,finance,liveTotal=null}:{investments:InvestmentSnapshot[];creditCard:unknown;car:unknown;finance:Finance;liveTotal?:number|null}){
  const card=readCreditCard(creditCard);
  const rules=useSettings().finance;
- const n=netWorth({investments,card,car});const e=emergencyFund({investments,card,finance,target:rules.emergencyMonths,includeChecking:rules.includeChecking,subtractCard:rules.subtractCard});
+ const n=netWorth({investments,card,car,liveTotal});const e=emergencyFund({investments,card,finance,target:rules.emergencyMonths,includeChecking:rules.includeChecking,subtractCard:rules.subtractCard});
  const scale=Math.max(n.totalAssets,n.totalLiabilities,1);
  const pct=e.months===null?0:Math.min(100,e.months/e.target*100);
  return <div className="net-worth-grid">

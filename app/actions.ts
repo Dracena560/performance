@@ -91,7 +91,7 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league','exams','dog','settings']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league','exams','dog','settings','holdings']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
  const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
  const {tennisProfileSchema}=await import('@/lib/tennis-club');
@@ -100,7 +100,8 @@ export async function savePersonalSection(section:unknown,input:unknown){
  const {examsSchema}=await import('@/lib/exams');
  const {dogSchema}=await import('@/lib/dog');
  const {settingsSchema}=await import('@/lib/settings');
- const value=key==='settings'?settingsSchema.parse(input):key==='exams'?examsSchema.parse(input):key==='dog'?dogSchema.parse(input):key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {holdingsSchema}=await import('@/lib/holdings');
+ const value=key==='holdings'?holdingsSchema.parse(input):key==='settings'?settingsSchema.parse(input):key==='exams'?examsSchema.parse(input):key==='dog'?dogSchema.parse(input):key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
 
@@ -112,6 +113,16 @@ export async function saveDogEntry(kind:unknown,input:unknown){
   if(list==='meals'){saved=prepareDogMeal(value,dog.foodBags);return {...profile,personal_dog:dogSchema.parse({...dog,meals:upsertById(dog.meals,saved)})};}
   saved=prepareDogActivity(value);return {...profile,personal_dog:dogSchema.parse({...dog,activities:upsertById(dog.activities,saved)})};});
  revalidatePath('/','layout');return saved;
+}
+
+/** Live prices of the portfolio (refresh button) and, optionally, this week's snapshot. */
+export async function refreshPortfolio(snapshot=false){
+ const session=await context();const db=healthUserId()?healthService():session.db;const userId=healthUserId()??session.user.id;
+ const {livePortfolio,ensureWeeklySnapshot}=await import('@/lib/portfolio-data');const {readHoldings}=await import('@/lib/holdings');
+ const result=await db.from('health_profiles').select('profile').eq('user_id',userId).maybeSingle();
+ const live=await livePortfolio(readHoldings(result.data?.profile?.personal_holdings));
+ const snap=snapshot?await ensureWeeklySnapshot(db,userId):null;if(snap?.created)revalidatePath('/','layout');
+ return {...live,snapshot:snap};
 }
 
 /** Everything stored in the owner's profile, for a JSON backup. */

@@ -28,9 +28,9 @@ export function latestInvestments(history:InvestmentSnapshot[]){
  * Net worth: investments (and the current account, when informed) minus the credit card bill
  * and what is left on the car finance. Items without data are listed in `missing`.
  */
-export function netWorth({investments,card,car}:{investments:InvestmentSnapshot[];card:CreditCard;car:unknown}){
+export function netWorth({investments,card,car,liveTotal=null}:{investments:InvestmentSnapshot[];card:CreditCard;car:unknown;liveTotal?:number|null}){
  const inv=latestInvestments(investments);const assets:Line[]=[],liabilities:Line[]=[],missing:string[]=[];
- if(investments.length)assets.push({label:'Investimentos',value:inv.total,note:'Última posição de cada investimento, em libras'});else missing.push('investimentos');
+ if(liveTotal!==null&&liveTotal>0)assets.push({label:'Investimentos',value:Math.round(liveTotal*100)/100,note:'Cotação ao vivo da carteira, em libras'});else if(investments.length)assets.push({label:'Investimentos',value:inv.total,note:'Última posição de cada investimento, em libras'});else missing.push('investimentos');
  if(card.checkingBalance!==null)assets.push({label:'Conta corrente',value:card.checkingBalance,note:card.checkingDate?`Saldo de ${br(card.checkingDate)}`:'Saldo informado'});
  const bill=latestCardEntry(card);if(bill)liabilities.push({label:'Fatura do cartão',value:bill.balance,note:`Valor de ${br(bill.date)}`});else missing.push('fatura do cartão');
  const debt=carDebt(car);if(debt)liabilities.push({label:'Financiamento do carro',value:debt.value,note:debt.note});else if((car as any)?.extra?.financing?.instalment)missing.push('saldo do financiamento');

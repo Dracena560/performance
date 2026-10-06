@@ -9,6 +9,7 @@ import { reminders, billsSchema, datesSchema, preferencesSchema, type Bill, type
 import { tennisProfileSchema, type TennisProfile } from './tennis-club';
 import { investmentsSchema, type InvestmentSnapshot } from './investments';
 import { examsSchema, type Exam } from './exams';
+import { holdingsSchema, liveRows } from './holdings';
 import { dogSchema, type Dog } from './dog';
 import { carSchema, financeSchema, tripSchema, type CarProfile, type Finance, type Trip } from './personal';
 
@@ -329,4 +330,16 @@ export function demoDog():Dog{
   activities:Array.from({length:20},(_,i)=>({id:`act-${i}`,date:d(-i),kind:i%3?'Brincadeira':'Parque',minutes:[25,15,40,20,30][i%5],distanceKm:i%3?null:1.2,steps:null,withMe:true,notes:'',source:'gpt'})),
   foodBags:[{id:'bag-demo',brand:'Ração Exemplo',product:'Adulto Raças Médias',type:'Ração seca',sizeKg:12,price:54.9,started:d(-20),active:true,ingredients:'Frango desidratado, arroz, milho, polpa de beterraba, óleo de peixe (exemplo).',analysis:'Proteína bruta 26%, extrato etéreo 14%, fibra 3%, matéria mineral 7,5%, umidade 9%, cálcio 1,2%, fósforo 0,9% (exemplo).',per100g:{calories:372,protein:26,fat:14,fibre:3,ash:7.5,moisture:9,calcium:1200,phosphorus:900,omega3:0.4,omega6:2.5,vitamin_a:1500,vitamin_d3:150,vitamin_e:40,glucosamine:50},photos:[]}],
   meals:[{id:'meal-1',at:new Date(Date.parse(today+'T08:00:00Z')).toISOString(),date:today,name:'Café da manhã',items:[{name:'Ração Exemplo Adulto Raças Médias',grams:110,foodId:'bag-demo',nutrition:{calories:372,protein:26,fat:14,fibre:3,calcium:1200,phosphorus:900,omega3:0.4,vitamin_a:1500,vitamin_d3:150,vitamin_e:40,glucosamine:50}}],notes:'',source:'gpt'},{id:'meal-2',at:new Date(Date.parse(today+'T12:30:00Z')).toISOString(),date:today,name:'Petisco',items:[{name:'Cenoura',grams:30,foodId:'',nutrition:{calories:41,fibre:2.8,vitamin_a:16700,potassium:320}}],notes:'',source:'manual'}]});
+}
+
+/** Fictitious holdings with fixed prices (the demo never calls price APIs). */
+export function demoPortfolio(){
+ const holdings=holdingsSchema.parse([
+  {id:'demo-etf-mundo',name:'ETF Mundo Exemplo',symbol:'VWRL.L',source:'yahoo',account:'Corretora Exemplo',type:'ETFs',currency:'GBP',lots:[{id:'l1',date:'2026-03-02',quantity:40,price:98,currency:'GBP'},{id:'l2',date:'2026-07-01',quantity:8,price:104,currency:'GBP'}]},
+  {id:'demo-acao-tech',name:'Ação Exemplo Tech',symbol:'QBTS',source:'yahoo',account:'Corretora Exemplo',type:'Ações',currency:'USD',lots:[{id:'l3',date:'2026-05-12',amount:900,price:15,currency:'USD'}]},
+  {id:'demo-btc',name:'Bitcoin (exemplo)',symbol:'BTC',source:'coingecko',account:'Exchange Exemplo',type:'Cripto',currency:'GBP',lots:[{id:'l4',date:'2026-01-20',quantity:0.025,price:52000,currency:'GBP'}]}
+ ]);
+ const now=new Date().toISOString();
+ const quotes={'demo-etf-mundo':{price:109.4,currency:'GBP',at:now,source:'Exemplo'},'demo-acao-tech':{price:21.8,currency:'USD',at:now,source:'Exemplo'},'demo-btc':{price:61200,currency:'GBP',at:now,source:'Exemplo'}};
+ return {holdings,rows:liveRows(holdings,quotes,{GBP:{rate:1},USD:{rate:0.75}}),updatedAt:now};
 }

@@ -261,3 +261,26 @@
 .emergency-meter span:last-child{transform:translateX(-100%)}
 .emergency-meter span::before{content:'';position:absolute;left:50%;top:-16px;width:1px;height:12px;background:var(--separator)}
 @media (max-width:760px){.net-worth-grid{grid-template-columns:1fr}.net-worth-total{font-size:34px;line-height:38px}}
+
+/* Carteira ao vivo ---------------------------------------------------------- */
+.live-portfolio{--panel-tint:var(--tint-invest)}
+.live-portfolio .panel-heading{align-items:flex-start;flex-wrap:wrap;gap:var(--s-3)}
+.live-actions{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.live-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s-3);margin:var(--s-3) 0}
+.live-totals>div{padding:var(--s-3) var(--s-4);border-radius:14px;background:var(--fill-3);display:flex;flex-direction:column;gap:2px}
+.live-totals small{font-size:var(--fs-caption);color:var(--label-2)}
+.live-totals strong{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.live-totals span{font-size:var(--fs-footnote);font-weight:600}
+.live-totals .up strong,.live-totals .up span,.live-table .up{color:var(--sys-green)}
+.live-totals .down strong,.live-totals .down span,.live-table .down{color:var(--sys-red)}
+.live-table td{vertical-align:top;font-variant-numeric:tabular-nums}
+.live-table td small{display:block;font-size:var(--fs-caption);color:var(--label-2);font-weight:400}
+.live-table td.up,.live-table td.down{font-weight:600}
+.live-table td svg{vertical-align:-2px;margin-right:2px}
+.live-empty{display:grid;gap:var(--s-3);justify-items:start;padding:var(--s-3) 0}
+.lot-list{display:grid;gap:var(--s-2)}
+.lot-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr)) 32px;gap:var(--s-2);align-items:end;padding:var(--s-3);border-radius:12px;background:var(--fill-3)}
+.lot-remove{display:grid;place-items:center;width:32px;height:40px;color:var(--label-2)}
+.lot-remove:hover{color:var(--sys-red)}
+.record-dialog h3{font-size:var(--fs-subhead);font-weight:600}
+@media (max-width:760px){.live-totals{grid-template-columns:1fr}.lot-row{grid-template-columns:1fr 1fr}.lot-remove{grid-column:2;justify-self:end}}

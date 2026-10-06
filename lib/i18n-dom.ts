@@ -60,7 +60,8 @@ export function createTranslator(dictionary:Record<string,string>){
   return null;
  };
  // Values captured by templates (a type, an option) are translated on their own when known.
- const translateValue=(value:string):string=>exact.get(collapse(value))??(value.includes(' · ')?value.split(' · ').map(translateValue).join(' · '):englishNumbers(englishDates(value)));
+ const translateValue=(value:string):string=>exact.get(collapse(value))??(value.includes(' · ')?value.split(' · ').map(translateValue).join(' · '):patternOnly(collapse(value))??englishNumbers(englishDates(value)));
+ const patternOnly=(text:string):string|null=>{for(const p of patterns){const m=text.match(p.re);if(m)return p.out.replace(/\{\{(\d)\}\}/g,(_,i)=>translateValue(m[Number(i)]??''));}return null;};
  const ptWords=new Set(['de','do','da','dos','das','e','em','no','na','nos','nas','para','pra','com','sem','há','por','que','ao','aos','um','uma','os','as','o','a','seu','sua','até','mais','menos','não','dia','dias','mês','ano','semana']);
  /** Reads left to right, taking the longest known phrase at each point, e.g. "Edit Café da manhã" or "Profundo: 37 min. Acordado: 10 min.". */
  const split=(text:string):string|null=>{
