@@ -83,3 +83,7 @@ Todo dado guardado pelo site precisa poder ser **consultado, adicionado, editado
 - **Fluxo frequente** (ex.: registrar exame, comida do Caju, compra de ativo): crie também uma ferramenta dedicada em `app/api/mcp/route.ts`. Gravações de um mesmo envio podem ir juntas em `registrar_varios`.
 
 O teste `tests/mcp-coverage.test.ts` falha se uma seção, tabela ou categoria usada no código não estiver exposta.
+
+## Apple Watch → site (Atalhos do iPhone)
+
+`POST /api/apple/workout` recebe o treino quando ele termina (automação "Treino do Apple Watch → Termina" no app Atalhos). Autenticação: `Authorization: Bearer <APPLE_SHORTCUT_TOKEN>` (sem essa variável, vale `HEALTH_GPT_ACTION_KEY`). O corpo aceita nomes em português ou inglês (`tipo`, `inicio`, `fim`, `duracao`, `calorias_ativas`, `calorias_totais`, `distancia`, `fc_media`, `fc_maxima`, `fc_minima`, `frequencia_cardiaca`, `passos`, `esforco`, `temperatura`, `umidade`) e valores com unidade ("820 kcal", "6,3 km", "1:15:00"). O mesmo início atualiza o treino em vez de duplicar. Caminhadas entram também no Caju; tênis aparece em Tênis. A conversão está em `lib/apple-shortcut.ts`.
