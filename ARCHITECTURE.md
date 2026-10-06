@@ -72,3 +72,14 @@ Não existe service worker que armazene respostas privadas. PWA é somente prepa
 ## Validação e pendências
 
 Testes de domínio cobrem horários de verão, conversão de porções, água pura, metas e null/zero. Banco é testado com duas identidades fictícias e role anônima. Preview usa somente fixtures. O teste fim a fim de login, gravação, persistência após recarregar e rascunhos entre dispositivos depende do projeto Supabase real. Publicação Vercel, importação do histórico e novos módulos estão fora desta entrega inicial.
+
+## Regra do MCP: tudo editável pelo ChatGPT
+
+Todo dado guardado pelo site precisa poder ser **consultado, adicionado, editado e removido pelo MCP**. Vale para qualquer funcionalidade nova:
+
+- **Seção nova no perfil** (`personal_*` em `health_profiles.profile`): registre em `resources` de `lib/site-crud.ts` com `key`, `schema`, `empty` e uma descrição dos campos. Listas internas com `id` entram na checagem de IDs duplicados de `validateResource`.
+- **Tabela nova:** registre com `table` e `schema` no mesmo arquivo.
+- **Categoria nova em `health_records`:** inclua no `recordSchema`.
+- **Fluxo frequente** (ex.: registrar exame, comida do Caju, compra de ativo): crie também uma ferramenta dedicada em `app/api/mcp/route.ts`. Gravações de um mesmo envio podem ir juntas em `registrar_varios`.
+
+O teste `tests/mcp-coverage.test.ts` falha se uma seção, tabela ou categoria usada no código não estiver exposta.
