@@ -91,7 +91,7 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league','exams','dog']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league','exams','dog','settings']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
  const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
  const {tennisProfileSchema}=await import('@/lib/tennis-club');
@@ -99,9 +99,13 @@ export async function savePersonalSection(section:unknown,input:unknown){
  const {tennisLeagueSchema}=await import('@/lib/tennis-league');
  const {examsSchema}=await import('@/lib/exams');
  const {dogSchema}=await import('@/lib/dog');
- const value=key==='exams'?examsSchema.parse(input):key==='dog'?dogSchema.parse(input):key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {settingsSchema}=await import('@/lib/settings');
+ const value=key==='settings'?settingsSchema.parse(input):key==='exams'?examsSchema.parse(input):key==='dog'?dogSchema.parse(input):key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
+
+/** Everything stored in the owner's profile, for a JSON backup. */
+export async function exportProfile(){const session=await context();const db=healthUserId()?healthService():session.db;const result=await db.from('health_profiles').select('profile').eq('user_id',healthUserId()??session.user.id).maybeSingle();if(result.error)throw new Error('Não foi possível exportar.');return {exported_at:new Date().toISOString(),profile:result.data?.profile??{}};}
 
 export async function saveInvestment(input:unknown){const {investmentSnapshotSchema,appendSnapshot,investmentsSchema}=await import('@/lib/investments');const {updateProfile}=await import('@/lib/profile-store');const {priceInPounds}=await import('@/lib/investment-fx');const snapshot=await priceInPounds(investmentSnapshotSchema.parse(input));const session=await context();const db=healthUserId()?healthService():session.db;const saved=await updateProfile(db,healthUserId()??session.user.id,profile=>({...profile,personal_investments:appendSnapshot(investmentsSchema.parse(profile.personal_investments??[]),snapshot)}));revalidatePath('/','layout');return {saved:true,id:snapshot.id,snapshot:saved.personal_investments.find((s:any)=>s.id===snapshot.id)};}
 

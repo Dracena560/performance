@@ -6,6 +6,7 @@ import {Button} from './ui/button';
 import {EChart,lineOption} from './echart';
 import {RecordDialog,type Field} from './record-form';
 import {savePersonalSection} from '@/app/actions';
+import {useSettings} from './settings-context';
 import {ageLabel,dogSchema,groomingKinds,nextDose,parasiteKinds,upcomingCare,vaccineStatus,weightSummary,type Dog,type DogList} from '@/lib/dog';
 
 const num=(v:number,d=1)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:d}).format(v);
@@ -38,7 +39,7 @@ const profileFields:Field[]=[{key:'name',label:'Nome'},{key:'breed',label:'Raça
 
 /** Caju's page: a portrait hero, what is coming up, and every care list with add, edit and remove. */
 export function DogView({initial,today,demo=false}:{initial:Dog;today:string;demo?:boolean}){
- const router=useRouter();
+ const router=useRouter();const rules=useSettings().dog;
  const [dog,setDog]=useState(initial);useEffect(()=>setDog(initial),[initial]);
  const [editing,setEditing]=useState<{list:DogList;row:Record<string,any>}|null>(null),[profile,setProfile]=useState(false),[notice,setNotice]=useState('');
  const persist=async(next:Dog)=>{const parsed=dogSchema.parse(next);if(!demo)await savePersonalSection('dog',parsed);setDog(parsed);router.refresh();};
@@ -48,7 +49,7 @@ export function DogView({initial,today,demo=false}:{initial:Dog;today:string;dem
  const add=(list:DogList,extra:Record<string,unknown>={})=>setEditing({list,row:{...blank[list](today),...extra}});
  const edit=(list:DogList,row:Record<string,any>)=>setEditing({list,row});
 
- const name=dog.name||'Caju';const age=ageLabel(dog.birth,today);const weight=weightSummary(dog);const care=upcomingCare(dog,today);const soon=care.filter(c=>c.days<=45);
+ const name=dog.name||'Caju';const age=ageLabel(dog.birth,today);const weight=weightSummary(dog);const care=upcomingCare(dog,today);const soon=care.filter(c=>c.days<=rules.careWindowDays);
  const vaccines=vaccineStatus(dog,today);const meds=dog.medications.filter(m=>m.active);
  const parasites=parasiteKinds.map(kind=>[...dog.parasites].filter(p=>p.kind===kind).sort((a,b)=>b.date.localeCompare(a.date))[0]).filter(Boolean);
  const year=today.slice(0,4);const spent=[...dog.visits,...dog.grooming].filter(v=>v.date.startsWith(year)).reduce((t,v)=>t+(v.cost??0),0);
@@ -75,7 +76,7 @@ export function DogView({initial,today,demo=false}:{initial:Dog;today:string;dem
   </header>
 
   <section className="panel dog-care" aria-labelledby="dog-care-title">
-   <div className="panel-heading"><div><h2 id="dog-care-title"><CalendarHeart size={19}/> Próximos cuidados</h2><p className="field-help">Atrasados e o que vence nos próximos 45 dias. Também aparecem em Próximos vencimentos, na tela Hoje.</p></div></div>
+   <div className="panel-heading"><div><h2 id="dog-care-title"><CalendarHeart size={19}/> Próximos cuidados</h2><p className="field-help">{`Atrasados e o que vence nos próximos ${rules.careWindowDays} dias. Também aparecem em Próximos vencimentos, na tela Hoje.`}</p></div></div>
    {soon.length?<div className="dog-care-track">{soon.map(c=>{const I=careIcon[c.kind]??PawPrint;const med=c.id.startsWith('med-')?c.id.slice(4):null;
     return <article key={c.id} className={c.overdue?'late':c.days<=3?'soon':''}><span className="dog-care-icon"><I size={18} aria-hidden/></span><small>{c.kind}</small><strong>{c.name}</strong><em>{when(c.days)}</em><time>{dateText(c.date,{weekday:'short',day:'2-digit',month:'short'})}</time>{c.detail&&<p>{c.detail}</p>}
      {med&&c.days<=0&&<Button size="small" variant="tinted" onClick={()=>giveNow(med)}><Check size={15}/>Dei agora</Button>}</article>;})}</div>:empty('Nenhum cuidado previsto. Registre as vacinas, o vermífugo e os remédios para acompanhar as próximas datas.')}
@@ -85,7 +86,7 @@ export function DogView({initial,today,demo=false}:{initial:Dog;today:string;dem
   <div className="dog-grid">
    {section('vaccines',<Syringe size={19}/>,'Vacinas','Última dose de cada vacina e o próximo reforço.',vaccines.length?<ul className="dog-list">{vaccines.map(v=><li key={v.id}><button onClick={()=>edit('vaccines',v)}><span className={`dog-state ${v.state==='Em dia'?'ok':v.state==='Atrasada'?'late':v.state==='Vence em breve'?'soon':''}`}>{v.state}</span><div><strong>{v.name}</strong><small>{`Dose em ${dateText(v.date)}${v.next?` · reforço ${dateText(v.next)}`:''}`}</small></div></button></li>)}</ul>:empty('Nenhuma vacina registrada.'),'dog-vaccines')}
 
-   {section('medications',<Pill size={19}/>,'Remédios','Em uso agora, com próxima dose e estoque.',meds.length?<ul className="dog-list">{meds.map(m=>{const next=nextDose(m,today);const low=m.stock!==null&&m.stock<=5;return <li key={m.id}><button onClick={()=>edit('medications',m)}><span className="dog-med-icon"><Pill size={16}/></span><div><strong>{m.name}</strong><small>{[m.dose,m.everyDays?`a cada ${m.everyDays} ${m.everyDays===1?'dia':'dias'}`:'',m.times].filter(Boolean).join(' · ')}</small><small>{`${next?`Próxima: ${dateText(next,{day:'2-digit',month:'short'})}`:'Sem próxima dose'}${m.lastGiven?` · última ${dateText(m.lastGiven,{day:'2-digit',month:'short'})}`:''}`}</small>{m.stock!==null&&<small className={low?'dog-low':''}>{`${m.stock} ${m.stock===1?'dose':'doses'} em estoque${low?' · comprar mais':''}`}</small>}</div></button><Button size="small" variant="secondary" onClick={()=>giveNow(m.id)} aria-label={`Registrar dose de ${m.name}`}><Check size={15}/>Dei</Button></li>;})}</ul>:empty('Nenhum remédio em uso.'),'dog-meds')}
+   {section('medications',<Pill size={19}/>,'Remédios','Em uso agora, com próxima dose e estoque.',meds.length?<ul className="dog-list">{meds.map(m=>{const next=nextDose(m,today);const low=m.stock!==null&&m.stock<=rules.lowStock;return <li key={m.id}><button onClick={()=>edit('medications',m)}><span className="dog-med-icon"><Pill size={16}/></span><div><strong>{m.name}</strong><small>{[m.dose,m.everyDays?`a cada ${m.everyDays} ${m.everyDays===1?'dia':'dias'}`:'',m.times].filter(Boolean).join(' · ')}</small><small>{`${next?`Próxima: ${dateText(next,{day:'2-digit',month:'short'})}`:'Sem próxima dose'}${m.lastGiven?` · última ${dateText(m.lastGiven,{day:'2-digit',month:'short'})}`:''}`}</small>{m.stock!==null&&<small className={low?'dog-low':''}>{`${m.stock} ${m.stock===1?'dose':'doses'} em estoque${low?' · comprar mais':''}`}</small>}</div></button><Button size="small" variant="secondary" onClick={()=>giveNow(m.id)} aria-label={`Registrar dose de ${m.name}`}><Check size={15}/>Dei</Button></li>;})}</ul>:empty('Nenhum remédio em uso.'),'dog-meds')}
 
    {section('parasites',<Bug size={19}/>,'Vermífugo e antipulgas','O mais recente de cada tipo.',parasites.length?<ul className="dog-list">{parasites.map(p=>{const days=p.next?Math.round((Date.parse(p.next)-Date.parse(today))/864e5):null;return <li key={p.id}><button onClick={()=>edit('parasites',p)}><span className={`dog-state ${days===null?'':days<0?'late':days<=7?'soon':'ok'}`}>{days===null?'Sem data':when(days)}</span><div><strong>{p.kind}</strong><small>{`${p.product} · ${dateText(p.date)}${p.next?` · próxima ${dateText(p.next,{day:'2-digit',month:'short'})}`:''}`}</small></div></button></li>;})}</ul>:empty('Registre o último vermífugo e o antipulgas.'))}
 

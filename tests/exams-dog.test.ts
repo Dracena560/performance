@@ -33,3 +33,20 @@ test('dog care: next doses, vaccine status, age, weight and reminders in the due
  const list=reminders({personal_dog:dog,personal_exams:[{id:'e',date:'2026-03-10',title:'Check-up',next:'2026-10-08'}]},'2026-10-06');
  assert.ok(list.some(r=>r.source==='Caju'&&r.name==='Vacina V10'));assert.ok(list.some(r=>r.source==='Exame'));
 });
+
+import { readSettings,scoreMap,settingsSchema,defaultSettings } from '../lib/settings';
+import { choiceScores,dayEntries,supplementIntake } from '../lib/day-log';
+test('settings drive Registrar scores, custom topics, routines and the due-dates window',()=>{
+ const raw=structuredClone(defaultSettings) as any;
+ raw.diary.topics[0].options=[{label:'Focado',score:10},{label:'Disperso',score:2}];
+ raw.diary.topics.push({id:'dor',kind:'checkin',title:'Dor',help:'',dimension:'corpo',multiple:true,notes:false,enabled:true,options:[{label:'Sem dor',score:9}]});
+ raw.routines=[{name:'Manhã',period:'dia',items:['Creatina']}];raw.reminders.windowDays=30;raw.reminders.sources=['Exames'];
+ const s=readSettings(settingsSchema.parse(raw));
+ assert.deepEqual(choiceScores({mental:['Focado','Disperso'],body:['Leve'],custom:{dor:['Sem dor']}},scoreMap(s)),{mente:6,corpo:8.5});
+ const records=[{id:'r',category:'supplement',recorded_on:'2026-10-06',recorded_at:'2026-10-06T08:00:00Z',payload:{record_type:'vitamins',routines:['Manhã']}}];
+ assert.deepEqual(supplementIntake(records,'2026-10-06',s).map(x=>x.name),['Creatina']);
+ assert.equal(dayEntries([],records,'2026-10-06',s).length,1);
+ const profile={personal_settings:s,personal_exams:[{id:'e',date:'2026-01-01',title:'Check-up',next:'2026-10-30'}],personal_dates:[{id:'d',name:'Passaporte',kind:'Passaporte',number:'',issued:'',date:'2026-10-07',url:'',notes:''}]};
+ assert.deepEqual(reminders(profile,'2026-10-06').map(r=>r.source),['Exame']);
+ assert.equal(readSettings({}).diary.topics.length,8);
+});

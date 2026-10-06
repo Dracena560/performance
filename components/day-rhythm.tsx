@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {Activity,BedDouble,Brain,ChevronRight,Droplets,Flame,HeartPulse,Pencil,Pill,Smile,Target,Trash2,Utensils,Beef} from 'lucide-react';
 import {EChart,escapeHtml,type ChartTheme} from './echart';
 import {Button} from './ui/button';
+import {useSettings} from './settings-context';
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from './ui/dialog';
 import {dimensions,entryLabels,overall,type DayEntry,type EntryKind,type Scores,type wellbeingAndSleep} from '@/lib/day-log';
 
@@ -34,14 +35,15 @@ function sleepOption(t:ChartTheme,rows:ReturnType<typeof wellbeingAndSleep>){
 
 /** The day at a glance: what matters (wellbeing, sleep, water, food, movement) against goals, then how today compares with the week and with sleep. */
 export function DaySummary({entries,figures,today,week,history,latest}:{entries:DayEntry[];figures:DayFigures;today:Scores;week:Scores;history:ReturnType<typeof wellbeingAndSleep>;latest?:DayEntry}){
+ const goodNight=useSettings().day.goodNightHours;
  const wellbeing=overall(today),base=overall(week),delta=wellbeing!==undefined&&base!==undefined?Math.round((wellbeing-base)*10)/10:null;
  const tile=(icon:typeof Activity,label:string,m:Measure,color:string)=>{const pct=m.value!==null&&m.target?Math.min(100,m.value/m.target*100):null;const over=m.limit&&m.value!==null&&m.target?m.value>m.target:false;const Icon=icon;
   return <div className="summary-tile" style={{['--tile' as string]:`var(${color})`}} key={label}><span className="summary-icon" aria-hidden><Icon size={16}/></span><small>{label}</small><b>{m.value===null?'—':`${fmt(m.value)}${m.unit}`}</b>{pct!==null&&<i className={`summary-bar${over?' over':''}`} aria-hidden><em style={{width:`${pct}%`}}/></i>}<span>{m.note??(m.target?`${m.limit?'Limite':'Meta'} ${fmt(m.target)}${m.unit}`:'Sem meta')}</span></div>;};
  const sleepPairs=history.filter(r=>r.sleep!==null&&r.wellbeing!==null);
- const goodNights=sleepPairs.filter(r=>r.sleep!>=7),shortNights=sleepPairs.filter(r=>r.sleep!<7);
+ const goodNights=sleepPairs.filter(r=>r.sleep!>=goodNight),shortNights=sleepPairs.filter(r=>r.sleep!<goodNight);
  const avg=(xs:number[])=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
  const good=avg(goodNights.map(r=>r.wellbeing!)),short=avg(shortNights.map(r=>r.wellbeing!));
- const insight=good!==null&&short!==null?`Depois de noites com 7 h ou mais, seu bem-estar médio foi ${fmt(good)}/10; com menos de 7 h, ${fmt(short)}/10.`:'Registre sono e check-ins por alguns dias para comparar bem-estar e noites de sono.';
+ const insight=good!==null&&short!==null?`Depois de noites com ${fmt(goodNight)} h ou mais, seu bem-estar médio foi ${fmt(good)}/10; com menos de ${fmt(goodNight)} h, ${fmt(short)}/10.`:'Registre sono e check-ins por alguns dias para comparar bem-estar e noites de sono.';
  return <section className="panel day-summary" aria-labelledby="day-summary-title">
   <div className="panel-heading"><div><h2 id="day-summary-title">Seu dia em resumo</h2><p className="field-help">{entries.length} registros hoje · bem-estar calculado a partir dos check-ins.</p></div></div>
   <div className="summary-top">
@@ -64,8 +66,8 @@ export function DaySummary({entries,figures,today,week,history,latest}:{entries:
    <div><div className="panel-heading"><h3>Hoje vs. sua semana</h3><span className="subtle">MENTE · HUMOR · CORPO · DIGESTÃO</span></div>
     {Object.keys(today).length?<EChart height={250} label="Notas de hoje comparadas com a média dos últimos 7 dias em mente, humor, corpo e digestão" option={t=>radarOption(t,today,week)}/>:<p className="empty compact">Faça um check-in para comparar com a semana.</p>}
     <div className="rhythm-legend" aria-hidden><span><i style={{background:'var(--sys-indigo)'}}/>Hoje</span><span><i style={{background:'var(--label-2)'}}/>Média de 7 dias</span></div></div>
-   <div><div className="panel-heading"><h3>Sono × bem-estar</h3><span className="subtle">ÚLTIMOS 14 DIAS</span></div>
-    <EChart height={250} label="Horas de sono e bem-estar médio nos últimos 14 dias" option={t=>sleepOption(t,history)}/>
+   <div><div className="panel-heading"><h3>Sono × bem-estar</h3><span className="subtle">{`ÚLTIMOS ${history.length} DIAS`}</span></div>
+    <EChart height={250} label={`Horas de sono e bem-estar médio nos últimos ${history.length} dias`} option={t=>sleepOption(t,history)}/>
     <p className="field-help summary-insight">{insight}</p></div>
   </div>
  </section>;

@@ -25,7 +25,7 @@ export function activeNavigation(pathOrView: string): NavigationKey {
 }
 
 /** Private routes that have a fictitious counterpart under /demo. */
-export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'exames', 'caju', 'viagens', 'registros', 'alimentacao', 'metas', 'agua'] as const;
+export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'exames', 'caju', 'configuracoes', 'viagens', 'registros', 'alimentacao', 'metas', 'agua'] as const;
 
 /** Maps a private path (e.g. "/sono?date=…") to its demo page, or null when there is none. */
 export function demoPath(path: string): string | null {

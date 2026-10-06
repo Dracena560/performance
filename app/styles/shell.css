@@ -138,3 +138,6 @@
   .login-card{padding:var(--s-6) var(--s-5)}
 }
 @media (min-width:1600px){.content{padding-top:var(--s-5)}}
+.tabbar[data-none=true] .tab-indicator{opacity:0}
+.toolbar-settings{display:none}
+@media (max-width:760px){.toolbar-settings{display:inline-grid;place-items:center}}

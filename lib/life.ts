@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { dateValue } from './date-value';
 import { examReminders,readExams } from './exams';
 import { dogReminders,readDog } from './dog';
+import { readSettings } from './settings';
 export { dateValue };
 export const siteValue=z.string().max(2000).refine(v=>{if(!v)return true;try{return ['https:','http:'].includes(new URL(v).protocol);}catch{return false;}},'Use um endereço com https://');
 const fields=z.record(z.string().max(80),z.string().max(10000));
@@ -40,6 +41,7 @@ export function nextMonthlyDate(day:number,today:string){const year=Number(today
 function upcoming(date:string,today:string,monthly:boolean){if(!date||!dateValue.safeParse(date).success)return '';return date>=today||!monthly?date:nextMonthlyDate(Number(date.slice(8,10)),today);}
 export function nextCarPayment(financing:Record<string,any>|undefined,today:string){const paymentDay=Number(financing?.paymentDay);return upcoming(financing?.nextPayment??'',today,true)||(Number.isInteger(paymentDay)&&paymentDay>=1&&paymentDay<=31?nextMonthlyDate(paymentDay,today):'');}
 export function reminders(profile:Record<string,any>,today:string):Reminder[]{
+ const rules=readSettings(profile.personal_settings).reminders;
  const all:Omit<Reminder,'days'|'level'>[]=[];const car=profile.personal_car??{},extra=car.extra??{},financing=extra.financing??{};
  const carPayment=nextCarPayment(financing,today);
  for(const [id,name,date] of [['insurance','Seguro do carro',car.insuranceExpiry],['permit','Parking Permit',car.permitExpiry],['mot','MOT',extra.mot?.next],['tax','Road Tax',extra.tax?.renewal],['renewal','Renovação do seguro',extra.insurance?.renewal],['payment','Parcela do carro',carPayment]])if(date)all.push({id:`car-${id}`,name:String(name),source:'Carro',date:String(date),amount:id==='payment'?financing.instalment||null:null});
@@ -51,5 +53,6 @@ export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  const dates=datesSchema.safeParse(profile.personal_dates??[]);if(dates.success)for(const d of dates.data)if(d.date)all.push({id:`date-${d.id}`,name:d.name,source:d.kind,date:d.date,amount:null});
  all.push(...examReminders(readExams(profile.personal_exams)));
  if(profile.personal_dog)all.push(...dogReminders(readDog(profile.personal_dog),today));
- return all.filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=reminderWindowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
+ const group=(r:Omit<Reminder,'days'|'level'>)=>r.id.startsWith('car-')?'Carro':r.id.startsWith('bill-')?'Contas':r.id.startsWith('expense-')?'Gastos fixos':r.id==='credit-card'?'Cartão de crédito':r.id.startsWith('date-')?'Documentos e datas':r.id.startsWith('exam-')?'Exames':r.id.startsWith('dog-')?'Pet':'';
+ return all.filter(r=>(rules.sources as string[]).includes(group(r))).filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=rules.windowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
 }

@@ -4,13 +4,15 @@ import {netWorth,emergencyFund} from '@/lib/net-worth';
 import {readCreditCard} from '@/lib/credit-card';
 import type {InvestmentSnapshot} from '@/lib/investments';
 import type {Finance} from '@/lib/personal';
+import {useSettings} from './settings-context';
 const money=(v:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(v);
 const months=(v:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(v);
 
 /** Net worth and emergency fund side by side: the two numbers that sum up the finances. */
 export function NetWorth({investments,creditCard,car,finance}:{investments:InvestmentSnapshot[];creditCard:unknown;car:unknown;finance:Finance}){
  const card=readCreditCard(creditCard);
- const n=netWorth({investments,card,car});const e=emergencyFund({investments,card,finance});
+ const rules=useSettings().finance;
+ const n=netWorth({investments,card,car});const e=emergencyFund({investments,card,finance,target:rules.emergencyMonths,includeChecking:rules.includeChecking,subtractCard:rules.subtractCard});
  const scale=Math.max(n.totalAssets,n.totalLiabilities,1);
  const pct=e.months===null?0:Math.min(100,e.months/e.target*100);
  return <div className="net-worth-grid">
@@ -32,7 +34,7 @@ export function NetWorth({investments,creditCard,car,finance}:{investments:Inves
    <div className="panel-heading"><div><span className="eyebrow">SEGURANÇA</span><h2 id="emergency-title"><ShieldCheck size={19} aria-hidden/> Reserva de emergência</h2></div><span className={`emergency-level level-${e.level==='Completa'?'ok':e.level==='Em construção'?'mid':'low'}`}>{e.level}</span></div>
    <strong className="net-worth-total">{e.months===null?'—':`${months(e.months)} ${e.months===1?'mês':'meses'}`}</strong>
    <p className="field-help">{`de ${e.basis} cobertos, se a renda parar hoje. Meta: ${e.target} meses.`}</p>
-   <div className="emergency-meter" role="img" aria-label={`Reserva cobre ${e.months??0} de ${e.target} meses`}><em style={{width:`${pct}%`}}/><span style={{left:'50%'}}>3</span><span style={{left:'100%'}}>{e.target}</span></div>
+   <div className="emergency-meter" role="img" aria-label={`Reserva cobre ${e.months??0} de ${e.target} meses`}><em style={{width:`${pct}%`}}/><span style={{left:'50%'}}>{new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(e.target/2)}</span><span style={{left:'100%'}}>{e.target}</span></div>
    <ul className="net-worth-lines">
     <li><span>Caixa nos investimentos<small>Itens do tipo Caixa</small></span><b>{money(e.cash)}</b></li>
     <li><span>Conta corrente<small>Saldo informado no plano do cartão</small></span><b>{money(e.checking)}</b></li>

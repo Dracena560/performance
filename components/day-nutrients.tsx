@@ -4,6 +4,7 @@ import {ChevronRight,Pill,Leaf} from 'lucide-react';
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from './ui/dialog';
 import {foodContributions,supplementIntake} from '@/lib/day-log';
 import {markers,relatedSupplements,type Exam} from '@/lib/exams';
+import {useSettings} from './settings-context';
 
 type EventLike=Parameters<typeof foodContributions>[0][number];
 type RecordLike=Parameters<typeof supplementIntake>[0][number];
@@ -27,8 +28,9 @@ export function FoodNutrients({events,date,totals,nutrients}:{events:EventLike[]
 
 /** Supplements taken today, from the Registrar routines or sent by the MCP. */
 export function SupplementNutrients({records,date,exams=[],demo=false}:{records:RecordLike[];date:string;exams?:Exam[];demo?:boolean}){
+ const settings=useSettings();
  const [open,setOpen]=useState<string|null>(null);
- const list=supplementIntake(records,date);const item=list.find(s=>s.name===open);
+ const list=supplementIntake(records,date,settings);const item=list.find(s=>s.name===open);
  // Latest exam marker for a supplement (e.g. Vitamina D ↔ Vitamina D (25-OH)), so intake and blood levels meet.
  const all=markers(exams);const examFor=(name:string)=>all.find(m=>relatedSupplements(m.name,[name]).some(s=>s.taking));
  const statusText={baixo:'abaixo da referência',normal:'dentro da referência',alto:'acima da referência','sem faixa':'sem faixa de referência'} as const;

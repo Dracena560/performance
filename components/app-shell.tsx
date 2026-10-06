@@ -2,7 +2,8 @@
 import { ThemeToggle } from './theme-toggle';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ArrowUpRight, ChevronLeft, HeartPulse, LayoutGrid, LogOut, Plus, RotateCw } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, HeartPulse, LayoutGrid, LogOut, Plus, RotateCw, Settings2 } from 'lucide-react';
+import { useSettings } from './settings-context';
 import { demoPath, parentScreen, siteNavigation, type NavigationKey } from './site-navigation';
 import { logout } from '@/app/actions';
 import { LanguageToggle, useLang, usePageReady } from './i18n';
@@ -28,6 +29,9 @@ type Props = {
 export function AppShell({ title, active, demo = false, onNavigate, onQuickAction, quickActionLabel = 'Registrar', children }: Props) {
   const router = useRouter();
   const { t } = useLang();
+  const settings = useSettings();
+  const name = settings.profile.name || 'Felipe';
+  const visible = siteNavigation.filter(([key]) => !(settings.menu.hidden as string[]).includes(key) || key === active);
   usePageReady();
   const navLabel = (key: NavigationKey, compact = false) => {
     const short = `nav.${key}.short` as MessageKey;
@@ -35,7 +39,9 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
   };
   /** Pages pass their Portuguese title; top-level screens are shown in the chosen language. */
   const shownTitle = siteNavigation.some(([key, label]) => label === title && key === active) ? navLabel(active) : title;
-  const parent = parentScreen(usePathname() ?? '');
+  const pathname = usePathname() ?? '';
+  const onSettings = pathname.endsWith('/configuracoes');
+  const parent = parentScreen(pathname);
   const parentHref = parent ? (demo ? (demoPath(parent.key) ?? '/demo') : `/${parent.key}`) : null;
   /** Demo mode: links inside unchanged components point at private routes; send them to the fictitious pages instead. */
   const demoLinks = demo ? (event: React.MouseEvent) => {
@@ -46,9 +52,9 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
     const target = demoPath(href);
     if (target) { event.preventDefault(); event.stopPropagation(); router.push(target); }
   } : undefined;
-  const activeIndex = Math.max(0, siteNavigation.findIndex(([key]) => key === active));
+  const activeIndex = Math.max(0, visible.findIndex(([key]) => key === active));
   const item = (key: NavigationKey, label: string, Icon: typeof HeartPulse, compact?: string, place: 'sidebar' | 'tabbar' = 'sidebar') => {
-    const isActive = key === active;
+    const isActive = key === active && !onSettings;
     const props = {
       className: isActive ? 'active' : '',
       'aria-current': isActive ? ('page' as const) : undefined,
@@ -60,16 +66,18 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
     <aside className="sidebar glass" aria-label={t('shell.mainNav')}>
       <Link href={demo ? '/demo' : '/hoje'} className="brand" onClick={onNavigate ? (event) => { event.preventDefault(); onNavigate('hoje'); } : undefined}>
         <span className="brand-mark" aria-hidden><LayoutGrid /></span>
-        <span className="brand-text"><b>Felipe</b><small>{t('shell.tagline')}</small></span>
+        <span className="brand-text"><b>{name}</b><small>{settings.profile.tagline || t('shell.tagline')}</small></span>
       </Link>
       <nav className="sidebar-nav" aria-label={t('shell.sections')}>
         <span className="nav-label">{t('shell.myPanel')}</span>
-        {siteNavigation.map(([key, label, Icon, compact]) => item(key, label, Icon, compact))}
+        {visible.map(([key, label, Icon, compact]) => item(key, label, Icon, compact))}
+        <span className="nav-label">{t('shell.more')}</span>
+        <Link href={demo ? '/demo/configuracoes' : '/configuracoes'} className={onSettings ? 'active' : ''} aria-current={onSettings ? 'page' : undefined}><Settings2 size={20} strokeWidth={1.9} /><span>{t('shell.settings')}</span></Link>
       </nav>
       <div className="sidebar-bottom">
         <div className="profile">
-          <span className="avatar" aria-hidden>F</span>
-          <span className="profile-text"><strong>Felipe</strong><small>{demo ? t('shell.demo') : t('shell.personalSpace')}</small></span>
+          <span className="avatar" aria-hidden>{name.slice(0, 1).toUpperCase()}</span>
+          <span className="profile-text"><strong>{name}</strong><small>{demo ? t('shell.demo') : t('shell.personalSpace')}</small></span>
           {!demo && <button className="button icon ghost frame-logout" aria-label={t('shell.logout')} title={t('shell.logout')} onClick={() => logout()}><LogOut size={18} /></button>}
         </div>
         <small className="timezone">Europe/London</small>
@@ -87,6 +95,7 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
         <span className="toolbar-note">
           <LanguageToggle />
           <ThemeToggle />
+          <Link href={demo ? '/demo/configuracoes' : '/configuracoes'} className="button icon ghost toolbar-settings" aria-label={t('shell.settings')} title={t('shell.settings')}><Settings2 size={18} /></Link>
           <button className="refresh-button" onClick={() => router.refresh()} title={t('shell.refreshTitle')}><RotateCw size={15} aria-hidden />{t('shell.refresh')}</button>
           <span className="status-pill"><span className="tiny-dot" aria-hidden /><span>{demo ? t('shell.demoData') : t('shell.privateSpace')}</span></span>
         </span>
@@ -95,9 +104,9 @@ export function AppShell({ title, active, demo = false, onNavigate, onQuickActio
       {children}
     </main>
 
-    <nav className={`tabbar glass${onQuickAction ? ' has-fab' : ''}`} aria-label={t('shell.mainNav')} style={{ ['--i' as string]: activeIndex }}>
+    <nav data-none={onSettings} className={`tabbar glass${onQuickAction ? ' has-fab' : ''}`} aria-label={t('shell.mainNav')} style={{ ['--i' as string]: activeIndex, ['--tabs' as string]: visible.length }}>
       <span className="tab-indicator" aria-hidden />
-      {siteNavigation.map(([key, label, Icon, compact]) => item(key, label, Icon, compact, 'tabbar'))}
+      {visible.map(([key, label, Icon, compact]) => item(key, label, Icon, compact, 'tabbar'))}
     </nav>
     {onQuickAction && <button className="fab glass-tint glass-interactive" aria-label={quickActionLabel} title={quickActionLabel} onClick={onQuickAction}><Plus /></button>}
   </div>;

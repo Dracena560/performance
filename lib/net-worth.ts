@@ -43,13 +43,13 @@ export function netWorth({investments,card,car}:{investments:InvestmentSnapshot[
  * Emergency fund: money available right away (cash investments and the current account, after the card bill)
  * divided by the fixed monthly expenses of the budget. The usual goal is 6 months.
  */
-export function emergencyFund({investments,card,finance,target=6}:{investments:InvestmentSnapshot[];card:CreditCard;finance:Finance;target?:number}){
- const inv=latestInvestments(investments);const bill=latestCardEntry(card)?.balance??0;
- const checking=card.checkingBalance??0;
+export function emergencyFund({investments,card,finance,target=6,includeChecking=true,subtractCard=true}:{investments:InvestmentSnapshot[];card:CreditCard;finance:Finance;target?:number;includeChecking?:boolean;subtractCard?:boolean}){
+ const inv=latestInvestments(investments);const bill=subtractCard?latestCardEntry(card)?.balance??0:0;
+ const checking=includeChecking?card.checkingBalance??0:0;
  const available=cents(Math.max(0,inv.cash+checking-bill));
  const fixedRows=finance.rows.filter(r=>r.type==='Fixo');
  const monthly=moneyTotal(fixedRows.length?fixedRows:finance.rows);
  const months=monthly>0?Math.round(available/monthly*10)/10:null;
  const goal=cents(monthly*target);
- return {available,cash:inv.cash,checking,bill,monthly,months,target,goal,gap:cents(Math.max(0,goal-available)),basis:fixedRows.length?'gastos fixos':'todas as despesas',level:months===null?'Sem dados':months>=target?'Completa':months>=3?'Em construção':'Baixa'};
+ return {available,cash:inv.cash,checking,bill,monthly,months,target,goal,gap:cents(Math.max(0,goal-available)),basis:fixedRows.length?'gastos fixos':'todas as despesas',level:months===null?'Sem dados':months>=target?'Completa':months>=target/2?'Em construção':'Baixa'};
 }
