@@ -7,7 +7,7 @@ type Body=Record<string,unknown>;
 const norm=(k:string)=>k.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 // Health Auto Export sends quantities as {qty, units}: read them as "820 kcal".
 const flat=(v:unknown)=>v&&typeof v==='object'&&!Array.isArray(v)&&'qty' in (v as Body)?`${(v as Body).qty} ${(v as Body).units??''}`.trim():v;
-function pick(body:Body,names:string[]){const want=names.map(norm);for(const [k,v] of Object.entries(body))if(want.includes(norm(k))&&v!==null&&v!==undefined&&v!=='')return flat(v);return undefined;}
+function pick(body:Body,names:string[]){const want=names.map(norm);for(const [k,v] of Object.entries(body))if(want.includes(norm(k))&&v!==null&&v!==undefined&&v!=='')return Array.isArray(v)?v.map(flat):flat(v);return undefined;}
 
 /** "1,075 kcal" → 1075 · "7,9" → 7.9 · "1.234,5" → 1234.5 · 123 → 123. */
 export function number(value:unknown):number|null{
@@ -32,6 +32,8 @@ export function seconds(value:unknown,unit:'auto'|'s'|'min'='auto'):number|null{
  if(unit==='s')return Math.round(n);if(unit==='min')return Math.round(n*60);
  return Math.round(n>600?n:n*60);
 }
+/** A list of Health samples ("12.3 kcal", …) is summed; a single value is read as is. */
+export function total(value:unknown,read:(v:unknown)=>number|null=number){if(Array.isArray(value)){const n=value.map(v=>read(typeof v==='object'&&v?(v as Body).value??(v as Body).quantity??(v as Body).qty:v)).filter((x):x is number=>x!==null);return n.length?Math.round(n.reduce((a,b)=>a+b,0)*100)/100:null;}if(typeof value==='string'&&value.includes('\n'))return total(value.split('\n').filter(Boolean),read);return read(value);}
 /** Kilometres from "4.1 km", "4100 m", "2.5 mi". */
 export function kilometres(value:unknown){const n=number(value);if(n===null)return null;const t=typeof value==='string'?value.toLowerCase():'';
  if(/\bmi\b|milha|mile/.test(t))return Math.round(n*1.609344*100)/100;if(/\d\s*m\b|metro/.test(t)&&!/km/.test(t))return Math.round(n/10)/100;return Math.round(n*100)/100;}
@@ -73,10 +75,10 @@ export function shortcutWorkout(body:Body,receivedAt=new Date()):ShortcutWorkout
  const data:Record<string,unknown>={kind:'workout',activity_type:type,source:'Apple Watch (Atalhos)',
   ...(start?{started_at:start}:{}),ended_at:end,
   ...(durationSec?{duration_seconds:durationSec,duration_minutes:Math.round(durationSec/60*10)/10}:{}),
-  ...opt('active_calories',number(pick(body,['active_calories','calorias_ativas','energia_ativa','active_energy','kcal_ativas','calorias']))),
-  ...opt('total_calories',number(pick(body,['total_calories','calorias_totais','energia_total']))),
-  ...opt('distance_km',kilometres(pick(body,['distance_km','distancia','distance','km']))),
-  ...opt('steps',(()=>{const n=number(pick(body,['steps','passos']));return n===null?null:Math.round(n);})()),
+  ...opt('active_calories',total(pick(body,['active_calories','calorias_ativas','energia_ativa','active_energy','kcal_ativas','calorias']))),
+  ...opt('total_calories',total(pick(body,['total_calories','calorias_totais','energia_total']))),
+  ...opt('distance_km',total(pick(body,['distance_km','distancia','distance','km']),kilometres)),
+  ...opt('steps',(()=>{const n=total(pick(body,['steps','passos']));return n===null?null:Math.round(n);})()),
   ...opt('heart_rate_average',avg),
   ...opt('heart_rate_max',number(pick(body,['heart_rate_max','fc_maxima','fc_max','max_heart_rate']))??(hr.length?Math.max(...hr):null)),
   ...opt('heart_rate_min',number(pick(body,['heart_rate_min','fc_minima','fc_min','min_heart_rate']))??(hr.length?Math.min(...hr):null)),

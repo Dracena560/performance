@@ -24,3 +24,7 @@ test('Health Auto Export workouts are understood',()=>{
  const w=shortcutWorkout(list[0]);
  assert.deepEqual([w.date,w.data.activity_type,w.data.started_at,w.data.duration_seconds,w.data.active_calories,w.data.distance_km,w.data.heart_rate_max,w.data.steps],['2026-10-06','Soccer','2026-10-06T18:00:00.000Z',4500,820.4,6.3,176,8200]);
 });
+test('lists of Health samples from the Shortcut are summed or averaged',()=>{
+ const w=shortcutWorkout({tipo:'Futebol',fim:'2026-10-06T20:15:00+01:00',calorias_ativas:['12.5 kcal','10 kcal','7.5 kcal'],distancia:['0.5 km','0,7 km'],frequencia_cardiaca:['120 count/min','160 count/min'],passos:'300\n500'});
+ assert.deepEqual([w.data.active_calories,w.data.distance_km,w.data.heart_rate_average,w.data.heart_rate_max,w.data.steps],[30,1.2,140,160,800]);
+});
