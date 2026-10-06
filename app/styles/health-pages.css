@@ -196,3 +196,14 @@
 .load-now span{font-size:var(--fs-footnote);color:var(--label-2)}
 .load-level.ok strong{color:var(--sys-green)}.load-level.high strong{color:var(--sys-orange)}.load-level.low strong{color:var(--sys-blue)}
 @media (max-width:760px){.load-now{grid-template-columns:1fr 1fr}.load-now .load-level{grid-column:1/-1}}
+.show-more{display:flex;margin:var(--s-4) auto 0}
+.exercise-charts .panel-heading{align-items:flex-start;flex-wrap:wrap;gap:var(--s-3)}
+.exercise-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4);margin-top:var(--s-3)}
+.exercise-chart-grid>article{min-width:0;padding:var(--s-4);border-radius:16px;background:var(--fill-3)}
+.exercise-chart-grid>article.wide{grid-column:1/-1}
+.exercise-chart-grid h3,.tennis-detail-table h3{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-subhead);font-weight:600}
+.exercise-chart-grid h3 svg,.tennis-detail-table h3 svg{color:var(--tint-fitness)}
+.tennis-detail-table{margin-top:var(--s-5)}
+.tennis-detail-table table{margin-top:var(--s-2)}
+@media (max-width:760px){.exercise-chart-grid{grid-template-columns:1fr}}
+.exercise-stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr)) !important}

@@ -272,7 +272,7 @@ export function demoHealthApp(){
   {id:`demo-week-c-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'10:00'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:[mental],emotions:[emotion],body:[body],digestion:['Sem desconforto'],notes:''}},
   {id:`demo-week-v-${i}`,category:'supplement',recorded_on:date,recorded_at:iso(date,'07:00'),source:'manual',payload:{kind:'vitamins',record_type:'vitamins',routines:['Vitaminas do dia'],notes:''}},
   ...(i%2?[{id:`demo-week-a-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'18:00'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Caminhando com Caju'],notes:''}}]:[])];});
- return {...base,reminders:reminders(demoProfile(),today),exams:demoExams(),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[...week,...demoSleepRecords()],periodEvents:[...demoPeriodEvents(),...base.events]};
+ return {...base,reminders:reminders(demoProfile(),today),exams:demoExams(),dog:demoDog(),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[...week,...demoSleepRecords()],periodEvents:[...demoPeriodEvents(),...base.events]};
 }
 
 /** Same box and results as the seed league, with fictitious names, countries and kit. */
@@ -324,5 +324,9 @@ export function demoDog():Dog{
   visits:[{id:'vis1',date:d(-60),reason:'Check-up anual',vet:'Clínica Exemplo',diagnosis:'Saudável. Tártaro leve.',cost:65},{id:'vis2',date:d(-12),reason:'Coceira na orelha',vet:'Clínica Exemplo',diagnosis:'Otite leve (exemplo).',cost:48,next:d(2)}],
   medications:[{id:'otite',name:'Gotas para ouvido',dose:'4 gotas',everyDays:1,times:'8h e 20h',start:d(-12),end:d(2),lastGiven:today,stock:null},{id:'artic',name:'Suplemento articular',dose:'1 tablete',everyDays:1,times:'Com o jantar',start:d(-90),lastGiven:d(-1),stock:9}],
   grooming:[{id:'banho',kind:'Banho',date:d(-20),next:d(10),place:'Pet shop Exemplo',cost:35},{id:'unhas',kind:'Unhas',date:d(-35),next:d(-5)}],
-  dates:[{id:'adocao',name:'Aniversário de adoção',date:shiftDate(today,-365*3+20),yearly:true}]});
+  dates:[{id:'adocao',name:'Aniversário de adoção',date:shiftDate(today,-365*3+20),yearly:true}],
+  activityGoalMinutes:60,
+  activities:Array.from({length:20},(_,i)=>({id:`act-${i}`,date:d(-i),kind:i%3?'Brincadeira':'Parque',minutes:[25,15,40,20,30][i%5],distanceKm:i%3?null:1.2,steps:null,withMe:true,notes:'',source:'gpt'})),
+  foodBags:[{id:'bag-demo',brand:'Ração Exemplo',product:'Adulto Raças Médias',type:'Ração seca',sizeKg:12,price:54.9,started:d(-20),active:true,ingredients:'Frango desidratado, arroz, milho, polpa de beterraba, óleo de peixe (exemplo).',analysis:'Proteína bruta 26%, extrato etéreo 14%, fibra 3%, matéria mineral 7,5%, umidade 9%, cálcio 1,2%, fósforo 0,9% (exemplo).',per100g:{calories:372,protein:26,fat:14,fibre:3,ash:7.5,moisture:9,calcium:1200,phosphorus:900,omega3:0.4,omega6:2.5,vitamin_a:1500,vitamin_d3:150,vitamin_e:40,glucosamine:50},photos:[]}],
+  meals:[{id:'meal-1',at:new Date(Date.parse(today+'T08:00:00Z')).toISOString(),date:today,name:'Café da manhã',items:[{name:'Ração Exemplo Adulto Raças Médias',grams:110,foodId:'bag-demo',nutrition:{calories:372,protein:26,fat:14,fibre:3,calcium:1200,phosphorus:900,omega3:0.4,vitamin_a:1500,vitamin_d3:150,vitamin_e:40,glucosamine:50}}],notes:'',source:'gpt'},{id:'meal-2',at:new Date(Date.parse(today+'T12:30:00Z')).toISOString(),date:today,name:'Petisco',items:[{name:'Cenoura',grams:30,foodId:'',nutrition:{calories:41,fibre:2.8,vitamin_a:16700,potassium:320}}],notes:'',source:'manual'}]});
 }

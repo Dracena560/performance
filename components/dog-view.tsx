@@ -7,7 +7,11 @@ import {EChart,lineOption} from './echart';
 import {RecordDialog,type Field} from './record-form';
 import {savePersonalSection} from '@/app/actions';
 import {useSettings} from './settings-context';
-import {ageLabel,dogSchema,groomingKinds,nextDose,parasiteKinds,upcomingCare,vaccineStatus,weightSummary,type Dog,type DogList} from '@/lib/dog';
+import {Dialog,DialogContent,DialogDescription,DialogTitle} from './ui/dialog';
+import {DogActivityPanel,DogNutritionPanel,FoodBagsPanel,DogMealForm} from './dog-health';
+import {prepareDogMeal,upsertById,type DogActivity,type DogMeal} from '@/lib/dog-food';
+import {ageLabel,dogSchema,groomingKinds,nextDose,parasiteKinds,upcomingCare,vaccineStatus,weightSummary,type Dog,type DogList as AnyList} from '@/lib/dog';
+type DogList=Exclude<AnyList,'meals'|'foodBags'>;
 
 const num=(v:number,d=1)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:d}).format(v);
 const money=(v:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(v);
@@ -22,26 +26,29 @@ const fields:Record<DogList,Field[]>={
  visits:[{key:'reason',label:'Motivo'},{key:'date',label:'Data',type:'date'},{key:'vet',label:'Clínica ou veterinário'},{key:'cost',label:'Custo (£)',type:'number'},{key:'next',label:'Retorno',type:'date'},{key:'diagnosis',label:'Diagnóstico e orientações',type:'textarea'},{key:'notes',label:'Observações',type:'textarea'}],
  medications:[{key:'name',label:'Remédio'},{key:'dose',label:'Dose',placeholder:'1/2 comprimido, 4 gotas…'},{key:'everyDays',label:'A cada quantos dias',type:'number'},{key:'times',label:'Horários',placeholder:'8h e 20h'},{key:'start',label:'Início',type:'date'},{key:'end',label:'Fim (opcional)',type:'date'},{key:'lastGiven',label:'Última dose',type:'date'},{key:'stock',label:'Doses em estoque',type:'number'},{key:'active',label:'Em uso',type:'checkbox'},{key:'notes',label:'Observações',type:'textarea'}],
  grooming:[{key:'kind',label:'Cuidado',type:'select',options:groomingKinds},{key:'date',label:'Data',type:'date'},{key:'next',label:'Próximo',type:'date'},{key:'place',label:'Onde'},{key:'cost',label:'Custo (£)',type:'number'},{key:'notes',label:'Observações',wide:true}],
+ activities:[{key:'kind',label:'Atividade',type:'select',options:['Passeio','Corrida','Brincadeira','Parque','Natação','Treino','Outro']},{key:'date',label:'Data',type:'date'},{key:'minutes',label:'Minutos',type:'number'},{key:'distanceKm',label:'Distância (km)',type:'number'},{key:'steps',label:'Passos',type:'number'},{key:'withMe',label:'Fizemos juntos (conta também para mim)',type:'checkbox'},{key:'notes',label:'Observações',wide:true}],
  dates:[{key:'name',label:'Nome'},{key:'date',label:'Data',type:'date'},{key:'yearly',label:'Repete todo ano',type:'checkbox'},{key:'notes',label:'Observações',wide:true}]
 };
 const blank:Record<DogList,(today:string)=>Record<string,unknown>>={
  vaccines:t=>({name:'',date:t,next:'',vet:'',batch:'',notes:''}),parasites:t=>({kind:'Vermífugo',product:'',date:t,next:'',dose:'',notes:''}),weights:t=>({date:t,kg:null,notes:''}),
  visits:t=>({reason:'',date:t,vet:'',cost:null,next:'',diagnosis:'',notes:''}),medications:t=>({name:'',dose:'',everyDays:1,times:'',start:t,end:'',lastGiven:'',stock:null,active:true,notes:''}),
+ activities:t=>({kind:'Passeio',date:t,minutes:30,distanceKm:null,steps:null,withMe:true,notes:'',source:'manual'}),
  grooming:t=>({kind:'Banho',date:t,next:'',place:'',cost:null,notes:''}),dates:t=>({name:'',date:t,yearly:true,notes:''})
 };
-const listTitle:Record<DogList,string>={vaccines:'Vacina',parasites:'Antiparasitário',weights:'Pesagem',visits:'Consulta veterinária',medications:'Remédio',grooming:'Banho e higiene',dates:'Data especial'};
+const listTitle:Record<DogList,string>={vaccines:'Vacina',parasites:'Antiparasitário',weights:'Pesagem',visits:'Consulta veterinária',medications:'Remédio',grooming:'Banho e higiene',dates:'Data especial',activities:'Atividade'};
 const profileFields:Field[]=[{key:'name',label:'Nome'},{key:'breed',label:'Raça'},{key:'sex',label:'Sexo'},{key:'neutered',label:'Castração'},{key:'birth',label:'Nascimento',type:'date'},{key:'adopted',label:'Chegou em casa',type:'date'},{key:'colour',label:'Cor e pelagem'},{key:'microchip',label:'Microchip'},{key:'passport',label:'Passaporte / registro'},
  {key:'targetWeight.min',label:'Peso ideal mínimo (kg)',type:'number'},{key:'targetWeight.max',label:'Peso ideal máximo (kg)',type:'number'},
  {key:'vet.name',label:'Veterinário'},{key:'vet.phone',label:'Telefone do veterinário'},{key:'vet.address',label:'Endereço da clínica',wide:true},{key:'vet.emergency',label:'Emergência 24h',wide:true},
  {key:'insurance.provider',label:'Seguro pet'},{key:'insurance.policy',label:'Apólice'},{key:'insurance.renewal',label:'Renovação do seguro',type:'date'},{key:'insurance.monthly',label:'Seguro por mês (£)',type:'number'},{key:'insurance.excess',label:'Franquia'},
+ {key:'activityGoalMinutes',label:'Meta de atividade (min/dia)',type:'number'},{key:'kcalPerDay',label:'Energia por dia (kcal, vazio = estimar pelo peso)',type:'number'},
  {key:'food.brand',label:'Ração'},{key:'food.gramsPerDay',label:'Gramas por dia',type:'number'},{key:'food.meals',label:'Refeições'},{key:'food.treats',label:'Petiscos'},
  {key:'allergies',label:'Alergias e restrições',type:'textarea'},{key:'personality',label:'Personalidade',type:'textarea'},{key:'notes',label:'Observações',type:'textarea'}];
 
 /** Caju's page: a portrait hero, what is coming up, and every care list with add, edit and remove. */
-export function DogView({initial,today,demo=false}:{initial:Dog;today:string;demo?:boolean}){
+export function DogView({initial,today,walks=[],demo=false}:{initial:Dog;today:string;walks?:DogActivity[];demo?:boolean}){
  const router=useRouter();const rules=useSettings().dog;
  const [dog,setDog]=useState(initial);useEffect(()=>setDog(initial),[initial]);
- const [editing,setEditing]=useState<{list:DogList;row:Record<string,any>}|null>(null),[profile,setProfile]=useState(false),[notice,setNotice]=useState('');
+ const [editing,setEditing]=useState<{list:DogList;row:Record<string,any>}|null>(null),[profile,setProfile]=useState(false),[meal,setMeal]=useState<DogMeal|null|'new'>(null),[notice,setNotice]=useState('');
  const persist=async(next:Dog)=>{const parsed=dogSchema.parse(next);if(!demo)await savePersonalSection('dog',parsed);setDog(parsed);router.refresh();};
  const saveItem=async(list:DogList,row:Record<string,any>)=>{const rows=dog[list] as {id:string}[];const id=row.id||`${list}-${Date.now().toString(36)}`;await persist({...dog,[list]:rows.some(r=>r.id===row.id)?rows.map(r=>r.id===row.id?{...row,id}:r):[...rows,{...row,id}]} as Dog);};
  const removeItem=async(list:DogList,id:string)=>persist({...dog,[list]:(dog[list] as {id:string}[]).filter(r=>r.id!==id)} as Dog);
@@ -83,6 +90,11 @@ export function DogView({initial,today,demo=false}:{initial:Dog;today:string;dem
    {notice&&<p className="field-help" role="status">{notice}</p>}
   </section>
 
+  <div className="dog-grid dog-health-grid">
+   <DogActivityPanel dog={dog} walks={walks} today={today} onAdd={()=>add('activities')} onEdit={a=>edit('activities',a)}/>
+   <DogNutritionPanel dog={dog} today={today} onAdd={()=>setMeal('new')} onEdit={m=>setMeal(m)}/>
+  </div>
+  <FoodBagsPanel dog={dog} onSave={bags=>persist({...dog,foodBags:bags})}/>
   <div className="dog-grid">
    {section('vaccines',<Syringe size={19}/>,'Vacinas','Última dose de cada vacina e o próximo reforço.',vaccines.length?<ul className="dog-list">{vaccines.map(v=><li key={v.id}><button onClick={()=>edit('vaccines',v)}><span className={`dog-state ${v.state==='Em dia'?'ok':v.state==='Atrasada'?'late':v.state==='Vence em breve'?'soon':''}`}>{v.state}</span><div><strong>{v.name}</strong><small>{`Dose em ${dateText(v.date)}${v.next?` · reforço ${dateText(v.next)}`:''}`}</small></div></button></li>)}</ul>:empty('Nenhuma vacina registrada.'),'dog-vaccines')}
 
@@ -112,6 +124,7 @@ export function DogView({initial,today,demo=false}:{initial:Dog;today:string;dem
 
   {editing&&<RecordDialog title={editing.row.id?`Editar ${listTitle[editing.list].toLowerCase()}`:`Novo: ${listTitle[editing.list].toLowerCase()}`} fields={fields[editing.list]} initial={editing.row} onClose={()=>setEditing(null)}
    onSave={row=>saveItem(editing.list,row)} onDelete={editing.row.id?()=>removeItem(editing.list,editing.row.id):undefined}/>}
+  {meal&&<Dialog open onOpenChange={v=>{if(!v)setMeal(null);}}><DialogContent className="dialog-content"><DialogTitle>{meal==='new'?`Comida do ${name}`:meal.name}</DialogTitle><DialogDescription>Os nutrientes da ração cadastrada entram sozinhos.</DialogDescription><DogMealForm dog={dog} initial={meal==='new'?undefined:meal} onSave={async m=>{await persist({...dog,meals:upsertById(dog.meals,prepareDogMeal(m,dog.foodBags))});setMeal(null);}} onDelete={meal==='new'?undefined:async()=>{await persist({...dog,meals:dog.meals.filter(x=>x.id!==meal.id)});setMeal(null);}}/></DialogContent></Dialog>}
   {profile&&<RecordDialog title={`Ficha do ${name}`} description="Esses dados ficam só na sua conta." fields={profileFields} initial={dog} onClose={()=>setProfile(false)} onSave={row=>persist({...dog,...row} as Dog)}/>}
  </div>;
 }

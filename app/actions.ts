@@ -104,6 +104,16 @@ export async function savePersonalSection(section:unknown,input:unknown){
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
 
+/** Saves one of Caju's meals or activities (the Registrar form and the Caju page). */
+export async function saveDogEntry(kind:unknown,input:unknown){
+ const list=z.enum(['meals','activities']).parse(kind);const {readDog,dogSchema}=await import('@/lib/dog');const {prepareDogMeal,prepareDogActivity,upsertById}=await import('@/lib/dog-food');const {updateProfile}=await import('@/lib/profile-store');
+ const session=await context();const db=healthUserId()?healthService():session.db;let saved:any;
+ await updateProfile(db,healthUserId()??session.user.id,profile=>{const dog=readDog(profile.personal_dog);const value=input as Record<string,any>;
+  if(list==='meals'){saved=prepareDogMeal(value,dog.foodBags);return {...profile,personal_dog:dogSchema.parse({...dog,meals:upsertById(dog.meals,saved)})};}
+  saved=prepareDogActivity(value);return {...profile,personal_dog:dogSchema.parse({...dog,activities:upsertById(dog.activities,saved)})};});
+ revalidatePath('/','layout');return saved;
+}
+
 /** Everything stored in the owner's profile, for a JSON backup. */
 export async function exportProfile(){const session=await context();const db=healthUserId()?healthService():session.db;const result=await db.from('health_profiles').select('profile').eq('user_id',healthUserId()??session.user.id).maybeSingle();if(result.error)throw new Error('Não foi possível exportar.');return {exported_at:new Date().toISOString(),profile:result.data?.profile??{}};}
 

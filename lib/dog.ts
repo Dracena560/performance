@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { dateValue } from './date-value';
+import { dogActivitySchema,dogMealSchema,foodBagSchema } from './dog-food';
 
 const requiredDate=dateValue.refine(v=>v!=='','Data obrigatória');
 const id=z.string().min(1).max(100);
@@ -31,12 +32,17 @@ export const dogSchema=z.object({
  visits:z.array(visitSchema).max(500).default([]),
  medications:z.array(medicationSchema).max(200).default([]),
  grooming:z.array(groomingSchema).max(500).default([]),
- dates:z.array(dogDateSchema).max(200).default([])
+ dates:z.array(dogDateSchema).max(200).default([]),
+ activities:z.array(dogActivitySchema).max(5000).default([]),
+ meals:z.array(dogMealSchema).max(10000).default([]),
+ foodBags:z.array(foodBagSchema).max(50).default([]),
+ activityGoalMinutes:z.number().int().min(0).max(600).default(60),
+ kcalPerDay:z.number().int().min(0).max(5000).nullable().default(null)
 });
 export type Dog=z.infer<typeof dogSchema>;
-export const dogLists=['vaccines','parasites','weights','visits','medications','grooming','dates'] as const;
+export const dogLists=['vaccines','parasites','weights','visits','medications','grooming','dates','activities','meals','foodBags'] as const;
 export type DogList=typeof dogLists[number];
-export const dogListSchemas={vaccines:vaccineSchema,parasites:parasiteSchema,weights:weightSchema,visits:visitSchema,medications:medicationSchema,grooming:groomingSchema,dates:dogDateSchema} as const;
+export const dogListSchemas={vaccines:vaccineSchema,parasites:parasiteSchema,weights:weightSchema,visits:visitSchema,medications:medicationSchema,grooming:groomingSchema,dates:dogDateSchema,activities:dogActivitySchema,meals:dogMealSchema,foodBags:foodBagSchema} as const;
 
 export const initialDog:Dog=dogSchema.parse({name:'Caju',photo:'/images/caju.jpg'});
 export function readDog(value:unknown):Dog{if(value===undefined||value===null)return initialDog;const parsed=dogSchema.safeParse(value);return parsed.success?parsed.data:initialDog;}

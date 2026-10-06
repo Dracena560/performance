@@ -223,3 +223,7 @@
   .travel-rating{flex-wrap:wrap}
   .travel-rating>.text-link{margin-bottom:0}
 }
+.body-measurements article.long{grid-column:1/-1;flex-direction:column;align-items:flex-start;gap:2px}
+.body-measurements article.long strong{white-space:normal;font-weight:500;color:var(--label-2)}
+.body-measurements article strong{min-width:0;overflow-wrap:anywhere}
+.body-measurements>div:last-child{grid-auto-flow:row dense}
