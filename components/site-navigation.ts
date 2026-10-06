@@ -1,4 +1,4 @@
-import { HeartPulse, LayoutDashboard, Trophy, UserRound, Wallet } from 'lucide-react';
+import { Dog, HeartPulse, LayoutDashboard, Trophy, UserRound, Wallet } from 'lucide-react';
 
 /** [key, label, Icon, compact label] — the compact label is used by the floating tab bar. */
 export const siteNavigation = [
@@ -6,13 +6,14 @@ export const siteNavigation = [
   ['saude', 'Saúde', HeartPulse, 'Saúde'],
   ['financeiro', 'Financeiro', Wallet, 'Finanças'],
   ['tenis', 'Tênis', Trophy, 'Tênis'],
+  ['caju', 'Caju', Dog, 'Caju'],
   ['minhas-informacoes', 'Minhas informações', UserRound, 'Perfil'],
 ] as const;
 
 export type NavigationKey = (typeof siteNavigation)[number][0];
 
 /** Health sub-pages that keep the “Saúde” item selected. */
-export const healthSections = ['alimentacao', 'exercicios', 'sono', 'saude-geral', 'metas', 'historico', 'registros', 'agua', 'check-in', 'timeline'] as const;
+export const healthSections = ['alimentacao', 'exercicios', 'sono', 'exames', 'metas', 'registros', 'agua'] as const;
 
 export function activeNavigation(pathOrView: string): NavigationKey {
   const key = pathOrView.replace(/^\//, '').split(/[/?#]/)[0];
@@ -24,7 +25,7 @@ export function activeNavigation(pathOrView: string): NavigationKey {
 }
 
 /** Private routes that have a fictitious counterpart under /demo. */
-export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'saude-geral', 'viagens', 'registros', 'historico', 'alimentacao', 'metas', 'agua', 'check-in', 'timeline'] as const;
+export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'exames', 'caju', 'viagens', 'registros', 'alimentacao', 'metas', 'agua'] as const;
 
 /** Maps a private path (e.g. "/sono?date=…") to its demo page, or null when there is none. */
 export function demoPath(path: string): string | null {

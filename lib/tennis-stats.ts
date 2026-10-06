@@ -30,7 +30,11 @@ export function honours(matches:MatchLike[]){
  const bagels=list.flatMap(m=>m.sets).filter(s=>s.felipe===6&&s.adversario===0).length;
  const comebacks=list.filter(m=>m.outcome==='vitória'&&m.sets.length>=2&&m.sets[0].felipe<m.sets[0].adversario).length;
  const rival=headToHead(matches)[0]??null;
- return {bestStreak:best,longest,rated,bagels,comebacks,rival,minutes:matches.reduce((t,m)=>t+(m.duration??0),0)};
+ // Matches decided in a third set and sets decided in a tie-break (7–6): how you do when it is close.
+ const deciders=list.filter(m=>m.sets.length>=3),tiebreaks=list.flatMap(m=>m.sets).filter(s=>(s.felipe===7&&s.adversario===6)||(s.felipe===6&&s.adversario===7));
+ const deciding={won:deciders.filter(m=>m.outcome==='vitória').length,lost:deciders.filter(m=>m.outcome!=='vitória').length};
+ const tiebreak={won:tiebreaks.filter(s=>s.felipe>s.adversario).length,lost:tiebreaks.filter(s=>s.felipe<s.adversario).length};
+ return {bestStreak:best,longest,rated,bagels,comebacks,rival,deciding,tiebreak,minutes:matches.reduce((t,m)=>t+(m.duration??0),0)};
 }
 
 /** League matches in order, as rounds of a campaign. */

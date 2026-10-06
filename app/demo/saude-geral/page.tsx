@@ -1,5 +1,2 @@
-import { AppShell } from '@/components/app-shell';
-import { GeneralHealthDashboard } from '@/components/general-health-dashboard';
-import { demoAllEvents,demoHealthRecords,demoToday } from '@/lib/demo-sections';
-export const dynamic='force-dynamic';
-export default function Page(){return <AppShell title="Saúde geral" active="saude" demo><div className="content"><GeneralHealthDashboard events={demoAllEvents()} records={demoHealthRecords()} date={demoToday()}/></div></AppShell>}
+import { redirect } from 'next/navigation';
+export default function Page(){redirect('/demo/saude');}

@@ -1042,9 +1042,14 @@ export function TennisDashboard({
     ["Pneus aplicados", String(board.bagels), "sets 6–0"],
     ["Tempo em quadra", minutesLabel(board.minutes), `${sessions.length} sessões`],
     [
-      "Morangos com creme merecidos",
-      String(record.wins),
-      "uma taça por vitória",
+      "Jogos no 3º set",
+      board.deciding.won + board.deciding.lost ? `${board.deciding.won}–${board.deciding.lost}` : "—",
+      board.deciding.won + board.deciding.lost ? `${Math.round((board.deciding.won / (board.deciding.won + board.deciding.lost)) * 100)}% de vitórias quando decide` : "vitórias–derrotas no set decisivo",
+    ],
+    [
+      "Tie-breaks",
+      board.tiebreak.won + board.tiebreak.lost ? `${board.tiebreak.won}–${board.tiebreak.lost}` : "—",
+      "sets fechados em 7–6",
     ],
   ];
   return (

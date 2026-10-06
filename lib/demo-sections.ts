@@ -8,6 +8,8 @@ import { initialTennisLeague, tennisLeagueSchema, type TennisLeague } from './te
 import { reminders, billsSchema, datesSchema, preferencesSchema, type Bill, type Deadline, type Preferences } from './life';
 import { tennisProfileSchema, type TennisProfile } from './tennis-club';
 import { investmentsSchema, type InvestmentSnapshot } from './investments';
+import { examsSchema, type Exam } from './exams';
+import { dogSchema, type Dog } from './dog';
 import { carSchema, financeSchema, tripSchema, type CarProfile, type Finance, type Trip } from './personal';
 
 export type DemoRecord={id:string;category:string;recorded_on:string;recorded_at:string|null;payload:Record<string,unknown>;source:string};
@@ -197,7 +199,7 @@ export function demoProfile():Record<string,unknown>{
   'Suplementos':'Dia: vitamina D e ômega-3. Noite: magnésio (exemplo).',
   'Objetivo':'Manter energia, mobilidade e clareza mental para trabalhar, viajar e jogar tênis por muitos anos (exemplo).',
   personal_finance:demoFinance(),personal_investments:demoInvestments(),personal_trips:demoTrips(),personal_car:demoCar(),
-  personal_bills:demoBills(),personal_dates:demoDates(),personal_preferences:demoPreferences(),personal_tennis:demoTennisProfile(),personal_credit_card:demoCreditCard()
+  personal_bills:demoBills(),personal_dates:demoDates(),personal_preferences:demoPreferences(),personal_tennis:demoTennisProfile(),personal_credit_card:demoCreditCard(),personal_exams:demoExams(),personal_dog:demoDog()
  };
 }
 export function demoMeasurements(){return {recorded_on:shiftDate(demoToday(),-12),payload:{peso_kg:78.4,gordura_corporal_percent:17.2,massa_muscular_kg:36.1,imc:24.1,agua_corporal_percent:58.3,cintura_cm:84,massa_ossea_kg:3.2,idade_metabolica:31},source:'Bioimpedância (exemplo)'};}
@@ -270,7 +272,7 @@ export function demoHealthApp(){
   {id:`demo-week-c-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'10:00'),source:'manual',payload:{kind:'checkin',record_type:'checkin',mental:[mental],emotions:[emotion],body:[body],digestion:['Sem desconforto'],notes:''}},
   {id:`demo-week-v-${i}`,category:'supplement',recorded_on:date,recorded_at:iso(date,'07:00'),source:'manual',payload:{kind:'vitamins',record_type:'vitamins',routines:['Vitaminas do dia'],notes:''}},
   ...(i%2?[{id:`demo-week-a-${i}`,category:'checkin_history',recorded_on:date,recorded_at:iso(date,'18:00'),source:'manual',payload:{kind:'activity',record_type:'activity',activities:['Caminhando com Caju'],notes:''}}]:[])];});
- return {...base,reminders:reminders(demoProfile(),today),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[...week,...demoSleepRecords()],periodEvents:[...demoPeriodEvents(),...base.events]};
+ return {...base,reminders:reminders(demoProfile(),today),exams:demoExams(),healthRecords:[...demoHealthRecords().filter(record=>record.recorded_on===today||record.recorded_on===yesterday),...diary],periodHealthRecords:[...week,...demoSleepRecords()],periodEvents:[...demoPeriodEvents(),...base.events]};
 }
 
 /** Same box and results as the seed league, with fictitious names, countries and kit. */
@@ -283,4 +285,44 @@ export function demoTennisLeague():TennisLeague{
  const q4=seasons.find(s=>s.id==='2026-q4')!;const pick=(a:number,b:number,h:number,w:number,d:string)=>({id:`demo-q4-${a}-${b}`,home:`demo-player-${a}`,away:`demo-player-${b}`,homeSets:h,awaySets:w,score:'',date:d,notes:''});
  q4.matches=[pick(5,12,2,0,'2026-10-02'),pick(1,4,2,1,'2026-10-03'),pick(3,8,2,0,'2026-10-04')];
  return tennisLeagueSchema.parse({title:'Liga Exemplo',players,seasons});
+}
+
+/** Two fictitious blood tests six months apart, so markers have history and one is out of range. */
+export function demoExams():Exam[]{
+ const today=demoToday(),old=shiftDate(today,-190),recent=shiftDate(today,-21);
+ const panel=(d:number,i:number)=>[
+  {id:'vitd',name:'Vitamina D (25-OH)',group:'Vitaminas',value:[24,38][i],unit:'ng/mL',low:30,high:100,reference:'30 a 100 ng/mL'},
+  {id:'b12',name:'Vitamina B12',group:'Vitaminas',value:[410,455][i],unit:'pg/mL',low:200,high:900,reference:'200 a 900 pg/mL'},
+  {id:'ferritina',name:'Ferritina',group:'Minerais e ferro',value:[96,88][i],unit:'ng/mL',low:30,high:400,reference:'30 a 400 ng/mL'},
+  {id:'magnesio',name:'Magnésio',group:'Minerais e ferro',value:[1.9,2.1][i],unit:'mg/dL',low:1.6,high:2.6,reference:'1,6 a 2,6 mg/dL'},
+  {id:'ldl',name:'Colesterol LDL',group:'Lipídios',value:[138,124][i],unit:'mg/dL',low:null,high:130,reference:'Desejável < 130 mg/dL'},
+  {id:'hdl',name:'Colesterol HDL',group:'Lipídios',value:[48,53][i],unit:'mg/dL',low:40,high:null,reference:'> 40 mg/dL'},
+  {id:'tg',name:'Triglicerídeos',group:'Lipídios',value:[132,98][i],unit:'mg/dL',low:null,high:150,reference:'< 150 mg/dL'},
+  {id:'glicose',name:'Glicose em jejum',group:'Glicose',value:[92,88][i],unit:'mg/dL',low:70,high:99,reference:'70 a 99 mg/dL'},
+  {id:'hba1c',name:'Hemoglobina glicada (HbA1c)',group:'Glicose',value:[5.4,5.6][i],unit:'%',low:null,high:5.6,reference:'< 5,7%'},
+  {id:'hb',name:'Hemoglobina',group:'Hemograma',value:[15.1,14.8][i],unit:'g/dL',low:13.5,high:17.5,reference:'13,5 a 17,5 g/dL'},
+  {id:'tsh',name:'TSH',group:'Tireoide e hormônios',value:[2.1,2.4][i],unit:'mUI/L',low:0.4,high:4.0,reference:'0,4 a 4,0 mUI/L'},
+  {id:'creat',name:'Creatinina',group:'Rins',value:[1.02,1.31][i],unit:'mg/dL',low:0.7,high:1.2,reference:'0,7 a 1,2 mg/dL',notes:i?'Pode subir com treino intenso na véspera (exemplo).':''},
+  {id:'pcr',name:'Proteína C reativa',group:'Inflamação',value:[1.2,0.8][i],unit:'mg/L',low:null,high:3,reference:'< 3 mg/L'}
+ ].map(r=>({...r,text:'',notes:(r as any).notes??''}));
+ return examsSchema.parse([
+  {id:'demo-exam-1',date:old,kind:'Exame de sangue',title:'Check-up semestral',lab:'Laboratório Exemplo',doctor:'Dra. Exemplo',results:panel(0,0),notes:'Dados fictícios.'},
+  {id:'demo-visit-1',date:shiftDate(today,-18),kind:'Consulta',title:'Clínico geral · retorno',doctor:'Dra. Exemplo',notes:'Manter vitamina D 2.000 UI/dia e repetir exames em 6 meses (exemplo).',next:shiftDate(today,4),nextNote:'Coleta de sangue · repetir vitamina D'},
+  {id:'demo-exam-2',date:recent,kind:'Exame de sangue',title:'Check-up semestral',lab:'Laboratório Exemplo',doctor:'Dra. Exemplo',results:panel(0,1),next:shiftDate(today,160),notes:'Dados fictícios.'}
+ ]);
+}
+/** A fictitious dog for the demo (no photo: the page shows an illustrated avatar). */
+export function demoDog():Dog{
+ const today=demoToday(),d=(n:number)=>shiftDate(today,n);
+ return dogSchema.parse({name:'Paçoca',photo:'',breed:'Vira-lata caramelo',sex:'Macho',neutered:'Castrado',birth:shiftDate(today,-365*4+3),adopted:shiftDate(today,-365*3),colour:'Caramelo',microchip:'000 000 000 000 000',passport:'',
+  vet:{name:'Clínica Veterinária Exemplo',phone:'+44 20 0000 0000',address:'Rua Exemplo, 100',url:'',emergency:'Hospital 24h Exemplo'},insurance:{provider:'Seguro Pet Exemplo',policy:'PET-0001',renewal:d(40),monthly:24.9,excess:'£ 99'},
+  food:{brand:'Ração Exemplo Adulto',gramsPerDay:220,meals:'2 refeições (8h e 18h)',treats:'Cenoura, petisco dental'},allergies:'Frango em excesso dá coceira (exemplo).',personality:'Brincalhão, adora bolinha de tênis e odeia banho.',notes:'Dados fictícios para demonstração.',
+  targetWeight:{min:13,max:15},
+  vaccines:[{id:'v10',name:'V10 (polivalente)',date:d(-340),next:d(25),vet:'Clínica Exemplo'},{id:'raiva',name:'Antirrábica',date:d(-200),next:d(165)},{id:'gripe',name:'Tosse dos canis',date:d(-380),next:d(-15),notes:'Reforço atrasado (exemplo).'}],
+  parasites:[{id:'verm',kind:'Vermífugo',product:'Vermífugo Exemplo',date:d(-87),next:d(3),dose:'1 comprimido'},{id:'pulga',kind:'Antipulgas e carrapatos',product:'Comprimido mensal Exemplo',date:d(-25),next:d(5)}],
+  weights:Array.from({length:8},(_,i)=>({id:`w${i}`,date:d(-210+i*30),kg:[13.4,13.6,13.9,14.1,14.4,14.3,14.6,14.8][i]})),
+  visits:[{id:'vis1',date:d(-60),reason:'Check-up anual',vet:'Clínica Exemplo',diagnosis:'Saudável. Tártaro leve.',cost:65},{id:'vis2',date:d(-12),reason:'Coceira na orelha',vet:'Clínica Exemplo',diagnosis:'Otite leve (exemplo).',cost:48,next:d(2)}],
+  medications:[{id:'otite',name:'Gotas para ouvido',dose:'4 gotas',everyDays:1,times:'8h e 20h',start:d(-12),end:d(2),lastGiven:today,stock:null},{id:'artic',name:'Suplemento articular',dose:'1 tablete',everyDays:1,times:'Com o jantar',start:d(-90),lastGiven:d(-1),stock:9}],
+  grooming:[{id:'banho',kind:'Banho',date:d(-20),next:d(10),place:'Pet shop Exemplo',cost:35},{id:'unhas',kind:'Unhas',date:d(-35),next:d(-5)}],
+  dates:[{id:'adocao',name:'Aniversário de adoção',date:shiftDate(today,-365*3+20),yearly:true}]});
 }

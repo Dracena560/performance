@@ -3,6 +3,7 @@ import {useState} from 'react';
 import {ChevronRight,Pill,Leaf} from 'lucide-react';
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from './ui/dialog';
 import {foodContributions,supplementIntake} from '@/lib/day-log';
+import {markers,relatedSupplements,type Exam} from '@/lib/exams';
 
 type EventLike=Parameters<typeof foodContributions>[0][number];
 type RecordLike=Parameters<typeof supplementIntake>[0][number];
@@ -25,14 +26,18 @@ export function FoodNutrients({events,date,totals,nutrients}:{events:EventLike[]
 }
 
 /** Supplements taken today, from the Registrar routines or sent by the MCP. */
-export function SupplementNutrients({records,date}:{records:RecordLike[];date:string}){
+export function SupplementNutrients({records,date,exams=[],demo=false}:{records:RecordLike[];date:string;exams?:Exam[];demo?:boolean}){
  const [open,setOpen]=useState<string|null>(null);
  const list=supplementIntake(records,date);const item=list.find(s=>s.name===open);
+ // Latest exam marker for a supplement (e.g. Vitamina D ↔ Vitamina D (25-OH)), so intake and blood levels meet.
+ const all=markers(exams);const examFor=(name:string)=>all.find(m=>relatedSupplements(m.name,[name]).some(s=>s.taking));
+ const statusText={baixo:'abaixo da referência',normal:'dentro da referência',alto:'acima da referência','sem faixa':'sem faixa de referência'} as const;
  return <section className="panel nutrient-list supplements" aria-labelledby="supplement-title">
   <div className="panel-heading"><div><h2 id="supplement-title"><Pill size={18}/> Vitaminas dos suplementos</h2><p className="field-help">O que você registrou como tomado hoje.</p></div></div>
-  {list.length?<ul>{list.map(s=><li key={s.name}><button onClick={()=>setOpen(s.name)}><span>{s.name}</span><b>{s.times.map(clock).join(' · ')}</b><ChevronRight size={16} aria-hidden/></button></li>)}</ul>:<p className="field-help">Nenhum suplemento registrado hoje.</p>}
+  {list.length?<ul>{list.map(s=><li key={s.name}><button onClick={()=>setOpen(s.name)}><span>{s.name}{(()=>{const m=examFor(s.name);return m&&m.status!=='normal'&&m.status!=='sem faixa'?<i className={`nutrient-exam s-${m.status}`} title={`Último exame ${statusText[m.status]}`}/>:null;})()}</span><b>{s.times.map(clock).join(' · ')}</b><ChevronRight size={16} aria-hidden/></button></li>)}</ul>:<p className="field-help">Nenhum suplemento registrado hoje.</p>}
   {item&&<Dialog open onOpenChange={v=>{if(!v)setOpen(null);}}><DialogContent className="dialog-content nutrient-dialog"><DialogTitle>{item.name}</DialogTitle><DialogDescription>Suplemento · {item.times.length} {item.times.length===1?'registro':'registros'} hoje</DialogDescription>
    <ol className="nutrient-foods-list">{item.times.map((t,i)=><li key={t+i}><div><strong>Tomado às {clock(t)}</strong>{item.notes[i]&&<small>{item.notes[i]}</small>}</div></li>)}</ol>
+   {(()=>{const m=examFor(item.name);return m?<p className={`nutrient-exam-note s-${m.status.replace(' ','-')}`}>Último exame: <b>{m.name} {m.latest.value!==null?new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(m.latest.value):m.latest.text} {m.unit}</b>, {statusText[m.status]} ({new Date(m.latest.date+'T12:00:00Z').toLocaleDateString('pt-BR')}). <a className="text-link" href={demo?'/demo/exames':'/exames'}>Ver exames</a></p>:<p className="field-help">Nenhum exame com este marcador ainda. Quando enviar um exame pelo ChatGPT, o resultado aparece aqui.</p>;})()}
    <p className="field-help">A dose não é informada no registro; ela aparece aqui quando você registrar com quantidade pelo MCP.</p>
   </DialogContent></Dialog>}
  </section>;

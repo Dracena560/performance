@@ -1,4 +1,5 @@
 import { reminders } from './life';
+import { readExams } from './exams';
 import { initialFinance } from './personal';
 import { initialCreditCard } from './credit-card';
 import { redirect } from 'next/navigation';
@@ -24,5 +25,5 @@ export async function loadData(date?:string){
  const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:withSodium(t.targets,'personal_sodium_type_'+t.day_type,sodiumDefault)}));
  const currentDay=(results[4].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day;
  const typeKey='personal_sodium_type_'+currentDay.day_type;currentDay.targets=withSodium(currentDay.targets,'personal_sodium_date_'+selected,Object.hasOwn(profile,typeKey)?profile[typeKey]:sodiumDefault);
- return {reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
+ return {exams:readExams(profile.personal_exams),reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
 }

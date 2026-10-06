@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import {createTranslator} from '@/lib/i18n-dom';
 import {english} from '@/lib/i18n-en';
 import {englishExtra} from '@/lib/i18n-en-extra';
+import {englishLife} from '@/lib/i18n-en-life';
 import type {Lang} from '@/lib/i18n';
 
 const ATTRS=['placeholder','title','aria-label','alt'];
@@ -17,7 +18,7 @@ export function DomTranslator({lang}:{lang:Lang}){
  useEffect(()=>{
   const root=document.documentElement;
   if(lang!=='en'){root.setAttribute('data-translated','');return;}
-  const translate=createTranslator({...english,...englishExtra});const done=new WeakMap<Node,string>();
+  const translate=createTranslator({...english,...englishExtra,...englishLife});const done=new WeakMap<Node,string>();
   const text=(node:Text)=>{const parent=node.parentElement;if(!parent||parent.closest(SKIP))return;const value=node.nodeValue??'';if(done.get(node)===value)return;
    if(parent.tagName==='OPTION'&&!parent.hasAttribute('value'))parent.setAttribute('value',parent.textContent??'');
    const next=translate(value);done.set(node,next);if(next!==value)node.nodeValue=next;};

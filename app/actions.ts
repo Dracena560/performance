@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { configured, healthService, healthUserId, supabase } from '@/lib/supabase/server';
 import { eventSchema, foodSchema, itemSchema, targetSchema, dayTypes, localDate, type EventInput } from '@/lib/domain';
-import { readHealthWorkbook } from '@/lib/history-import';
 import { diarySchema } from '@/lib/diary-fields';
 async function context(){
  if(!configured())throw new Error('Conecte o Supabase para salvar seus registros.');
@@ -42,13 +41,6 @@ export async function saveTargets(date:string,day_type:string,targets:unknown,as
 }
 export async function saveDraft(payload:unknown){const parsed=z.object({timestamp:z.string(),preset:z.string(),scores:z.record(z.string(),z.number().min(0).max(10).nullable()),activity:z.string(),moods:z.array(z.string()),environment:z.array(z.string()),notes:z.string().max(5000)}).parse(payload);const {db,user}=await context();const {error}=await db.from('checkin_drafts').upsert({user_id:user.id,payload:parsed,updated_at:new Date().toISOString()});check(error);}
 export async function clearDraft(){const {db,user}=await context();const {error}=await db.from('checkin_drafts').delete().eq('user_id',user.id);check(error);}
-export async function importHealthWorkbook(formData: FormData){
- const file=formData.get('workbook');if(!(file instanceof File)||!file.name.toLowerCase().endsWith('.xlsx'))throw new Error('Selecione a planilha .xlsx do histórico de saúde.');
- const records=readHealthWorkbook(await file.arrayBuffer());if(!records.length)throw new Error('Não encontrei registros com uma coluna Data na planilha.');
- const {db,user}=await context();let imported=0;
- for(let index=0;index<records.length;index+=250){const batch=records.slice(index,index+250).map(record=>({...record,user_id:user.id}));const result=await db.from('health_records').upsert(batch,{onConflict:'user_id,category,recorded_on,recorded_at,payload',ignoreDuplicates:true});check(result.error);imported+=batch.length;}
- revalidatePath('/','layout');return {imported,total:records.length};
-}
 const recordCategory=z.enum(['sleep','activity','bowel','supplement','tennis','schedule','body_metrics']);
 export async function saveHealthRecord(category:unknown,date:unknown,payload:unknown,notes=''){
  const parsed=z.object({category:recordCategory,date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),payload:z.record(z.string(),z.unknown()),notes:z.string().max(5000)}).parse({category,date,payload,notes});
@@ -99,13 +91,15 @@ async function mergeProfileSection(patch:Record<string,unknown>){
  throw new Error('Os dados foram alterados em outra tela. Atualize e tente novamente.');
 }
 export async function savePersonalSection(section:unknown,input:unknown){
- const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league']).parse(section);
+ const key=z.enum(['finance','trips','car','bills','dates','preferences','tennis','credit_card','tennis_league','exams','dog']).parse(section);
  const {financeSchema,tripSchema,carSchema}=await import('@/lib/personal');
  const {billsSchema,datesSchema,preferencesSchema}=await import('@/lib/life');
  const {tennisProfileSchema}=await import('@/lib/tennis-club');
  const {creditCardSchema}=await import('@/lib/credit-card');
  const {tennisLeagueSchema}=await import('@/lib/tennis-league');
- const value=key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
+ const {examsSchema}=await import('@/lib/exams');
+ const {dogSchema}=await import('@/lib/dog');
+ const value=key==='exams'?examsSchema.parse(input):key==='dog'?dogSchema.parse(input):key==='tennis_league'?tennisLeagueSchema.parse(input):key==='credit_card'?creditCardSchema.parse(input):key==='tennis'?tennisProfileSchema.parse(input):key==='bills'?billsSchema.parse(input):key==='dates'?datesSchema.parse(input):key==='preferences'?preferencesSchema.parse(input):key==='finance'?financeSchema.parse(input):key==='trips'?z.array(tripSchema).max(1000).parse(input):carSchema.parse(input);
  await mergeProfileSection({['personal_'+key]:value});return true;
 }
 

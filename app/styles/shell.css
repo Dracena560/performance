@@ -2,7 +2,7 @@
    Shell — Liquid Glass sidebar (regular width), icon rail (medium),
    floating tab bar + action button (compact), toolbar, content, login.
    ========================================================================== */
-.app-shell{min-height:100dvh;display:flex;flex-direction:column;--tabs:5}
+.app-shell{min-height:100dvh;display:flex;flex-direction:column;--tabs:6}
 
 /* Sidebar ----------------------------------------------------------------- */
 .sidebar{position:fixed;top:var(--sidebar-gap);left:var(--sidebar-gap);bottom:var(--sidebar-gap);width:var(--sidebar-w);z-index:40;display:flex;flex-direction:column;gap:var(--s-5);padding:var(--s-4) var(--s-3);border-radius:var(--r-lg);overflow:hidden auto;overscroll-behavior:contain}

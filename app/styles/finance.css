@@ -36,7 +36,7 @@
 .finance-visual-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:var(--s-4);align-items:stretch}
 .finance-visual-grid>.panel{display:flex;flex-direction:column;min-width:0}
 .finance-budget-chart,.finance-allocation,.finance-payment-plan{--panel-tint:var(--tint-finance)}
-.finance-evolution{--panel-tint:var(--tint-invest)}
+.finance-evolution{--panel-tint:var(--tint-invest);grid-column:1/-1}
 .finance-visual-grid .eyebrow{color:color-mix(in srgb,var(--panel-tint) 58%,var(--label));margin-bottom:var(--s-1)}
 .finance-visual-grid>.panel>h2{font-size:var(--fs-title3);line-height:var(--lh-title3);font-weight:600;letter-spacing:-.014em}
 .finance-visual-grid .panel-heading{margin-bottom:var(--s-2)}
@@ -230,3 +230,34 @@
   .cash-total b{font-size:var(--fs-subhead);line-height:var(--lh-subhead)}
   .credit-card-form .personal-form-grid{grid-template-columns:1fr}
 }
+
+/* Patrimônio líquido e reserva de emergência ------------------------------- */
+.net-worth-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
+.net-worth,.emergency-fund{--panel-tint:var(--tint-finance);display:flex;flex-direction:column;min-width:0}
+.emergency-fund{--panel-tint:var(--sys-teal)}
+.net-worth h2,.emergency-fund h2{display:flex;align-items:center;gap:var(--s-2)}
+.net-worth h2 svg,.emergency-fund h2 svg{color:var(--panel-tint)}
+.net-worth-total{display:block;font-size:40px;line-height:44px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;margin-top:var(--s-2)}
+.net-worth-total.negative{color:var(--sys-red)}
+.net-worth-bars{display:grid;gap:var(--s-2);margin:var(--s-4) 0 var(--s-2)}
+.net-worth-bars>div{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:var(--s-3);align-items:center;font-size:var(--fs-footnote);color:var(--label-2)}
+.net-worth-bars i{height:10px;border-radius:var(--r-pill);background:var(--fill-3,rgba(120,120,128,.12));overflow:hidden}
+.net-worth-bars em{display:block;height:100%;border-radius:inherit}
+.net-worth-bars em.good{background:var(--sys-green)}.net-worth-bars em.bad{background:var(--sys-red)}
+.net-worth-bars b{color:var(--label);font-variant-numeric:tabular-nums}
+.net-worth-lines{list-style:none;margin:var(--s-3) 0 0;padding:0;display:flex;flex-direction:column}
+.net-worth-lines li{display:flex;justify-content:space-between;gap:var(--s-3);align-items:baseline;padding:var(--s-2) 0;border-top:1px solid var(--separator-soft);font-size:var(--fs-subhead)}
+.net-worth-lines li small{display:block;font-size:var(--fs-caption);color:var(--label-2)}
+.net-worth-lines li b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.net-worth-lines li.total{font-weight:600}
+.net-worth-lines .good{color:var(--sys-green)}.net-worth-lines .bad{color:var(--sys-red)}
+.emergency-level{font-size:var(--fs-caption);font-weight:600;padding:4px 10px;border-radius:var(--r-pill);white-space:nowrap}
+.emergency-level.level-ok{background:color-mix(in srgb,var(--sys-green) 16%,transparent);color:var(--sys-green)}
+.emergency-level.level-mid{background:color-mix(in srgb,var(--sys-orange) 16%,transparent);color:var(--sys-orange)}
+.emergency-level.level-low{background:color-mix(in srgb,var(--sys-red) 16%,transparent);color:var(--sys-red)}
+.emergency-meter{position:relative;height:12px;margin:var(--s-4) 0 var(--s-5);border-radius:var(--r-pill);background:var(--fill-3,rgba(120,120,128,.12))}
+.emergency-meter em{display:block;height:100%;border-radius:inherit;background:var(--sys-teal)}
+.emergency-meter span{position:absolute;top:16px;transform:translateX(-50%);font-size:var(--fs-caption);color:var(--label-2)}
+.emergency-meter span:last-child{transform:translateX(-100%)}
+.emergency-meter span::before{content:'';position:absolute;left:50%;top:-16px;width:1px;height:12px;background:var(--separator)}
+@media (max-width:760px){.net-worth-grid{grid-template-columns:1fr}.net-worth-total{font-size:34px;line-height:38px}}

@@ -189,3 +189,10 @@
   .general-checkin-grid{grid-template-columns:minmax(0,1fr)}
   .general-checkin-grid>article{gap:var(--s-1) var(--s-2)}
 }
+.load-now{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,2fr);gap:var(--s-3);margin-top:var(--s-3)}
+.load-now>div{padding:var(--s-3) var(--s-4);border-radius:var(--r-md,14px);background:var(--fill-3);display:flex;flex-direction:column;gap:2px;min-width:0}
+.load-now small{font-size:var(--fs-caption);color:var(--label-2);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.load-now strong{font-size:var(--fs-title2,22px);font-weight:700;font-variant-numeric:tabular-nums}
+.load-now span{font-size:var(--fs-footnote);color:var(--label-2)}
+.load-level.ok strong{color:var(--sys-green)}.load-level.high strong{color:var(--sys-orange)}.load-level.low strong{color:var(--sys-blue)}
+@media (max-width:760px){.load-now{grid-template-columns:1fr 1fr}.load-now .load-level{grid-column:1/-1}}

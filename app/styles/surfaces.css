@@ -108,3 +108,5 @@
   .tennis-hero,.page-hero{flex-direction:column;align-items:stretch}
   .metric-large .metric-value{font-size:36px}
 }
+.health-hub{margin-bottom:var(--s-6)}
+.general-health>.general-heading{margin-bottom:0}

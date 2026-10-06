@@ -1,6 +1,5 @@
-import Link from 'next/link';
 import { AppShell } from '@/components/app-shell';
-import { Utensils,Activity,Moon,HeartPulse,Target,NotebookPen,History,ArrowUpRight } from 'lucide-react';
-const sections=[['alimentacao','Alimentação','Refeições, hidratação, vitaminas e minerais.',Utensils,'--tint-nutrition'],['exercicios','Exercícios','Movimento diário, sessões e recuperação.',Activity,'--tint-fitness'],['sono','Sono','Suas noites, notas e tendências.',Moon,'--tint-sleep'],['saude-geral','Saúde geral','Indicadores e médias do seu bem-estar.',HeartPulse,'--tint-health'],['metas','Metas','Objetivos de acordo com o tipo do dia.',Target,'--sys-purple'],['registros','Registrar','Check-in, atividade, sono e outros registros.',NotebookPen,'--tint-mind'],['historico','Histórico','Consulte os dados registrados.',History,'--sys-brown']] as const;
+import { HealthHub } from '@/components/health-hub';
+import { demoAllEvents,demoHealthRecords,demoToday } from '@/lib/demo-sections';
 export const dynamic='force-dynamic';
-export default function Page(){return <AppShell title="Saúde" active="saude" demo><div className="content"><div className="page-heading"><div><span className="eyebrow">SEU BEM-ESTAR</span><h1>Saúde</h1><p>Tudo para acompanhar seu corpo e sua rotina.</p></div></div><div className="health-hub">{sections.map(([href,title,description,Icon,tint])=><Link href={'/demo/'+href} key={href} className="panel"><span className="hub-icon" aria-hidden style={{['--icon-tint' as string]:`var(${tint})`}}><Icon size={24}/></span><h2>{title}</h2><p>{description}</p><ArrowUpRight className="hub-arrow" size={20}/></Link>)}</div></div></AppShell>}
+export default function Page(){return <AppShell title="Saúde" active="saude" demo><div className="content"><HealthHub demo events={demoAllEvents()} records={demoHealthRecords()} date={demoToday()}/></div></AppShell>}
