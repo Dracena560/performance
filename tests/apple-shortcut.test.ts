@@ -18,3 +18,9 @@ test('a football workout from the Shortcut becomes a workout payload',()=>{
  const onlyEnd=shortcutWorkout({type:'Outdoor Walk',duration:'41 min',end:'2026-10-06T08:41:00+01:00'});
  assert.equal(onlyEnd.data.started_at,'2026-10-06T07:00:00.000Z');
 });
+import { fromHealthAutoExport } from '../lib/apple-shortcut';
+test('Health Auto Export workouts are understood',()=>{
+ const list=fromHealthAutoExport({data:{workouts:[{name:'Soccer',start:'2026-10-06 19:00:00 +0100',end:'2026-10-06 20:15:00 +0100',duration:4500,activeEnergyBurned:{qty:820.4,units:'kcal'},distance:{qty:6.3,units:'km'},heartRate:{avg:{qty:144},max:{qty:176},min:{qty:88}},stepCount:[{qty:5000},{qty:3200}]}]}})!;
+ const w=shortcutWorkout(list[0]);
+ assert.deepEqual([w.date,w.data.activity_type,w.data.started_at,w.data.duration_seconds,w.data.active_calories,w.data.distance_km,w.data.heart_rate_max,w.data.steps],['2026-10-06','Soccer','2026-10-06T18:00:00.000Z',4500,820.4,6.3,176,8200]);
+});

@@ -5,7 +5,9 @@
  */
 type Body=Record<string,unknown>;
 const norm=(k:string)=>k.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
-function pick(body:Body,names:string[]){const want=names.map(norm);for(const [k,v] of Object.entries(body))if(want.includes(norm(k))&&v!==null&&v!==undefined&&v!=='')return v;return undefined;}
+// Health Auto Export sends quantities as {qty, units}: read them as "820 kcal".
+const flat=(v:unknown)=>v&&typeof v==='object'&&!Array.isArray(v)&&'qty' in (v as Body)?`${(v as Body).qty} ${(v as Body).units??''}`.trim():v;
+function pick(body:Body,names:string[]){const want=names.map(norm);for(const [k,v] of Object.entries(body))if(want.includes(norm(k))&&v!==null&&v!==undefined&&v!=='')return flat(v);return undefined;}
 
 /** "1,075 kcal" → 1075 · "7,9" → 7.9 · "1.234,5" → 1234.5 · 123 → 123. */
 export function number(value:unknown):number|null{
@@ -37,7 +39,7 @@ export function kilometres(value:unknown){const n=number(value);if(n===null)retu
 const months:Record<string,number>={jan:1,fev:2,feb:2,mar:3,abr:4,apr:4,mai:5,may:5,jun:6,jul:7,ago:8,aug:8,set:9,sep:9,out:10,oct:10,nov:11,dez:12,dec:12};
 /** Dates: ISO 8601 (best), "06/10/2026 21:45", "6 Oct 2026 at 21:45", "6 de out. de 2026 21:45". Without an offset, London time. */
 export function dateTime(value:unknown):string|null{
- if(typeof value!=='string'&&typeof value!=='number')return null;const t=String(value).trim();
+ if(typeof value!=='string'&&typeof value!=='number')return null;const t=String(value).trim().replace(/^(\d{4}-\d{2}-\d{2}) (\d{1,2}:\d{2}(?::\d{2})?) ?([+-]\d{2}):?(\d{2})$/,'$1T$2$3:$4');
  if(/^\d{4}-\d{2}-\d{2}T/.test(t)&&/(Z|[+-]\d{2}:?\d{2})$/.test(t)){const d=new Date(t);return Number.isNaN(d.getTime())?null:d.toISOString();}
  let y=0,mo=0,da=0,hh=0,mm=0,ss=0;
  const iso=t.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{1,2}):(\d{2})(?::(\d{2}))?/);
@@ -88,3 +90,11 @@ export function shortcutWorkout(body:Body,receivedAt=new Date()):ShortcutWorkout
  return {date:londonDate(start??end),data};
 }
 function opt(key:string,value:unknown){return value===null||value===undefined||value===''?{}:{[key]:value};}
+
+/** Health Auto Export (iOS app) REST format: { data: { workouts: [...] } } with name/start/end/duration and {qty} values. */
+export function fromHealthAutoExport(body:Body):Body[]|null{
+ const list=(body?.data as Body|undefined)?.workouts;if(!Array.isArray(list))return null;
+ return list.map((w:Body)=>{const hr=(w.heartRate??{}) as Body;const steps=Array.isArray(w.stepCount)?(w.stepCount as Body[]).reduce((t,s)=>t+(number(s.qty)??0),0):flat(w.stepCount);
+  return {tipo:w.name,inicio:w.start,fim:w.end,duration_seconds:w.duration,calorias_ativas:w.activeEnergyBurned??w.activeEnergy,calorias_totais:w.totalEnergy,distancia:w.distance,
+   fc_media:flat(hr.avg)??w.avgHeartRate,fc_maxima:flat(hr.max)??w.maxHeartRate,fc_minima:flat(hr.min),passos:steps||undefined,temperatura:w.temperature,umidade:w.humidity,local:w.location} as Body;});
+}

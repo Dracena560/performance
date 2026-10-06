@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { timingSafeEqual } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
-import { shortcutWorkout } from '@/lib/apple-shortcut';
+import { shortcutWorkout,fromHealthAutoExport } from '@/lib/apple-shortcut';
 import { saveExercise } from '@/lib/save-exercise';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -24,7 +24,7 @@ export async function POST(request:Request){
  if(!process.env.NEXT_PUBLIC_SUPABASE_URL||!process.env.SUPABASE_SERVICE_ROLE_KEY||!process.env.HEALTH_GPT_USER_ID)return NextResponse.json({ok:false,error:'Servidor sem Supabase configurado.'},{status:503});
  let body:any;const text=await request.text();
  try{body=text?JSON.parse(text):{};}catch{body=Object.fromEntries(new URLSearchParams(text));}
- const list:Record<string,unknown>[]=Array.isArray(body)?body:Array.isArray(body?.workouts)?body.workouts:[body];
+ const list:Record<string,unknown>[]=fromHealthAutoExport(body)??(Array.isArray(body)?body:Array.isArray(body?.workouts)?body.workouts:[body]);
  const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
  const results=[];
  for(const item of list.slice(0,20)){
