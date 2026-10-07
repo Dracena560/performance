@@ -284,3 +284,21 @@
 .lot-remove:hover{color:var(--sys-red)}
 .record-dialog h3{font-size:var(--fs-subhead);font-weight:600}
 @media (max-width:760px){.live-totals{grid-template-columns:1fr}.lot-row{grid-template-columns:1fr 1fr}.lot-remove{grid-column:2;justify-self:end}}
+
+/* Asset cards with a small trend line ---------------------------------------- */
+.investment-groups{grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))}
+.investment-group:has(.investment-card:nth-child(3)) .investment-cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,380px),1fr))}
+.investment-card{grid-template-columns:minmax(0,1fr) minmax(110px,42%);gap:var(--s-4);align-items:stretch}
+.investment-card-info{display:grid;gap:2px;align-content:start;min-width:0}
+.investment-card-info>small{font-size:var(--fs-caption);line-height:var(--lh-caption);color:var(--label-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.investment-card-info>span{font-size:var(--fs-footnote);line-height:var(--lh-footnote);color:var(--label-2);font-variant-numeric:tabular-nums}
+.investment-card-info>span.up{color:color-mix(in srgb,var(--success) 45%,var(--label));font-weight:500}
+.investment-card-info>span.down{color:color-mix(in srgb,var(--danger) 72%,var(--label));font-weight:500}
+.investment-card-info>small:last-child{margin-top:var(--s-2)}
+.investment-card-trend{display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+.investment-card-trend small{font-size:var(--fs-caption);color:var(--label-2);text-align:right;font-variant-numeric:tabular-nums}
+.investment-card-trend small.up{color:color-mix(in srgb,var(--success) 45%,var(--label))}
+.investment-card-trend small.down{color:color-mix(in srgb,var(--danger) 72%,var(--label))}
+.sparkline{display:block;width:100%;height:64px;overflow:visible}
+.sparkline.up{color:var(--sys-green)}.sparkline.down{color:var(--sys-red)}.sparkline.flat{color:var(--tint-invest)}
+@media (max-width:420px){.investment-card{grid-template-columns:1fr}.sparkline{height:48px}.investment-card-trend small{text-align:left}}

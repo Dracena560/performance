@@ -46,6 +46,7 @@ export const englishLife:Record<string,string>={
  'Compras · ${q} no total · preço médio ${p}':'Purchases · ${q} in total · average price ${p}','Compras · ${q} no total':'Purchases · ${q} in total','Valor investido':'Amount invested','Preço na compra':'Price at purchase','Moeda':'Currency','Remover compra':'Remove purchase','Adicionar compra':'Add purchase',
  'Há compras em outra moeda: elas contam na quantidade, mas não no custo médio.':'Some purchases are in another currency: they count in quantity but not in the average cost.','Remover':'Remove','Cotação ao vivo da carteira, em libras':'Live portfolio value, in pounds',
  'Próxima data: ${d} (${l})':'Next date: ${d} (${l})',
+ '${p}% em ${n} registros':'${p}% over ${n} updates','Evolução de ${a}: ${n} registros':'Trend of ${a}: ${n} updates',
  // Settings
  'Personalizar opções e notas':'Customise options and scores',
  '${n} opções':'${n} options','${n} opção':'${n} option',' · média ${n}':' · average ${n}',
