@@ -19,6 +19,15 @@ test('reminders list everything due from today through the next five days',()=>{
  assert.equal(nextMonthlyDate(31,'2026-02-10'),'2026-02-28');assert.equal(nextMonthlyDate(5,'2026-12-20'),'2027-01-05');
  assert.equal(dateValue.safeParse('2026-02-31').success,false);assert.equal(carExtraSchema.safeParse({mot:{next:'not-date'}}).success,false);
 });
+test('a scheduled finance expense replaces the duplicate car instalment reminder',()=>{
+ const today='2026-09-27';
+ const personal_finance={rows:[{id:'car-finance',item:'Car finance',category:'Car',value:250,payment:'Direct Debit Santander',day:29,type:'Fixo'}]};
+ const personal_car={extra:{financing:{nextPayment:'2026-08-29',instalment:'£ 250'}}};
+ const list=reminders({personal_finance,personal_car},today);
+ assert.equal(list.find(r=>r.id==='car-payment'),undefined);
+ assert.deepEqual(list.filter(r=>r.date==='2026-09-29').map(r=>r.id),['expense-car-finance']);
+ assert.equal(list.find(r=>r.id==='expense-car-finance')?.amount,'£250.00');
+});
 test('investment snapshots retain partial updates, compare matching assets and reject identity changes',()=>{
  const first=investmentSnapshotSchema.parse({id:'one',as_of:'2026-09-01T12:00:00Z',items:[{asset_id:'a',name:'Fund',account:'Wise',currency:'GBP',value:100},{asset_id:'b',name:'Other',account:'Bank',currency:'USD',value:500}]});
  const second=investmentSnapshotSchema.parse({id:'two',as_of:'2026-09-27T12:00:00Z',items:[{asset_id:'a',name:'Fund',account:'Wise',currency:'GBP',value:125,net_flow:20}]});

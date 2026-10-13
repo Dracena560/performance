@@ -43,10 +43,13 @@ export function nextCarPayment(financing:Record<string,any>|undefined,today:stri
 export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  const rules=readSettings(profile.personal_settings).reminders;
  const all:Omit<Reminder,'days'|'level'>[]=[];const car=profile.personal_car??{},extra=car.extra??{},financing=extra.financing??{};
- const carPayment=nextCarPayment(financing,today);
- for(const [id,name,date] of [['insurance','Seguro do carro',car.insuranceExpiry],['permit','Parking Permit',car.permitExpiry],['mot','MOT',extra.mot?.next],['tax','Road Tax',extra.tax?.renewal],['renewal','Renovação do seguro',extra.insurance?.renewal],['payment','Parcela do carro',carPayment]])if(date)all.push({id:`car-${id}`,name:String(name),source:'Carro',date:String(date),amount:id==='payment'?financing.instalment||null:null});
- const bills=billsSchema.safeParse(profile.personal_bills??[]);if(bills.success)for(const b of bills.data){const date=upcoming(b.date,today,b.monthly);if(date)all.push({id:`bill-${b.id}`,name:b.name,source:'Conta',date,amount:money(b.value,b.currency)});}
  const rows:unknown[]=Array.isArray(profile.personal_finance?.rows)?profile.personal_finance.rows:[];
+ // A fixed expense that explicitly represents the car finance is the canonical
+ // monthly reminder. Do not add the same instalment again from the car profile.
+ const hasScheduledCarFinance=rows.some(row=>{const r=row as Record<string,unknown>;return r.type==='Fixo'&&typeof r.item==='string'&&/parcela|financ|pcp|hire purchase|car finance/i.test(r.item)&&Number.isInteger(r.day)&&(r.day as number)>=1&&(r.day as number)<=31;});
+ const carPayment=nextCarPayment(financing,today);
+ for(const [id,name,date] of [['insurance','Seguro do carro',car.insuranceExpiry],['permit','Parking Permit',car.permitExpiry],['mot','MOT',extra.mot?.next],['tax','Road Tax',extra.tax?.renewal],['renewal','Renovação do seguro',extra.insurance?.renewal],['payment','Parcela do carro',carPayment]])if(date&&!(id==='payment'&&hasScheduledCarFinance))all.push({id:`car-${id}`,name:String(name),source:'Carro',date:String(date),amount:id==='payment'?financing.instalment||null:null});
+ const bills=billsSchema.safeParse(profile.personal_bills??[]);if(bills.success)for(const b of bills.data){const date=upcoming(b.date,today,b.monthly);if(date)all.push({id:`bill-${b.id}`,name:b.name,source:'Conta',date,amount:money(b.value,b.currency)});}
  for(const row of rows){const r=row as Record<string,unknown>;if(r.type!=='Fixo'||typeof r.item!=='string'||!Number.isInteger(r.day)||(r.day as number)<1||(r.day as number)>31)continue;all.push({id:`expense-${String(r.id??r.item)}`,name:r.item,source:'Gasto fixo',date:nextMonthlyDate(r.day as number,today),amount:money(typeof r.value==='number'?r.value:null)});}
  const card=profile.personal_credit_card,history:unknown[]=Array.isArray(card?.history)?card.history:[];const latest=history.filter((e:any)=>e&&typeof e.balance==='number'&&typeof e.date==='string').reduce<any>((last,e:any)=>!last||e.date>=last.date?e:last,null);
  if(latest&&latest.balance>0&&Number.isInteger(card.dueDay)&&card.dueDay>=1&&card.dueDay<=31)all.push({id:'credit-card',name:String(card.name||'Fatura do cartão de crédito'),source:'Cartão de crédito',date:nextMonthlyDate(card.dueDay,today),amount:money(latest.balance)});
