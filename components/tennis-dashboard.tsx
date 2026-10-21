@@ -1235,8 +1235,12 @@ export function TennisDashboard({
               </header>
               {matches.length ? (
                 <ol className="panel wb-order">
-                  {matches.slice(0, 6).map((m, i) => (
-                    <li key={m.id}>
+                  {matches.slice(0, 6).map((m, i) => {
+                    const lineup=appointmentLineup(m,(league ?? initialTennisLeague()).players);
+                    const doubles=matchGroup(m.type)==='doubles';
+                    const opponents=doubles?lineup.opponents.join(' & '):lineup.opponent||m.opponent;
+                    const label=doubles&&lineup.partner?`${me} & ${lineup.partner}${opponents?` vs ${opponents}`:''}`:opponents?`${me} vs ${opponents}`:m.type;
+                    return <li key={m.id}>
                       <span className="wb-order-date">
                         <small>
                           {dateLabel(m.date, { weekday: "short" }).replace(".", "")}
@@ -1248,19 +1252,11 @@ export function TennisDashboard({
                           {i === 0 ? "A seguir · " : ""}
                           {m.time || "Horário a definir"} · {m.location || "Local a definir"}
                         </small>
-                        <strong>
-                          {m.opponent ? (
-                            <>
-                              {me} <em>vs</em> {m.opponent}
-                            </>
-                          ) : (
-                            m.type
-                          )}
-                        </strong>
+                        <strong>{label}</strong>
                       </span>
                       <span className={`wb-type ${matchGroup(m.type)}`}>{m.type}</span>
-                    </li>
-                  ))}
+                    </li>;
+                  })}
                 </ol>
               ) : (
                 <p className="panel wb-empty">
