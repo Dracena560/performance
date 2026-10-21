@@ -330,6 +330,12 @@ details.tennis-detail-section>form>.button.primary{justify-self:end}
 .club-player>header strong{font-size:var(--fs-headline);line-height:var(--lh-headline)}
 .club-player-me{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-subhead)}
 .club-player-me input{width:18px;height:18px}
+.club-player-list{display:grid;border:1px solid var(--separator-soft);border-radius:var(--r-md);overflow:hidden}
+.club-player-row{display:grid;gap:2px;width:100%;padding:var(--s-4);border:0;background:var(--fill-4);text-align:left;color:var(--label);cursor:pointer}
+.club-player-row+.club-player-row{border-top:1px solid var(--separator-soft)}
+.club-player-row:hover{background:var(--fill-3)}
+.club-player-row span{font-weight:600}
+.club-player-row small{color:var(--label-2)}
 .wb-program-actions{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 
 /* Workout details (Apple Fitness summary) */
