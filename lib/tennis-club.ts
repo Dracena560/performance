@@ -33,6 +33,12 @@ export function appointmentParticipants(item:Appointment,players:TennisRosterPla
  const opponent=participantName(players,item.opponentId);
  return opponent||item.opponent;
 }
+export function appointmentLineup(item:Appointment,players:TennisRosterPlayer[]){
+ const partner=participantName(players,item.partnerId);
+ const opponents=item.opponentIds.map(id=>participantName(players,id)).filter(Boolean);
+ const opponent=participantName(players,item.opponentId);
+ return {partner,opponents,opponent};
+}
 /** Keeps legacy text and roster-based scheduling in sync for all site and MCP writes. */
 export function withAppointmentParticipants(item:Appointment,players:TennisRosterPlayer[]):Appointment{
  const opponent=appointmentParticipants(item,players);

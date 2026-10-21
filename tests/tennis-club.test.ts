@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {appointmentParticipants,appointmentSchema,matchGroup,mcpDeleteAppointment,mcpSaveAppointment,tennisProfileSchema,upcomingMatches} from '../lib/tennis-club';
+import {appointmentLineup,appointmentParticipants,appointmentSchema,matchGroup,mcpDeleteAppointment,mcpSaveAppointment,tennisProfileSchema,upcomingMatches} from '../lib/tennis-club';
 import {resources} from '../lib/site-crud';
 test('upcoming games exclude cancelled and past times, retain unknown time today',()=>{
  const item=(id:string,date:string,time:string,cancelled=false)=>appointmentSchema.parse({id,date,time,cancelled});
@@ -17,6 +17,7 @@ test('scheduled singles and doubles resolve participants only from the shared ro
  const players=[{id:'ana',name:'Ana'},{id:'bia',name:'Bia'},{id:'cami',name:'Cami'}];
  const doubles=appointmentSchema.parse({id:'d',date:'2026-10-22',type:'Duplas',partnerId:'ana',opponentIds:['bia','cami']});
  assert.equal(appointmentParticipants(doubles,players),'Dupla com Ana · vs Bia & Cami');
+ assert.deepEqual(appointmentLineup(doubles,players),{partner:'Ana',opponents:['Bia','Cami'],opponent:''});
  const saved=mcpSaveAppointment({},players,{date:'2026-10-22',type:'Simples · Amistoso',opponent_id:'ana'});
  assert.equal(saved.upcoming[0].opponent,'Ana');
  assert.throws(()=>mcpSaveAppointment({},players,{date:'2026-10-22',type:'Duplas',partner_id:'inexistente'}));

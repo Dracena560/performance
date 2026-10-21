@@ -5,9 +5,11 @@ import { TennisClub } from "./tennis-club";
 import { HealthJournal } from "./health-journal";
 import { localDate } from "@/lib/domain";
 import {
+  appointmentLineup,
   matchGroup,
   type TennisProfile,
   type Appointment,
+  type TennisRosterPlayer,
 } from "@/lib/tennis-club";
 import {
   getExplicitTennisScore,
@@ -483,6 +485,7 @@ function MatchHero({
   today,
   record,
   rivals,
+  players,
   onAgenda,
   onDetails,
 }: {
@@ -492,14 +495,19 @@ function MatchHero({
   today: string;
   record: ReturnType<typeof seasonRecord>;
   rivals: ReturnType<typeof headToHead>;
+  players: TennisRosterPlayer[];
   onAgenda: () => void;
   onDetails: (session: Session) => void;
 }) {
   const versus = (name: string | null) =>
     rivals.find((r) => r.opponent.toLowerCase() === name?.trim().toLowerCase());
   if (next) {
-    const h2h = versus(next.opponent);
     const training = matchGroup(next.type) === "training";
+    const doubles = matchGroup(next.type) === "doubles";
+    const lineup = appointmentLineup(next, players);
+    const opponentName = doubles ? lineup.opponents.join(" & ") : lineup.opponent || next.opponent;
+    const partnerName = doubles ? lineup.partner : "";
+    const h2h = versus(opponentName || null);
     return (
       <section className="wb-hero" aria-labelledby="wb-hero-title">
         <div className="wb-hero-top">
@@ -536,10 +544,12 @@ function MatchHero({
             </span>
           </div>
           <div className="wb-hero-player">
-            <Avatar name={next.opponent || next.type} tone="them" />
-            <strong>{next.opponent || (training ? "Sessão livre" : "A definir")}</strong>
+            <Avatar name={partnerName || opponentName || next.type} tone="them" />
+            <strong>{doubles && partnerName ? `${me} & ${partnerName}` : opponentName || (training ? "Sessão livre" : "A definir")}</strong>
             <small>
-              {h2h
+              {doubles && opponentName
+                ? `vs ${opponentName}`
+                : h2h
                 ? `Confronto direto ${h2h.wins}–${h2h.losses}`
                 : "Primeiro confronto registrado"}
             </small>
@@ -1084,6 +1094,7 @@ export function TennisDashboard({
               today={today}
               record={record}
               rivals={rivals}
+              players={(league ?? initialTennisLeague()).players}
               onAgenda={manageAgenda}
               onDetails={setSelected}
             />
