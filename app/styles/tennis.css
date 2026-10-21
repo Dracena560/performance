@@ -324,6 +324,13 @@ details.tennis-detail-section>form>.button.primary{justify-self:end}
 .club-dialog .personal-form-grid,.tennis-detail-section .personal-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s-4)}
 .club-appointment{display:grid;gap:var(--s-4);padding:var(--s-4);border-radius:var(--r-md);background:var(--fill-4)}
 .club-appointment>.text-link{justify-self:start}
+.club-dialog-actions{display:flex;flex-wrap:wrap;gap:var(--s-3)}
+.club-participant-preview{margin:0;color:var(--label-2)}
+.club-player>header{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3)}
+.club-player>header strong{font-size:var(--fs-headline);line-height:var(--lh-headline)}
+.club-player-me{display:flex;align-items:center;gap:var(--s-2);font-size:var(--fs-subhead)}
+.club-player-me input{width:18px;height:18px}
+.wb-program-actions{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 
 /* Workout details (Apple Fitness summary) */
 .workout-details{display:grid;gap:var(--s-6);margin-top:var(--s-6)}

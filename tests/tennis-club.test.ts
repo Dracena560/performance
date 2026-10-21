@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {appointmentSchema,matchGroup,tennisProfileSchema,upcomingMatches} from '../lib/tennis-club';
+import {appointmentParticipants,appointmentSchema,matchGroup,mcpDeleteAppointment,mcpSaveAppointment,tennisProfileSchema,upcomingMatches} from '../lib/tennis-club';
 import {resources} from '../lib/site-crud';
 test('upcoming games exclude cancelled and past times, retain unknown time today',()=>{
  const item=(id:string,date:string,time:string,cancelled=false)=>appointmentSchema.parse({id,date,time,cancelled});
@@ -12,4 +12,13 @@ test('match groups do not count doubles league or training as singles league',()
 });
 test('editable tennis data uses the same schema in MCP and site',()=>{
  const profile=tennisProfileSchema.parse({});assert.equal(profile.racket,'Yonex Vcore 98');assert.equal(profile.sex,'');assert.deepEqual(resources.perfil_tenis.schema.parse(profile),profile);assert.equal(appointmentSchema.safeParse({id:'a',date:'2026-02-30',time:'25:00'}).success,false);
+});
+test('scheduled singles and doubles resolve participants only from the shared roster',()=>{
+ const players=[{id:'ana',name:'Ana'},{id:'bia',name:'Bia'},{id:'cami',name:'Cami'}];
+ const doubles=appointmentSchema.parse({id:'d',date:'2026-10-22',type:'Duplas',partnerId:'ana',opponentIds:['bia','cami']});
+ assert.equal(appointmentParticipants(doubles,players),'Dupla com Ana · vs Bia & Cami');
+ const saved=mcpSaveAppointment({},players,{date:'2026-10-22',type:'Simples · Amistoso',opponent_id:'ana'});
+ assert.equal(saved.upcoming[0].opponent,'Ana');
+ assert.throws(()=>mcpSaveAppointment({},players,{date:'2026-10-22',type:'Duplas',partner_id:'inexistente'}));
+ assert.equal(mcpDeleteAppointment(saved,saved.upcoming[0].id).upcoming.length,0);
 });

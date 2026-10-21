@@ -17,6 +17,7 @@ import {
   normalizeTennisSessionType,
   type TennisSet,
 } from "@/lib/tennis-session";
+import { initialTennisLeague } from "@/lib/tennis-league";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -1066,8 +1067,8 @@ export function TennisDashboard({
           {t("tennis.register")}
         </button>
       </header>
-      <TennisClub initial={profile}>
-        {({ profile: player, matches, today, editProfile, manageAgenda }) => (
+      <TennisClub initial={profile} league={league ?? initialTennisLeague()}>
+        {({ profile: player, matches, today, editProfile, manageAgenda, managePlayers }) => (
           <>
             <PlayerCard
               player={player}
@@ -1210,10 +1211,16 @@ export function TennisDashboard({
                   <span className="eyebrow">ORDER OF PLAY</span>
                   <h2 id="wb-order-title">Programação</h2>
                 </div>
-                <button className="button secondary" onClick={manageAgenda}>
-                  <CalendarDays size={16} strokeWidth={1.9} aria-hidden="true" />
-                  Gerenciar
-                </button>
+                <div className="wb-program-actions">
+                  <button className="button secondary" onClick={managePlayers}>
+                    <Users size={16} strokeWidth={1.9} aria-hidden="true" />
+                    Jogadores
+                  </button>
+                  <button className="button secondary" onClick={manageAgenda}>
+                    <CalendarDays size={16} strokeWidth={1.9} aria-hidden="true" />
+                    Gerenciar
+                  </button>
+                </div>
               </header>
               {matches.length ? (
                 <ol className="panel wb-order">

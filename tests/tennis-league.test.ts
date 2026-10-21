@@ -30,11 +30,12 @@ test('schema rejects duplicate pairs, unknown players and bad countries',()=>{
  assert.equal(tennisLeagueSchema.safeParse({...league,players:[{...league.players[0],country:'Brazil'}]}).success,false);
  assert.deepEqual(quarterOf('2026-11-20'),{start:'2026-10-01',end:'2026-12-31',id:'2026-q4'});assert.equal(flag('BR'),'🇧🇷');
 });
-import { mcpSavePlayer,mcpCreateSeason,mcpAddImage,mcpRecordResult,leagueSummary } from '../lib/tennis-league';
+import { mcpSavePlayer,mcpDeletePlayer,mcpCreateSeason,mcpAddImage,mcpRecordResult,leagueSummary } from '../lib/tennis-league';
 test('MCP helpers upsert players, create quarterly seasons, add images and results',()=>{
  const {league:withPlayer,player}=mcpSavePlayer(undefined,{name:'Gilbert Flook',country:'GB',hand:'Destro',racket:'Babolat Pure Drive'});
  assert.equal(player.id,'gilbert-flook');assert.equal(withPlayer.players.length,12);assert.equal(withPlayer.players.find(p=>p.id==='gilbert-flook')?.country,'GB');
  const {league:newcomer}=mcpSavePlayer(withPlayer,{name:'Novo Jogador'});assert.equal(newcomer.players.length,13);
+ const withoutNewcomer=mcpDeletePlayer(newcomer,'novo-jogador');assert.equal(withoutNewcomer.players.some(player=>player.id==='novo-jogador'),false);
  assert.throws(()=>mcpSavePlayer(withPlayer,{name:'X',country:'Inglaterra'}));
  const next=mcpCreateSeason(withPlayer,{start:'2027-01-10'},'2026-10-05');const q1=next.seasons.find(s=>s.id==='2027-q1')!;assert.equal(q1.name,'Janeiro–Março 2027');assert.equal(q1.end,'2027-03-31');assert.equal(q1.players.length,12);
  assert.throws(()=>mcpCreateSeason(next,{start:'2027-02-01'},'2026-10-05'),/já existe/);

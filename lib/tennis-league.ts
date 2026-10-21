@@ -155,6 +155,12 @@ export function mcpSavePlayer(stored:unknown,raw:unknown){
  const players=existing?league.players.map(p=>p.id===existing.id?player:p):[...league.players,player];
  return {league:tennisLeagueSchema.parse({...league,players}),player};
 }
+/** Removes a roster player and all league fixtures that reference them. */
+export function mcpDeletePlayer(stored:unknown,id:string){
+ const league=stored===undefined?initialTennisLeague():tennisLeagueSchema.parse(stored);
+ if(!league.players.some(player=>player.id===id))throw new Error('Jogador não encontrado.');
+ return tennisLeagueSchema.parse({...league,players:league.players.filter(player=>player.id!==id),seasons:league.seasons.map(season=>({...season,players:season.players.filter(playerId=>playerId!==id),matches:season.matches.filter(match=>match.home!==id&&match.away!==id)}))});
+}
 const seasonArgs=z.object({start:dateValue.optional(),name:z.string().max(120).optional(),division:z.string().max(60).optional(),league:z.string().max(160).optional(),players:z.array(z.string()).optional(),copy_players_from:z.string().optional()});
 /** Creates the quarterly season containing `start` (default: today), copying the box of the previous season unless players are given. */
 export function mcpCreateSeason(stored:unknown,raw:unknown,today:string){
