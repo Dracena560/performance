@@ -453,3 +453,4 @@
 .water-empty{margin-top:var(--s-2)}
 .set-section label{align-content:start}
 .set-grid{align-items:start}
+.deadline-grid article.tennis-pending .text-link{justify-self:start;margin-top:var(--s-1)}

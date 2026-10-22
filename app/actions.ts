@@ -132,8 +132,19 @@ export async function saveInvestment(input:unknown){const {investmentSnapshotSch
 
 export async function updateTennisDetails(recordId:unknown,input:unknown){
  const id=z.string().uuid().parse(recordId);
- const value=z.object({match_type:z.string().max(100),opponent_or_partner:z.string().max(200),duration_minutes:z.number().finite().nonnegative().nullable(),analysis:z.string().max(10000)}).parse(input);
+ const value=z.object({match_type:z.string().max(100),opponent_or_partner:z.string().max(200),partner:z.string().max(200).optional(),duration_minutes:z.number().finite().nonnegative().nullable(),analysis:z.string().max(10000)}).parse(input);
  const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
  const current=await db.from('health_records').select('payload').eq('id',id).eq('user_id',userId).in('category',['tennis','workout','activity']).single();check(current.error);if(!current.data)throw new Error('Partida não encontrada.');
  const result=await db.from('health_records').update({payload:{...current.data.payload,...value}}).eq('id',id).eq('user_id',userId).in('category',['tennis','workout','activity']);check(result.error);revalidatePath('/','layout');return true;
+}
+
+/** Registers a tennis match, or completes the same-day record (scheduled game or Apple Watch workout) instead of duplicating it. */
+export async function saveTennisMatch(raw:unknown){
+ const {tennisMatchPayload}=await import('@/lib/tennis-pending');const {input,payload}=tennisMatchPayload(raw);
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ if(input.record_id){
+  const current=await db.from('health_records').select('payload').eq('id',input.record_id).eq('user_id',userId).in('category',['tennis','workout','activity']).single();check(current.error);if(!current.data)throw new Error('Partida não encontrada.');
+  const result=await db.from('health_records').update({payload:{...(current.data.payload as Record<string,unknown>),...payload}}).eq('id',input.record_id).eq('user_id',userId).select().single();check(result.error);revalidatePath('/','layout');return result.data;
+ }
+ const result=await db.from('health_records').insert({user_id:userId,category:'tennis',recorded_on:input.date,recorded_at:new Date().toISOString(),payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return result.data;
 }

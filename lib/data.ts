@@ -4,6 +4,10 @@ import { readDog } from './dog';
 import { initialFinance } from './personal';
 import { initialCreditCard } from './credit-card';
 import { redirect } from 'next/navigation';
+import { isTennis } from './exercise-records';
+import { tennisProfileSchema } from './tennis-club';
+import { readLeague } from './tennis-league';
+import { pendingMatches } from './tennis-pending';
 import { configured,supabase,healthService,healthUserId } from './supabase/server';
 import { localDate, type HealthEvent,type Food,type TargetTemplate,type MealTemplate,type Day } from './domain';
 export async function loadData(date?:string){
@@ -18,7 +22,8 @@ export async function loadData(date?:string){
  healthDb.from('checkin_drafts').select('payload').eq('user_id',healthUser).maybeSingle(),
  healthDb.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',healthUser).gte('recorded_on',new Date(`${selected}T12:00:00Z`).getTime()-86400000 ? new Date(new Date(`${selected}T12:00:00Z`).getTime()-86400000).toISOString().slice(0,10) : selected).lte('recorded_on',selected).order('recorded_at'),
  healthDb.from('health_records').select('id,category,recorded_on,recorded_at,payload,source').eq('user_id',healthUser).gte('recorded_on',`${selected.slice(0,4)}-01-01`).lte('recorded_on',selected).in('category',['meal_history','hydration_history','checkin_history','supplement','bowel']).order('recorded_on'),
- healthDb.from('health_profiles').select('profile').eq('user_id',healthUser).maybeSingle()
+ healthDb.from('health_profiles').select('profile').eq('user_id',healthUser).maybeSingle(),
+ healthDb.from('health_records').select('id,category,recorded_on,payload').eq('user_id',healthUser).gte('recorded_on',new Date(Date.parse(`${selected}T12:00:00Z`)-21*86400000).toISOString().slice(0,10)).lte('recorded_on',selected).in('category',['tennis','workout','activity'])
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
  const profile=results[9].data?.profile??{};const sodiumDefault={kind:'maximum' as const,min:null,max:2000};
@@ -26,5 +31,9 @@ export async function loadData(date?:string){
  const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:withSodium(t.targets,'personal_sodium_type_'+t.day_type,sodiumDefault)}));
  const currentDay=(results[4].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day;
  const typeKey='personal_sodium_type_'+currentDay.day_type;currentDay.targets=withSodium(currentDay.targets,'personal_sodium_date_'+selected,Object.hasOwn(profile,typeKey)?profile[typeKey]:sodiumDefault);
- return {dog:readDog(profile.personal_dog),exams:readExams(profile.personal_exams),reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
+ const tennis=tennisProfileSchema.safeParse(profile.personal_tennis??{}),league=readLeague(profile.personal_tennis_league),tennisMe=tennis.success?tennis.data.name||'Você':'Você';
+ const londonTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
+ // Only today's view nags about games waiting for their result.
+ const tennisPending=tennis.success&&selected===localDate()?pendingMatches(tennis.data.upcoming,((results[10].data??[]) as {id:string;category:string;recorded_on:string;payload:Record<string,unknown>}[]).filter(isTennis),league.players,tennisMe,selected,londonTime):[];
+ return {tennisPending,tennisMe,tennisPlayers:league.players.filter(player=>!player.me).map(player=>player.name),dog:readDog(profile.personal_dog),exams:readExams(profile.personal_exams),reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
 }

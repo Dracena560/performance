@@ -23,6 +23,11 @@ function patternId(name: string, mealType: string, period: MealPeriod, items: Me
   return [period, mealType.trim().toLocaleLowerCase('pt-BR'), name.trim().toLocaleLowerCase('pt-BR'), ...items.map(item => `${item.name.trim().toLocaleLowerCase('pt-BR')}|${Math.round(item.grams * 10) / 10}`)].join('::');
 }
 
+// Meals sent by GPT/MCP may omit food_id; the event schema requires it as nullable.
+function normalizeItems(items: MealPattern['items']): MealPattern['items'] {
+  return items.map(item => ({ ...item, food_id: item.food_id ?? null, nutrition: item.nutrition ?? {} }));
+}
+
 /** Groups exact meal combinations from the event history; it never invents ingredients. */
 export function mealPatterns(events: HealthEvent[]): MealPattern[] {
   const unique = [...new Map(events.map(event => [event.id, event])).values()];
@@ -36,7 +41,7 @@ export function mealPatterns(events: HealthEvent[]): MealPattern[] {
     if (current) {
       current.uses += 1;
       if (event.timestamp > current.lastUsed) current.lastUsed = event.timestamp;
-    } else grouped.set(id, { id, name, mealType: event.data.meal_type, period, items: event.data.items, estimated: event.estimated, uses: 1, lastUsed: event.timestamp });
+    } else grouped.set(id, { id, name, mealType: event.data.meal_type, period, items: normalizeItems(event.data.items), estimated: event.estimated, uses: 1, lastUsed: event.timestamp });
   }
   return [...grouped.values()].sort((a, b) => b.uses - a.uses || b.lastUsed.localeCompare(a.lastUsed) || a.name.localeCompare(b.name, 'pt-BR'));
 }

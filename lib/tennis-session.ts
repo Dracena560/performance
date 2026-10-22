@@ -34,7 +34,8 @@ function scoreSets(payload:Record<string,unknown>):TennisSet[]{
  return matches.map(match=>({felipe:Number(match[1]),adversario:Number(match[2])}));
 }
 
-export function getExplicitTennisSets(record:TennisRecordLike){return explicitSets(record.payload).length?explicitSets(record.payload):scoreSets(record.payload);}
+/** 0–0 sets are unplayed slots from older forms, never a real set. */
+export function getExplicitTennisSets(record:TennisRecordLike){const sets=explicitSets(record.payload).length?explicitSets(record.payload):scoreSets(record.payload);return sets.filter(set=>set.felipe||set.adversario);}
 
 export function getExplicitTennisScore(record:TennisRecordLike){
  if(normalizeTennisSessionType(record)==='Treino')return null;

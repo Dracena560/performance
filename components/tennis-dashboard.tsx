@@ -2,7 +2,8 @@
 import { WorkoutDetails } from "./workout-details";
 import { TennisSessionEditor } from "./tennis-session-editor";
 import { TennisClub } from "./tennis-club";
-import { HealthJournal } from "./health-journal";
+import { TennisMatchForm, pendingDraft } from "./tennis-match-form";
+import { pendingMatches, type PendingMatch } from "@/lib/tennis-pending";
 import { localDate } from "@/lib/domain";
 import {
   appointmentLineup,
@@ -49,7 +50,7 @@ import {
   momentum,
   courtDays,
 } from "@/lib/tennis-stats";
-import { updateTennisScore } from "@/app/actions";
+import { savePersonalSection, updateTennisScore } from "@/app/actions";
 import { EChart, escapeHtml, type ChartTheme } from "./echart";
 import Link from "next/link";
 import { PlayerPhoto, seasonLabel } from "./tennis-league-view";
@@ -184,6 +185,18 @@ function ScoreEditor({
                   max="99"
                 />
               </label>
+              {sets.length > 1 && (
+                <button
+                  type="button"
+                  className="button icon ghost"
+                  aria-label={`Remover set ${index + 1}`}
+                  onClick={() =>
+                    setSets((current) => current.filter((_, i) => i !== index))
+                  }
+                >
+                  −
+                </button>
+              )}
             </div>
           ))}
           {sets.length < 5 && (
@@ -291,7 +304,8 @@ function TennisDetails({
       <DialogContent className="dialog-content tennis-details-dialog wimbledon">
         <DialogTitle>
           {session.type ?? "Sessão de tênis"}
-          {session.opponent ? ` · ${session.opponent}` : ""}
+          {session.partner ? ` · ${me} & ${session.partner}` : ""}
+          {session.opponent ? ` vs ${session.opponent}` : ""}
         </DialogTitle>
         <DialogDescription>
           {dateLabel(session.record.recorded_on, {
@@ -304,7 +318,7 @@ function TennisDetails({
         {session.competitive && session.sets.length > 0 && (
           <div className="wb-board wb-detail-board">
             <SetScore
-              me={me}
+              me={sideName(me, session)}
               opponent={session.opponent}
               sets={session.sets}
               outcome={session.outcome}
@@ -345,12 +359,13 @@ function TennisDetails({
           </section>
         )}
         {session.competitive && (
-          <ScoreEditor id={session.record.id} initial={session.sets} me={me} />
+          <ScoreEditor id={session.record.id} initial={session.sets} me={sideName(me, session)} />
         )}
         <TennisSessionEditor
           id={session.record.id}
           type={session.type}
           opponent={session.opponent}
+          partner={session.partner}
           duration={session.duration}
           analysis={session.analysis}
           onSaved={onClose}
@@ -368,6 +383,8 @@ type Session = {
   record: RecordRow;
   type: string | null;
   opponent: string | null;
+  /** Doubles partner; the opposing pair stays in `opponent`. */
+  partner: string | null;
   score: string | null;
   outcome: string | null;
   duration: number | null;
@@ -379,6 +396,8 @@ type Session = {
   sets: TennisSet[];
   competitive: boolean;
 };
+const sideName = (me: string, session: Session) =>
+  session.partner ? `${me} & ${session.partner}` : me;
 const dayDiff = (from: string, to: string) =>
   Math.round(
     (Date.parse(to + "T12:00:00Z") - Date.parse(from + "T12:00:00Z")) /
@@ -475,6 +494,52 @@ function SetScore({
         ))}
       </tbody>
     </table>
+  );
+}
+
+/** Scheduled games that already happened and still wait for their result. */
+function PendingMatches({
+  items,
+  onComplete,
+  onSkip,
+}: {
+  items: PendingMatch[];
+  onComplete: (match: PendingMatch) => void;
+  onSkip: (match: PendingMatch) => void;
+}) {
+  if (!items.length) return null;
+  return (
+    <section className="panel wb-pending" aria-labelledby="wb-pending-title">
+      <div className="panel-heading">
+        <div>
+          <span className="eyebrow">PENDENTE</span>
+          <h2 id="wb-pending-title">
+            {items.length === 1 ? "Jogo para completar" : `${items.length} jogos para completar`}
+          </h2>
+        </div>
+      </div>
+      <ul>
+        {items.map((match) => (
+          <li key={match.id}>
+            <span>
+              <small>
+                {dateLabel(match.date, { weekday: "short", day: "2-digit", month: "short" }).replace(/\./g, "")}
+                {match.time ? ` · ${match.time}` : ""} · {match.type}
+              </small>
+              <strong>{match.label}</strong>
+            </span>
+            <span className="wb-pending-actions">
+              <button className="button secondary small" onClick={() => onSkip(match)}>
+                Não jogado
+              </button>
+              <button className="button tinted small" onClick={() => onComplete(match)}>
+                Adicionar resultado
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -580,12 +645,12 @@ function MatchHero({
       </div>
       <h2 id="wb-hero-title" className="wb-hero-empty">
         {last
-          ? `${me} ${last.outcome === "vitória" ? "venceu" : last.outcome === "derrota" ? "perdeu para" : "×"} ${last.opponent ?? "adversário"}`
+          ? `${sideName(me, last)} ${last.outcome === "vitória" ? (last.partner ? "venceram" : "venceu") : last.outcome === "derrota" ? (last.partner ? "perderam para" : "perdeu para") : "×"} ${last.opponent ?? "adversário"}`
           : "Nenhuma partida na programação"}
       </h2>
       {last && last.sets.length > 0 && (
         <div className="wb-hero-score">
-          <SetScore me={me} opponent={last.opponent} sets={last.sets} outcome={last.outcome} variant="board" />
+          <SetScore me={sideName(me, last)} opponent={last.opponent} sets={last.sets} outcome={last.outcome} variant="board" />
         </div>
       )}
       <div className="wb-hero-foot">
@@ -911,6 +976,7 @@ export function TennisDashboard({
 }) {
   const router = useRouter();
   const { t } = useLang();
+  const roster = (league ?? initialTennisLeague()).players;
   const sessions: Session[] = records
     .filter((record) => record.recorded_on <= localDate())
     .map((record) => {
@@ -931,8 +997,25 @@ export function TennisDashboard({
         "Performance geral",
         "Desempenho geral",
       ]);
+      const type = normalizeTennisSessionType(record);
+      const appointment =
+        profile.upcoming.find((a) => a.id === record.payload.appointment_id) ??
+        profile.upcoming.find(
+          (a) =>
+            !a.cancelled &&
+            a.date === record.recorded_on &&
+            matchGroup(a.type) === "doubles",
+        );
+      const partner =
+        matchGroup(type ?? "") === "doubles"
+          ? text(record.payload, ["partner"]) ??
+            (appointment
+              ? appointmentLineup(appointment, roster).partner || null
+              : null)
+          : null;
       return {
         record,
+        partner,
         duration: number(record.payload, [
           "duration_minutes",
           "Duração min",
@@ -943,7 +1026,7 @@ export function TennisDashboard({
         clarity,
         performance,
         postScore: avg([energy, clarity, performance]),
-        type: normalizeTennisSessionType(record),
+        type,
         opponent: text(record.payload, [
           "opponent_or_partner",
           "Adversário",
@@ -967,6 +1050,7 @@ export function TennisDashboard({
     "all" | "training" | "league" | "friendly" | "doubles"
   >("all");
   const [selected, setSelected] = useState<Session | null>(null);
+  const [completing, setCompleting] = useState<PendingMatch | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [editingSession, setEditingSession] = useState<Session | null>(null);
   const historySessions = sessions.filter(
@@ -1087,6 +1171,27 @@ export function TennisDashboard({
               today={today}
               onEdit={editProfile}
             />
+            <PendingMatches
+              items={pendingMatches(
+                player.upcoming,
+                records,
+                roster,
+                me,
+                today,
+                new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date()),
+              )}
+              onComplete={setCompleting}
+              onSkip={async (match) => {
+                if (!confirm(`Marcar ${match.label} como não jogado?`)) return;
+                await savePersonalSection("tennis", {
+                  ...profile,
+                  upcoming: profile.upcoming.map((a) =>
+                    a.id === match.id ? { ...a, cancelled: true } : a,
+                  ),
+                });
+                router.refresh();
+              }}
+            />
             <MatchHero
               next={matches[0]}
               last={lastMatch}
@@ -1117,7 +1222,7 @@ export function TennisDashboard({
                   <>
                     {lastMatch.sets.length ? (
                       <SetScore
-                        me={me}
+                        me={sideName(me, lastMatch)}
                         opponent={lastMatch.opponent}
                         sets={lastMatch.sets}
                         outcome={lastMatch.outcome}
@@ -1349,7 +1454,7 @@ export function TennisDashboard({
                           )}
                         </header>
                         {s.competitive && s.sets.length ? (
-                          <SetScore me={me} opponent={s.opponent} sets={s.sets} outcome={s.outcome} variant="card" />
+                          <SetScore me={sideName(me, s)} opponent={s.opponent} sets={s.sets} outcome={s.outcome} variant="card" />
                         ) : (
                           <div className="wb-match-line">
                             <Avatar name={s.opponent || s.type} tone="them" />
@@ -1511,6 +1616,7 @@ export function TennisDashboard({
               id={editingSession.record.id}
               type={editingSession.type}
               opponent={editingSession.opponent}
+              partner={editingSession.partner}
               duration={editingSession.duration}
               analysis={editingSession.analysis}
               expanded
@@ -1570,6 +1676,28 @@ export function TennisDashboard({
           onClose={() => setSelected(null)}
         />
       )}
+      {completing && (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setCompleting(null);
+          }}
+        >
+          <DialogContent className="dialog-content tennis-details-dialog">
+            <DialogTitle>Completar partida</DialogTitle>
+            <DialogDescription>
+              {completing.label} ·{" "}
+              {dateLabel(completing.date, { weekday: "long", day: "2-digit", month: "long" })}
+            </DialogDescription>
+            <TennisMatchForm
+              me={me}
+              players={roster.filter((p) => !p.me).map((p) => p.name)}
+              initial={pendingDraft(completing)}
+              onSaved={() => setCompleting(null)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
       {registering && (
         <Dialog
           open
@@ -1582,13 +1710,10 @@ export function TennisDashboard({
             <DialogDescription>
               Este registro aparece em Tênis e Saúde usando a mesma referência.
             </DialogDescription>
-            <HealthJournal
-              initialKind="tennis"
-              showTabs={false}
-              onSaved={() => {
-                setRegistering(false);
-                router.refresh();
-              }}
+            <TennisMatchForm
+              me={me}
+              players={roster.filter((p) => !p.me).map((p) => p.name)}
+              onSaved={() => setRegistering(false)}
             />
           </DialogContent>
         </Dialog>
