@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { issueAuthorizationCode } from '@/lib/mcp-oauth';
+import { isTrustedCallback, issueAuthorizationCode } from '@/lib/mcp-oauth';
 import { supabase } from '@/lib/supabase/server';
 
 function escapeHtml(value: string) { return value.replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]!)); }
@@ -29,6 +29,8 @@ export async function GET(request: Request) {
   const user = await currentUser();
   if (!user) return NextResponse.redirect(new URL(`/login?next=${encodeURIComponent(request.url)}`, request.url));
   if (user.id !== process.env.HEALTH_GPT_USER_ID) return new NextResponse('Esta conta não tem acesso a esta integração.', { status: 403 });
+  // Claude/ChatGPT reconnecting while logged in: no consent click. Other callbacks still see the screen.
+  if (isTrustedCallback(input.redirectUri)) return redirectWithCode(user.id, input);
   const hidden = [
     ['response_type', 'code'],
     ['client_id', input.clientId],
@@ -51,8 +53,12 @@ export async function POST(request: Request) {
   if (!input) return new NextResponse('Solicitação OAuth inválida.', { status: 400 });
   const user = await currentUser();
   if (!user || user.id !== process.env.HEALTH_GPT_USER_ID) return new NextResponse('Sessão inválida.', { status: 401 });
-  const code = issueAuthorizationCode({ sub: user.id, clientId: input.clientId, redirectUri: input.redirectUri, codeChallenge: input.codeChallenge });
+  return redirectWithCode(user.id, input);
+}
+
+function redirectWithCode(userId: string, input: NonNullable<ReturnType<typeof fields>>) {
+  const code = issueAuthorizationCode({ sub: userId, clientId: input.clientId, redirectUri: input.redirectUri, codeChallenge: input.codeChallenge });
   const callback = new URL(input.redirectUri); callback.searchParams.set('code', code); if (input.state) callback.searchParams.set('state', input.state);
-  // Switch the consent form POST to a GET at the OAuth client's callback.
+  // 303 turns the consent form POST into a GET at the OAuth client's callback.
   return NextResponse.redirect(callback, 303);
 }

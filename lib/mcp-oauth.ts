@@ -11,6 +11,12 @@ type AuthorizationCode = {
   exp: number;
 };
 
+type RefreshToken = {
+  kind: 'refresh_token';
+  sub: string;
+  exp: number;
+};
+
 type AccessToken = {
   kind: 'access_token';
   sub: string;
@@ -59,9 +65,26 @@ export function readAuthorizationCode(code: string) {
   return decode<AuthorizationCode>(code, 'authorization_code');
 }
 
+// Long-lived tokens so Claude/ChatGPT stay connected: the access token lasts 30 days and the
+// refresh token (rotated on every use) a year. Changing HEALTH_GPT_ACTION_KEY revokes all of them.
 export function issueAccessToken(userId: string) {
-  const expiresIn = 60 * 60;
-  return { accessToken: encode({ kind: 'access_token', sub: userId, scope: 'health:read health:write', exp: Math.floor(Date.now() / 1000) + expiresIn }), expiresIn };
+  const expiresIn = 60 * 60 * 24 * 30;
+  const now = Math.floor(Date.now() / 1000);
+  return {
+    accessToken: encode({ kind: 'access_token', sub: userId, scope: 'health:read health:write', exp: now + expiresIn }),
+    refreshToken: encode({ kind: 'refresh_token', sub: userId, exp: now + 60 * 60 * 24 * 365 }),
+    expiresIn,
+  };
+}
+
+export function readRefreshToken(token: string) {
+  return decode<RefreshToken>(token, 'refresh_token');
+}
+
+/** Redirects of the chat apps that may skip the consent screen once the owner is logged in. */
+const trustedCallbackHosts = ['claude.ai', 'claude.com', 'chatgpt.com', 'chat.openai.com'];
+export function isTrustedCallback(redirectUri: string) {
+  try { const url = new URL(redirectUri); return url.protocol === 'https:' && trustedCallbackHosts.includes(url.hostname); } catch { return false; }
 }
 
 export function readAccessToken(token: string) {
