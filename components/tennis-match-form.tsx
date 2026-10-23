@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, CirclePlus, Minus, Plus } from 'lucide-react';
-import { saveTennisMatch } from '@/app/actions';
+import { saveTennisMatch, tennisRosterNames } from '@/app/actions';
 import { localDate } from '@/lib/domain';
 import { tennisSessionTypes } from '@/lib/tennis-club';
 import type { PendingMatch } from '@/lib/tennis-pending';
@@ -16,8 +16,10 @@ const emptySet=():SetDraft=>({felipe:'',adversario:''});
 const numberOrNull=(value:FormDataEntryValue|null)=>value===null||value===''?null:Number(value);
 
 /** Full match form: lineup (partner + two opponents in doubles), sets (2 by default, up to 5) and post-game check-in. */
-export function TennisMatchForm({me,players=[],initial,onSaved}:{me:string;players?:string[];initial?:Partial<TennisMatchDraft>;onSaved?:()=>void}){
+export function TennisMatchForm({me,players:givenPlayers,initial,onSaved}:{me:string;players?:string[];initial?:Partial<TennisMatchDraft>;onSaved?:()=>void}){
  const router=useRouter();
+ const [players,setPlayers]=useState<string[]>(givenPlayers??[]);
+ useEffect(()=>{if(givenPlayers)setPlayers(givenPlayers);else tennisRosterNames().then(setPlayers).catch(()=>setPlayers([]));},[givenPlayers]);
  const [type,setType]=useState<TennisMatchDraft['type']>(initial?.type??'Simples · Amistoso');
  const [partner,setPartner]=useState(initial?.partner??'');
  const [opponents,setOpponents]=useState<string[]>([initial?.opponents?.[0]??'',initial?.opponents?.[1]??'']);
@@ -36,9 +38,9 @@ export function TennisMatchForm({me,players=[],initial,onSaved}:{me:string;playe
    setMessage('Partida salva.');router.refresh();onSaved?.();
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  };
- const playerInput=(label:string,value:string,onChange:(value:string)=>void)=><label>{label}<input value={value} onChange={e=>onChange(e.target.value)} list="tennis-match-players" autoComplete="off"/></label>;
+ // Players come only from the roster (Jogadores), so the same person is never typed twice in different ways.
+ const playerInput=(label:string,value:string,onChange:(value:string)=>void)=><label>{label}<select value={value} onChange={e=>onChange(e.target.value)}><option value="">Escolher jogador…</option>{[...new Set([...(value&&!players.includes(value)?[value]:[]),...players])].map(name=><option key={name} value={name}>{name}</option>)}</select></label>;
  return <form className="form-stack tennis-match-form" onSubmit={submit}>
-  <datalist id="tennis-match-players">{players.map(name=><option key={name} value={name}/>)}</datalist>
   <div className="score-grid">
    <label>Data<input name="date" type="date" required defaultValue={initial?.date??localDate()}/></label>
    <label>Tipo<select value={type} onChange={e=>setType(e.target.value as TennisMatchDraft['type'])}>{tennisSessionTypes.map(option=><option key={option}>{option}</option>)}</select></label>
@@ -47,6 +49,7 @@ export function TennisMatchForm({me,players=[],initial,onSaved}:{me:string;playe
    {doubles&&playerInput('Adversário 2',opponents[1],value=>setOpponents([opponents[0],value]))}
    <label>Duração (min)<input name="duration_minutes" type="number" min="0" step="any"/></label>
   </div>
+  {!training&&!players.length&&<p className="field-help">Cadastre os jogadores em Tênis → Jogadores para escolhê-los aqui.</p>}
   {!training&&<div className="scoreboard-entry">
    <h3>Placar por sets</h3>
    <p className="field-help">{us} vs {them}. O resultado é calculado pelos sets.</p>

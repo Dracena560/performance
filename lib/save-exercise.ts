@@ -3,11 +3,15 @@ import {z} from 'zod';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {exerciseCategory,exercisePayloadSchema} from './exercise-records';
 import {siteRead,siteWrite} from './site-crud';
+import {withRosterIds} from './tennis-club';
+import {loadRoster} from './tennis-league';
 export async function saveExercise(db:SupabaseClient,userId:string,args:Record<string,unknown>,tennis=false){
  const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(args.date);
  const parsed=exercisePayloadSchema.parse(args.data),{record_id,...payload}=parsed;
  if(typeof args.notes==='string'&&args.notes)payload.notes=args.notes;
  const category=exerciseCategory(payload,tennis);
+ // Tennis records always point at the league roster, the single player registry.
+ if(category==='tennis'||tennis)Object.assign(payload,withRosterIds(payload as Record<string,unknown>,await loadRoster(db,userId)));
  let explicit=args.record_id??record_id;
  if(!explicit&&payload.started_at){
   const existing=await db.from('health_records').select('id,category,payload').eq('user_id',userId).eq('recorded_on',date);

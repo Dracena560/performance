@@ -8,6 +8,7 @@ import { localDate } from "@/lib/domain";
 import {
   appointmentLineup,
   matchGroup,
+  recordParticipants,
   type TennisProfile,
   type Appointment,
   type TennisRosterPlayer,
@@ -1006,9 +1007,11 @@ export function TennisDashboard({
             a.date === record.recorded_on &&
             matchGroup(a.type) === "doubles",
         );
+      // Names always come from the league roster so "Hani" and "Hani Al-Hallak" are one player.
+      const people = recordParticipants(record.payload, roster);
       const partner =
         matchGroup(type ?? "") === "doubles"
-          ? text(record.payload, ["partner"]) ??
+          ? people.partner?.name ??
             (appointment
               ? appointmentLineup(appointment, roster).partner || null
               : null)
@@ -1027,11 +1030,9 @@ export function TennisDashboard({
         performance,
         postScore: avg([energy, clarity, performance]),
         type,
-        opponent: text(record.payload, [
-          "opponent_or_partner",
-          "Adversário",
-          "Parceiro",
-        ]),
+        opponent:
+          people.opponents.map((p) => p.name).join(" & ") ||
+          text(record.payload, ["Parceiro"]),
         score: getExplicitTennisScore(record),
         analysis,
         sets,

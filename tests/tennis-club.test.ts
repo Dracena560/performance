@@ -23,3 +23,21 @@ test('scheduled singles and doubles resolve participants only from the shared ro
  assert.throws(()=>mcpSaveAppointment({},players,{date:'2026-10-22',type:'Duplas',partner_id:'inexistente'}));
  assert.equal(mcpDeleteAppointment(saved,saved.upcoming[0].id).upcoming.length,0);
 });
+
+import { recordParticipants, resolvePlayer, withRosterIds } from '../lib/tennis-club';
+const roster=[{id:'felipe-fabricio',name:'Felipe Fabricio',me:true},{id:'hani-al-hallak',name:'Hani Al-Hallak'},{id:'satyam-pandhi',name:'Satyam Pandhi'},{id:'ash',name:'Ash'}];
+
+test('short or typed names resolve to the single roster player',()=>{
+ assert.equal(resolvePlayer('Hani',roster)?.id,'hani-al-hallak');
+ assert.equal(resolvePlayer('hani al hallak',roster)?.id,'hani-al-hallak');
+ assert.equal(resolvePlayer('Desconhecido',roster),null);
+});
+
+test('records show roster names and get roster ids',()=>{
+ const people=recordParticipants({opponent_or_partner:'Hani & Satyam'},roster);
+ assert.deepEqual(people.opponents.map(p=>p.name),['Hani Al-Hallak','Satyam Pandhi']);
+ const saved=withRosterIds({opponent_or_partner:'Hani',partner:'Ash'},roster);
+ assert.equal(saved.opponent_or_partner,'Hani Al-Hallak');
+ assert.deepEqual(saved.opponent_ids,['hani-al-hallak']);
+ assert.equal(saved.partner_id,'ash');
+});

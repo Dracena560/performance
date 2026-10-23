@@ -19,7 +19,49 @@ export const appointmentSchema=z.object({
 export const tennisProfileSchema=z.object({name:z.string().max(150).default('Felipe'),sex:z.string().max(60).default(''),racket:z.string().max(200).default('Yonex Vcore 98'),strings:z.string().max(200).default('Solinco Mach 10 · 52 lbs'),hand:z.string().max(40).default(''),backhand:z.string().max(40).default(''),level:z.string().max(100).default(''),club:z.string().max(200).default(''),league:z.string().max(200).default(''),surface:z.string().max(40).default(''),grip:z.string().max(40).default(''),restrung:dateValue.default(''),since:z.string().max(20).default(''),upcoming:z.array(appointmentSchema).max(500).default([])});
 export type TennisProfile=z.infer<typeof tennisProfileSchema>;
 export type Appointment=z.infer<typeof appointmentSchema>;
-export type TennisRosterPlayer={id:string;name:string;me?:boolean};
+export type TennisRosterPlayer={id:string;name:string;nickname?:string;me?:boolean};
+const normalizeName=(value:string)=>value.normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[-_.']/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
+/**
+ * The league roster is the only player registry. Free text from older records or chats ("Hani")
+ * resolves to the roster player by id, full name, nickname, or a first name/prefix that matches one player only.
+ */
+export function resolvePlayer(text:string,roster:TennisRosterPlayer[]):TennisRosterPlayer|null{
+ const value=normalizeName(text);if(!value)return null;
+ const exact=roster.find(player=>player.id===text.trim()||normalizeName(player.name)===value||(!!player.nickname&&normalizeName(player.nickname)===value));
+ if(exact)return exact;
+ const others=roster.filter(player=>!player.me);
+ const first=others.filter(player=>normalizeName(player.name).split(' ')[0]===value);
+ if(first.length===1)return first[0];
+ const prefix=others.filter(player=>normalizeName(player.name).startsWith(value));
+ return prefix.length===1?prefix[0]:null;
+}
+/** "Hani & Satyam", "Hani e Satyam", "Hani / Satyam" → ["Hani","Satyam"]. */
+export const splitPlayerNames=(text:string)=>text.split(/\s*(?:&|\/|\+|,|\s+e\s+|\s+and\s+)\s*/i).map(name=>name.trim()).filter(Boolean);
+type Participant={id:string|null;name:string};
+const participant=(id:unknown,text:string,roster:TennisRosterPlayer[]):Participant=>{
+ const byId=typeof id==='string'&&id?roster.find(player=>player.id===id):undefined;
+ const player=byId??resolvePlayer(text,roster);
+ return player?{id:player.id,name:player.name}:{id:null,name:text.trim()};
+};
+const textField=(payload:Record<string,unknown>,keys:string[])=>{for(const key of keys){const value=payload[key];if(typeof value==='string'&&value.trim())return value.trim();}return '';};
+/** Opponents and partner of a tennis record, named from the roster whenever possible. */
+export function recordParticipants(payload:Record<string,unknown>,roster:TennisRosterPlayer[]){
+ const ids=Array.isArray(payload.opponent_ids)?payload.opponent_ids.filter((id):id is string=>typeof id==='string'):typeof payload.opponent_id==='string'&&payload.opponent_id?[payload.opponent_id]:[];
+ const names=splitPlayerNames(textField(payload,['opponent_or_partner','Adversário']));
+ const count=Math.max(ids.length,names.length);
+ const opponents=Array.from({length:count},(_,i)=>participant(ids[i],names[i]??'',roster)).filter(item=>item.name);
+ const partnerText=textField(payload,['partner']);
+ const partner=partnerText||payload.partner_id?participant(payload.partner_id,partnerText,roster):null;
+ return {opponents,partner:partner?.name?partner:null};
+}
+/** Rewrites a record payload so names come from the roster and ids point at it; unknown names stay as typed. */
+export function withRosterIds(payload:Record<string,unknown>,roster:TennisRosterPlayer[]){
+ const {opponents,partner}=recordParticipants(payload,roster);
+ const out:Record<string,unknown>={...payload};
+ if(opponents.length){out.opponent_or_partner=opponents.map(item=>item.name).join(' & ');out.opponent_ids=opponents.map(item=>item.id).filter(Boolean);}
+ if(partner){out.partner=partner.name;if(partner.id)out.partner_id=partner.id;else delete out.partner_id;}
+ return out;
+}
 export function matchGroup(type:string){const t=type.toLowerCase();if(/trein|training/.test(t))return 'training';if(/dupla|double/.test(t))return 'doubles';if(/liga|league/.test(t))return 'league';if(/amist|friendly/.test(t))return 'friendly';return 'other';}
 export function participantName(players:TennisRosterPlayer[],id:string){return players.find(player=>player.id===id)?.name??'';}
 /** Produces one display label from explicit roster selections; legacy free text remains intact. */

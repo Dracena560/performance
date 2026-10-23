@@ -188,3 +188,9 @@ export function leagueSummary(league:TennisLeague,today:string,seasonId?:string)
   matches:s.matches.map(m=>({id:m.id,partida:`${names.get(m.home)} ${m.homeSets}-${m.awaySets} ${names.get(m.away)}`,date:m.date,score:m.score})),images:s.images.map(i=>({id:i.id,caption:i.caption,date:i.date}))};});
  return {current:currentSeason(league,today)?.id??null,players:league.players.map(p=>({id:p.id,name:p.name,country:p.country,hand:p.hand,racket:p.racket})),seasons};
 }
+
+/** Roster used to link tennis records to players (server actions and MCP writes). */
+export async function loadRoster(db:{from:(table:string)=>any},userId:string){
+ const result=await db.from('health_profiles').select('profile').eq('user_id',userId).maybeSingle();
+ return readLeague(result.data?.profile?.personal_tennis_league).players;
+}
