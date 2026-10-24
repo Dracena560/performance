@@ -455,3 +455,13 @@
 .set-section label{align-content:start}
 .set-grid{align-items:start}
 .deadline-grid article.tennis-pending .text-link{justify-self:start;margin-top:var(--s-1)}
+
+/* Naps of the day, under last night's sleep. */
+.nap-panel .panel-heading{margin-bottom:var(--s-3)}
+.nap-panel h2{display:flex;align-items:center;gap:8px;font-size:var(--fs-title3);line-height:var(--lh-title3)}
+.nap-panel h2 svg{color:var(--tint-sleep)}
+.nap-list{margin:0;padding:0;list-style:none}
+.nap-list li{display:grid;grid-template-columns:56px auto minmax(0,1fr);gap:var(--s-3);align-items:baseline;padding:var(--s-2) 0}
+.nap-list li+li{border-top:1px solid var(--separator-soft)}
+.nap-list time{font-weight:600;color:var(--label-2);font-variant-numeric:tabular-nums}
+.nap-list small{color:var(--label-2);text-align:right}

@@ -52,7 +52,7 @@ export async function saveDiaryRecord(input:unknown){
   const event=eventSchema.parse({timestamp:value.occurred_at,timezone:'Europe/London',type:'water',source:'manual',measurement_type:'measured',estimated:false,notes:value.notes,data:{kind:'water',volume:value.volume_ml!,beverage:'água'}});
   const result=await db.from('events').insert({...event,user_id:userId}).select().single();check(result.error);revalidatePath('/','layout');return {storage:'event',record:result.data};
  }
- const category=value.kind==='bowel'?'bowel':value.kind==='checkin'||value.kind==='activity'?'checkin_history':'supplement';
+ const category=value.kind==='bowel'?'bowel':value.kind==='checkin'||value.kind==='activity'||value.kind==='nap'?'checkin_history':'supplement';
  const payload={...value,record_type:value.kind};
  const result=await db.from('health_records').insert({user_id:userId,category,recorded_on:localDate(new Date(value.occurred_at)),recorded_at:value.occurred_at,payload,source:'manual'}).select().single();check(result.error);revalidatePath('/','layout');return {storage:'record',record:result.data};
 }

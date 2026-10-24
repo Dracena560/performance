@@ -1,4 +1,4 @@
-import { diaryDescription, diaryLabels } from './diary-fields';
+import { diaryDescription, diaryLabels, napLabel } from './diary-fields';
 import { sleepData } from './sleep-data';
 import { defaultSettings,routineItems,scoreMap,topicValues,type Settings } from './settings';
 type ScoreMap=ReturnType<typeof scoreMap>;
@@ -26,7 +26,7 @@ export function numericScores(scores:Record<string,number|null|undefined>):Score
 }
 export const overall=(s:Scores)=>mean(Object.values(s).filter((v):v is number=>typeof v==='number'));
 
-export type EntryKind='checkin'|'activity'|'bowel'|'water'|'vitamins'|'medication'|'meal';
+export type EntryKind='checkin'|'activity'|'bowel'|'water'|'vitamins'|'medication'|'nap'|'meal';
 export const entryLabels:Record<EntryKind,string>={...diaryLabels,meal:'Refeição'};
 export type DayEntry={id:string;kind:EntryKind;at:string;title:string;details:string[];notes:string;scores:Scores;volume?:number;source:'event'|'record'};
 type EventLike={id:string;type:string;timestamp:string;local_date:string;notes?:string|null;data:any};
@@ -43,7 +43,7 @@ export function dayEntries(events:EventLike[],records:RecordLike[],date:string,s
   else if(e.type==='meal')out.push({id:e.id,kind:'meal',at:e.timestamp,title:d.name||d.meal_type||'Refeição',details:(d.items??[]).slice(0,6).map((i:any)=>i.name).filter(Boolean),notes:e.notes??'',scores:{},source:'event'});
  }
  for(const r of records){if(r.recorded_on!==date)continue;const type=typeof r.payload.record_type==='string'?r.payload.record_type:r.category==='supplement'?'vitamins':r.category==='bowel'?'bowel':null;if(!type||!(type in entryLabels))continue;const kind=type as EntryKind;
-  out.push({id:r.id,kind,at:r.recorded_at??`${date}T12:00:00Z`,title:entryLabels[kind],details:kind==='water'?[]:kind==='vitamins'&&!r.payload.record_type?supplementNames(r.payload,routines):chips(r.payload),notes:String(r.payload.notes??''),scores:kind==='checkin'?choiceScores(r.payload,map):{},volume:typeof r.payload.volume_ml==='number'?r.payload.volume_ml:undefined,source:'record'});
+  out.push({id:r.id,kind,at:r.recorded_at??`${date}T12:00:00Z`,title:entryLabels[kind],details:kind==='water'?[]:kind==='nap'?[typeof r.payload.nap_minutes==='number'?napLabel(r.payload.nap_minutes):'',String(r.payload.woke_feeling??'')].filter(Boolean):kind==='vitamins'&&!r.payload.record_type?supplementNames(r.payload,routines):chips(r.payload),notes:String(r.payload.notes??''),scores:kind==='checkin'?choiceScores(r.payload,map):{},volume:typeof r.payload.volume_ml==='number'?r.payload.volume_ml:undefined,source:'record'});
  }
  return out.sort((a,b)=>a.at.localeCompare(b.at));
 }

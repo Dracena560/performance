@@ -1,6 +1,6 @@
 'use client';
 import {useState} from 'react';
-import {Activity,BedDouble,Brain,ChevronRight,Droplets,Flame,HeartPulse,Pencil,Pill,Smile,Target,Trash2,Utensils,Beef} from 'lucide-react';
+import {Activity,BedDouble,BedSingle,Brain,ChevronRight,Droplets,Flame,HeartPulse,Pencil,Pill,Smile,Target,Trash2,Utensils,Beef} from 'lucide-react';
 import {EChart,escapeHtml,type ChartTheme} from './echart';
 import {Button} from './ui/button';
 import {useSettings} from './settings-context';
@@ -9,8 +9,8 @@ import {dimensions,entryLabels,overall,type DayEntry,type EntryKind,type Scores,
 
 const zone='Europe/London';
 const clock=(iso:string)=>new Intl.DateTimeFormat('pt-BR',{timeZone:zone,hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
-export const kindColor:Record<EntryKind,string>={checkin:'--sys-indigo',activity:'--sys-teal',meal:'--sys-green',water:'--sys-cyan',vitamins:'--sys-yellow',medication:'--sys-pink',bowel:'--sys-brown'};
-export const kindIcon:Record<EntryKind,typeof Activity>={checkin:Smile,activity:Activity,meal:Utensils,water:Droplets,vitamins:Target,medication:Pill,bowel:HeartPulse};
+export const kindColor:Record<EntryKind,string>={checkin:'--sys-indigo',activity:'--sys-teal',meal:'--sys-green',water:'--sys-cyan',vitamins:'--sys-yellow',medication:'--sys-pink',bowel:'--sys-brown',nap:'--tint-sleep'};
+export const kindIcon:Record<EntryKind,typeof Activity>={checkin:Smile,activity:Activity,meal:Utensils,water:Droplets,vitamins:Target,medication:Pill,bowel:HeartPulse,nap:BedSingle};
 const fmt=(v:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(v);
 
 export type Measure={value:number|null;target?:number|null;unit:string;note?:string;limit?:boolean};
