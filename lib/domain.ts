@@ -1,8 +1,12 @@
 import { z } from 'zod';
 export const timezone='Europe/London';
 export const dayTypes=['dia sem tênis · caminhada com Caju','dia de tênis · jogo da liga','dia de tênis · jogo amistoso','dia de tênis · treino leve','dia de tênis · treino intenso','recuperação','customizado'] as const;
-export const metricInfo={water:['Água','ml'],calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sodium:['Sódio','mg'],steps:['Passos','passos'],exercise:['Exercício','min'],sleep:['Sono','min']} as const;
+export const metricInfo={water:['Água','ml'],calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],sodium:['Sódio','mg'],steps:['Passos','passos'],exercise:['Exercício','min'],sleep:['Sono','min']} as const;
 export type Metric=keyof typeof metricInfo;
+/** Limits kept in the profile (personal_<key>_date_/_type_) because the days/templates tables predate them. Sugar uses the UK label reference of 90 g total sugars. */
+export const profileTargets={sodium:{kind:'maximum',min:null,max:2000},sugar:{kind:'maximum',min:null,max:90}} as const;
+export type ProfileTargetKey=keyof typeof profileTargets;
+export const profileTargetKeys=Object.keys(profileTargets) as ProfileTargetKey[];
 export const targetSchema=z.object({kind:z.enum(['minimum','maximum','range','exact']),min:z.number().nonnegative().nullable(),max:z.number().positive().nullable()}).superRefine((v,c)=>{
  if(v.kind==='range'&&(v.min===null||v.max===null||v.min>v.max))c.addIssue({code:'custom',message:'Intervalo inválido'});
  if((v.kind==='minimum'||v.kind==='exact')&&(v.min===null||v.min<=0))c.addIssue({code:'custom',message:'Informe um alvo maior que zero'});

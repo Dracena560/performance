@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { configured, healthService, healthUserId, supabase } from '@/lib/supabase/server';
-import { eventSchema, foodSchema, itemSchema, targetSchema, dayTypes, localDate, type EventInput } from '@/lib/domain';
+import { eventSchema, foodSchema, itemSchema, targetSchema, dayTypes, localDate, profileTargetKeys, type EventInput } from '@/lib/domain';
 import { diarySchema } from '@/lib/diary-fields';
 async function context(){
  if(!configured())throw new Error('Conecte o Supabase para salvar seus registros.');
@@ -29,14 +29,14 @@ export async function saveEvent(input:EventInput,id?:string){
 export async function deleteEvent(id:string){const {db,user}=await context();const {error}=await db.from('events').delete().eq('id',z.string().uuid().parse(id)).eq('user_id',user.id);check(error);revalidatePath('/','layout');}
 export async function saveFood(input:unknown){const value=foodSchema.parse(input);const {db,user}=await context();const result=await db.from('foods').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
 export async function saveMealTemplate(input:unknown){const value=z.object({name:z.string().trim().min(1).max(200),items:z.array(itemSchema).min(1)}).parse(input);const {db,user}=await context();const result=await db.from('meal_templates').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
-const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','sodium','steps','exercise','sleep']),targetSchema);
+const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','steps','exercise','sleep']),targetSchema);
 export async function saveTargets(date:string,day_type:string,targets:unknown,asTemplate:boolean){
  const parsed=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),day_type:z.enum(dayTypes),targets:targetsSchema}).parse({date,day_type,targets});
  const session=await context();const user={id:healthUserId()??session.user.id};const db=healthUserId()?healthService():session.db;
- const {sodium,...coreTargets}=parsed.targets;
+ const {sodium,sugar,...coreTargets}=parsed.targets;const limits={sodium,sugar};
  const {error}=await db.from('days').upsert({user_id:user.id,local_date:parsed.date,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,local_date'});check(error);
  if(asTemplate){const result=await db.from('target_templates').upsert({user_id:user.id,name:parsed.day_type,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,day_type'});check(result.error);}
- const extra:Record<string,unknown>={['personal_sodium_date_'+parsed.date]:sodium??null};if(asTemplate)extra['personal_sodium_type_'+parsed.day_type]=sodium??null;await mergeProfileSection(extra);
+ const extra:Record<string,unknown>={};for(const metric of profileTargetKeys){extra[`personal_${metric}_date_${parsed.date}`]=limits[metric]??null;if(asTemplate)extra[`personal_${metric}_type_${parsed.day_type}`]=limits[metric]??null;}await mergeProfileSection(extra);
  revalidatePath('/','layout');
 }
 export async function saveDraft(payload:unknown){const parsed=z.object({timestamp:z.string(),preset:z.string(),scores:z.record(z.string(),z.number().min(0).max(10).nullable()),activity:z.string(),moods:z.array(z.string()),environment:z.array(z.string()),notes:z.string().max(5000)}).parse(payload);const {db,user}=await context();const {error}=await db.from('checkin_drafts').upsert({user_id:user.id,payload:parsed,updated_at:new Date().toISOString()});check(error);}

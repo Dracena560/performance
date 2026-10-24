@@ -9,7 +9,7 @@ import { tennisProfileSchema } from './tennis-club';
 import { readLeague } from './tennis-league';
 import { pendingMatches } from './tennis-pending';
 import { configured,supabase,healthService,healthUserId } from './supabase/server';
-import { localDate, type HealthEvent,type Food,type TargetTemplate,type MealTemplate,type Day } from './domain';
+import { localDate, profileTargetKeys, profileTargets, type ProfileTargetKey, type HealthEvent,type Food,type TargetTemplate,type MealTemplate,type Day } from './domain';
 export async function loadData(date?:string){
  if(!configured())redirect('/login'); const db=await supabase();const {data:{user}}=await db.auth.getUser();if(!user)redirect('/login');
  const healthUser=healthUserId()??user.id; const healthDb=healthUserId()?healthService():db;
@@ -26,11 +26,12 @@ export async function loadData(date?:string){
  healthDb.from('health_records').select('id,category,recorded_on,payload').eq('user_id',healthUser).gte('recorded_on',new Date(Date.parse(`${selected}T12:00:00Z`)-21*86400000).toISOString().slice(0,10)).lte('recorded_on',selected).in('category',['tennis','workout','activity'])
  ]);
  if(results.some(r=>r.error))throw new Error('Não foi possível carregar os dados. Verifique as migrations e sua conexão.');
- const profile=results[9].data?.profile??{};const sodiumDefault={kind:'maximum' as const,min:null,max:2000};
- const withSodium=(base:any,key:string,fallback:any)=>{const out={...base};const target=Object.hasOwn(profile,key)?profile[key]:fallback;if(target)out.sodium=target;else delete out.sodium;return out;};
- const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:withSodium(t.targets,'personal_sodium_type_'+t.day_type,sodiumDefault)}));
+ const profile=results[9].data?.profile??{};
+ // Sodium and sugar limits live in the profile: day override → day-type template → default.
+ const withProfileTargets=(base:any,keyFor:(metric:ProfileTargetKey)=>string,fallbackFor:(metric:ProfileTargetKey)=>any)=>{const out={...base};for(const metric of profileTargetKeys){const key=keyFor(metric);const target=Object.hasOwn(profile,key)?profile[key]:fallbackFor(metric);if(target)out[metric]=target;else delete out[metric];}return out;};
+ const templates=(results[3].data as TargetTemplate[]).map(t=>({...t,targets:withProfileTargets(t.targets,metric=>`personal_${metric}_type_${t.day_type}`,metric=>profileTargets[metric])}));
  const currentDay=(results[4].data??{local_date:selected,day_type:'dia sem tênis · caminhada com Caju',targets:templates.find(t=>t.day_type==='dia sem tênis · caminhada com Caju')?.targets??{}}) as Day;
- const typeKey='personal_sodium_type_'+currentDay.day_type;currentDay.targets=withSodium(currentDay.targets,'personal_sodium_date_'+selected,Object.hasOwn(profile,typeKey)?profile[typeKey]:sodiumDefault);
+ currentDay.targets=withProfileTargets(currentDay.targets,metric=>`personal_${metric}_date_${selected}`,metric=>{const typeKey=`personal_${metric}_type_${currentDay.day_type}`;return Object.hasOwn(profile,typeKey)?profile[typeKey]:profileTargets[metric];});
  const tennis=tennisProfileSchema.safeParse(profile.personal_tennis??{}),league=readLeague(profile.personal_tennis_league),tennisMe=tennis.success?tennis.data.name||'Você':'Você';
  const londonTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
  // Only today's view nags about games waiting for their result.

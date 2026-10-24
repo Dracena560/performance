@@ -59,7 +59,7 @@
 .today-section>.data-note{padding:0 var(--s-1)}
 
 /* Nutrition: hydration + meals ------------------------------------------- */
-.today-nutrition-top{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:var(--s-4);align-items:stretch}
+.today-nutrition-top{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,1.3fr);gap:var(--s-4);align-items:stretch}
 .hydration{--panel-tint:var(--tint-water);display:flex;flex-direction:column}
 .water-main{display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);margin:0 0 var(--s-5)}
 .water-main>div:first-child{min-width:0}
@@ -78,7 +78,8 @@
 .today-meals{display:flex;flex-direction:column;min-width:0;background:var(--bg-2);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
 .today-meals>.meal-timeline{flex:1;background:transparent;box-shadow:none;padding-bottom:var(--s-3)}
 .today-meals>.text-link{align-self:flex-start;margin:0 var(--s-6) var(--s-5)}
-.meal-quick-panel{padding:var(--s-5) var(--s-6);border-bottom:1px solid var(--separator-soft);background:linear-gradient(135deg,color-mix(in srgb,var(--tint-nutrition) 10%,var(--bg-1)),var(--bg-1));border-radius:var(--r-lg) var(--r-lg) 0 0}
+/* Hydration and quick meals share a row of equal height; today's meals span the full width below. */
+.meal-quick-panel{padding:var(--s-5) var(--s-6);background:linear-gradient(135deg,color-mix(in srgb,var(--tint-nutrition) 10%,var(--bg-1)),var(--bg-1));border-radius:var(--r-lg);box-shadow:var(--shadow-1);min-width:0}
 .meal-quick-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-3)}
 .meal-quick-heading h2{margin-top:2px;font-size:var(--fs-title3);line-height:var(--lh-title3);letter-spacing:-.012em}
 .meal-quick-heading .field-help{margin-top:2px}
