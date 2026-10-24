@@ -1,3 +1,4 @@
+import type { Nap } from './naps';
 import { parseJournalEntry,type JournalEntry } from './journal';
 // Fictitious data for the dev-only /demo/* preview routes.
 // Everything here is invented ("Exemplo") and typed with the real schemas so each
@@ -357,4 +358,10 @@ export function demoJournal():JournalEntry[]{
   ['j6',{occurred_on:shift(3),kind:'ideia',title:'Viagem de fim de ano',body:'Ver passagens para Lisboa em dezembro.',tags:['viagem']}],
  ];
  return raw.map(([id,entry])=>({id,...parseJournalEntry(entry)}));
+}
+
+/** Fictitious naps for /demo/sono. */
+export function demoNaps():Nap[]{
+ const today=demoToday(),day=(n:number)=>new Date(Date.parse(today+'T12:00:00Z')-n*86400000).toISOString().slice(0,10);
+ return ([[0,'14:10',20,'Descansado'],[2,'15:30',35,'Grogue'],[3,'13:45',15,'Descansado'],[6,'16:00',60,'Mais cansado'],[9,'14:20',25,'Normal']] as const).map(([n,time,minutes,feeling],i)=>({id:`nap-${i}`,date:day(n),at:`${day(n)}T${time}:00Z`,minutes,feeling,notes:''}));
 }
