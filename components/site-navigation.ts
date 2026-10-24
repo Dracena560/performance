@@ -1,4 +1,4 @@
-import { Dog, HeartPulse, LayoutDashboard, Trophy, UserRound, Wallet } from 'lucide-react';
+import { BookHeart, Dog, HeartPulse, LayoutDashboard, Trophy, UserRound, Wallet } from 'lucide-react';
 
 /** [key, label, Icon, compact label] — the compact label is used by the floating tab bar. */
 export const siteNavigation = [
@@ -7,6 +7,7 @@ export const siteNavigation = [
   ['financeiro', 'Financeiro', Wallet, 'Finanças'],
   ['tenis', 'Tênis', Trophy, 'Tênis'],
   ['caju', 'Caju', Dog, 'Caju'],
+  ['diario', 'Diário', BookHeart, 'Diário'],
   ['minhas-informacoes', 'Minhas informações', UserRound, 'Perfil'],
 ] as const;
 
@@ -25,7 +26,7 @@ export function activeNavigation(pathOrView: string): NavigationKey {
 }
 
 /** Private routes that have a fictitious counterpart under /demo. */
-export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'exames', 'caju', 'configuracoes', 'viagens', 'registros', 'alimentacao', 'metas', 'agua'] as const;
+export const demoRoutes = ['saude', 'tenis', 'tenis/liga', 'financeiro', 'financeiro/investimentos', 'minhas-informacoes', 'sono', 'exercicios', 'exames', 'caju', 'configuracoes', 'diario', 'viagens', 'registros', 'alimentacao', 'metas', 'agua'] as const;
 
 /** Maps a private path (e.g. "/sono?date=…") to its demo page, or null when there is none. */
 export function demoPath(path: string): string | null {

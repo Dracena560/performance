@@ -159,3 +159,13 @@ export async function tennisRosterNames(){
  const {loadRoster}=await import('@/lib/tennis-league');
  return (await loadRoster(db,userId)).filter(player=>!player.me).map(player=>player.name);
 }
+
+/** Life journal (/diario): create, update and delete entries. */
+export async function saveJournal(input:unknown,id:string|null=null){
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ const {saveJournalEntry}=await import('@/lib/journal-data');const saved=await saveJournalEntry(db,userId,input,id,'site');revalidatePath('/diario');return saved;
+}
+export async function deleteJournal(id:string){
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ const {deleteJournalEntry}=await import('@/lib/journal-data');await deleteJournalEntry(db,userId,id);revalidatePath('/diario');return true;
+}

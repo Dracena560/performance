@@ -15,6 +15,7 @@ import { examsSchema } from './exams';
 import { dogSchema,initialDog } from './dog';
 import { settingsSchema,defaultSettings,readSettings } from './settings';
 import { holdingsSchema } from './holdings';
+import { journalEntrySchema,journalKinds } from './journal';
 const requiredDate=dateValue.refine(v=>v!=='','Data obrigatória');
 const targets=z.record(z.enum(Object.keys(metricInfo) as [string,...string[]]),targetSchema);
 export const healthDisplaySchema=z.object({cards:z.array(z.tuple([z.string().max(100),z.string().max(1000)])).max(50),sections:z.array(z.tuple([z.string().max(200),z.array(z.string().max(5000)).max(100)])).max(50)});
@@ -48,6 +49,7 @@ export const resources={
  agenda:{table:'day_plans',schema:planSchema,description:'Agenda semanal por data, tipo de dia, metas e justificativa.'},
  alimentos:{table:'foods',schema:foodSchema,description:'Dados nutricionais de alimentos legados. A biblioteca não aparece no menu.'},
  refeicoes_salvas:{table:'meal_templates',schema:z.object({name:z.string().min(1).max(200),items:z.array(itemSchema).max(100)}),description:'Combinações legadas de refeições.'},
+ diario:{table:'journal_entries',schema:journalEntrySchema,description:'Diário de vida em /diario. Cada entrada: occurred_on (YYYY-MM-DD, data em que aconteceu), occurred_time (HH:MM ou vazio), kind ('+journalKinds.map(([id])=>id).join('/')+'), title, body (texto livre), mood (0–10 ou null), tags (minúsculas, sem #), people (nomes), place, milestone (marco da vida), revisit_on (data para revisitar uma decisão). Prefira as ferramentas escrever_diario e consultar_diario.'},
  rascunho_checkin:{table:'checkin_drafts',schema:draftSchema,description:'Rascunho do check-in; não é o check-in já registrado.'}
 } as const;
 export type Resource=keyof typeof resources;
@@ -74,7 +76,7 @@ function guarded(query:any,row:any){if(row.updated_at)return query.eq('updated_a
 export async function siteRead(db:SupabaseClient,userId:string,args:any){const resource=z.enum(resourceNames as [Resource,...Resource[]]).parse(args.resource),config=resources[resource] as any;
  if(config.key){const result=await db.from('health_profiles').select('profile').eq('user_id',userId).maybeSingle();if(result.error)throw new Error('Falha ao consultar.');const data=section(result.data?.profile??{},resource);return {resource,data,version:version(data)};}
  let query=db.from(config.table).select('*').eq('user_id',userId);if(args.id&&resource!=='rascunho_checkin')query=query.eq('id',z.string().uuid().parse(args.id));
- const dateField=resource==='registros'?'recorded_on':['eventos','dias_metas','agenda'].includes(resource)?'local_date':null;
+ const dateField=resource==='registros'?'recorded_on':resource==='diario'?'occurred_on':['eventos','dias_metas','agenda'].includes(resource)?'local_date':null;
  if(dateField&&args.date_from)query=query.gte(dateField,requiredDate.parse(args.date_from));if(dateField&&args.date_to)query=query.lte(dateField,requiredDate.parse(args.date_to));if(resource==='registros'&&args.category)query=query.eq('category',recordSchema.shape.category.parse(args.category));
  const offset=z.number().int().min(0).parse(args.offset??0),limit=z.number().int().min(1).max(100).parse(args.limit??50);const result=await query.order(resource==='rascunho_checkin'?'user_id':'id').range(offset,offset+limit);if(result.error)throw new Error('Falha ao consultar os dados.');
  let profile:any={};if(['dias_metas','modelos_metas'].includes(resource)){const p=await db.from('health_profiles').select('profile').eq('user_id',userId).maybeSingle();if(p.error)throw new Error('Falha ao consultar metas.');profile=p.data?.profile??{};}

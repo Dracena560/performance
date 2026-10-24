@@ -11,7 +11,7 @@ import {defaultSettings,dimensionKeys,isBuiltin,navigationToggles,reminderSource
 
 const dimensionLabel:Record<string,string>={mente:'Mente',humor:'Humor',corpo:'Corpo',digestao:'Digestão'};
 const kindLabel:Record<Topic['kind'],string>={checkin:'Check-in',activity:'Atividade',bowel:'Fezes'};
-const navLabel:Record<string,string>={financeiro:'Financeiro',tenis:'Tênis',caju:'Caju'};
+const navLabel:Record<string,string>={financeiro:'Financeiro',tenis:'Tênis',caju:'Caju',diario:'Diário'};
 const sections=[['perfil','Perfil e menu',UserRound],['registrar','Registrar',Brain],['suplementos','Vitaminas',Sparkles],['remedios','Remédios',Pill],['agua','Água',Droplets],['metas','Metas do dia',Target],['vencimentos','Vencimentos',Bell],['financas','Finanças',Wallet],['treino','Treino',Dumbbell],['caju','Caju',Dog],['dados','Dados',Database]] as const;
 const slug=(text:string)=>text.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,50)||'topico';
 const move=<T,>(list:T[],i:number,d:number)=>{const j=i+d;if(j<0||j>=list.length)return list;const next=[...list];[next[i],next[j]]=[next[j],next[i]];return next;};

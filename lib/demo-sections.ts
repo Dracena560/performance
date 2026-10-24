@@ -1,3 +1,4 @@
+import { parseJournalEntry,type JournalEntry } from './journal';
 // Fictitious data for the dev-only /demo/* preview routes.
 // Everything here is invented ("Exemplo") and typed with the real schemas so each
 // section renders every visual state without touching the private database.
@@ -342,4 +343,18 @@ export function demoPortfolio(){
  const now=new Date().toISOString();
  const quotes={'demo-etf-mundo':{price:109.4,currency:'GBP',at:now,source:'Exemplo'},'demo-acao-tech':{price:21.8,currency:'USD',at:now,source:'Exemplo'},'demo-btc':{price:61200,currency:'GBP',at:now,source:'Exemplo'}};
  return {holdings,rows:liveRows(holdings,quotes,{GBP:{rate:1},USD:{rate:0.75}}),updatedAt:now};
+}
+
+/** Fictitious life-journal entries for /demo/diario, relative to today so "Neste dia" and revisits show up. */
+export function demoJournal():JournalEntry[]{
+ const today=demoToday(),year=Number(today.slice(0,4)),shift=(days:number)=>new Date(Date.parse(today+'T12:00:00Z')-days*86400000).toISOString().slice(0,10);
+ const raw:[string,Record<string,unknown>][]=[
+  ['j1',{occurred_on:`${year-2}${today.slice(4)}`,kind:'conquista',title:'Primeira vitória na liga (exemplo)',body:'Jogo duro no terceiro set. Lembrar de manter a calma no saque.',people:['Jogador Exemplo'],tags:['tênis'],milestone:true,mood:9}],
+  ['j2',{occurred_on:`${year-4}-03-15`,kind:'memoria',title:'Mudança para Londres (exemplo)',body:'Chegamos com duas malas e muita vontade.',people:['Pessoa Exemplo'],place:'Londres',tags:['mudança'],milestone:true}],
+  ['j3',{occurred_on:shift(0),occurred_time:'08:10',kind:'gratidao',title:'Manhã tranquila',body:'Caminhada com o Caju antes do trabalho.',people:['Caju'],tags:['caju'],mood:8}],
+  ['j4',{occurred_on:shift(1),kind:'aprendizado',title:'Dormir antes das 23h muda o dia',body:'Duas semanas testando: mais energia no treino e menos vontade de doce à tarde.',tags:['sono','saúde'],mood:7}],
+  ['j5',{occurred_on:shift(40),kind:'decisao',title:'Trocar a corda para 50 lbs (exemplo)',body:'Mais potência no fundo de quadra; ver se perco controle.',tags:['tênis'],revisit_on:shift(5)}],
+  ['j6',{occurred_on:shift(3),kind:'ideia',title:'Viagem de fim de ano',body:'Ver passagens para Lisboa em dezembro.',tags:['viagem']}],
+ ];
+ return raw.map(([id,entry])=>({id,...parseJournalEntry(entry)}));
 }
