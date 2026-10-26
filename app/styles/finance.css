@@ -341,3 +341,37 @@
 .asset-rows>div:not(.score-grid){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) 36px;gap:var(--s-2);align-items:center}
 .asset-rows>.text-link{justify-self:start}
 @media (max-width:640px){.assets-toolbar{flex-direction:column;align-items:stretch}}
+
+/* Financeiro › Aposentadoria (previsão) */
+.retirement{display:grid;gap:var(--s-5);background:linear-gradient(160deg,color-mix(in srgb,var(--sys-orange) 9%,var(--bg-2)),var(--bg-2) 45%)}
+.retirement .panel-heading{margin-bottom:0}
+.retirement h2{display:flex;align-items:center;gap:8px}
+.retirement h2 svg{color:var(--sys-orange)}
+.retirement-year{font-size:var(--fs-title2);font-weight:700;color:var(--label-3);font-variant-numeric:tabular-nums}
+.retirement-hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:var(--s-5);align-items:end}
+.retirement-hero>div{display:grid;gap:4px;min-width:0}
+.retirement-hero small{font-size:var(--fs-footnote);font-weight:600;color:var(--label-2)}
+.retirement-hero strong{font-size:clamp(34px,5vw,48px);line-height:1.05;font-weight:800;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.retirement-income{padding:var(--s-4);border-radius:var(--r-md);background:color-mix(in srgb,var(--tint-finance) 12%,var(--bg-1))}
+.retirement-income strong{font-size:var(--fs-title1,28px)}
+.retirement-income strong span{font-size:var(--fs-subhead);font-weight:600;color:var(--label-2)}
+.retirement-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s-3);margin:0}
+.retirement-kpis div{display:grid;gap:2px;padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:var(--bg-1);min-width:0}
+.retirement-kpis dt{font-size:var(--fs-caption);font-weight:600;color:var(--label-2);text-transform:uppercase;letter-spacing:.04em}
+.retirement-kpis dd{margin:0;font-size:var(--fs-title3);font-weight:700;font-variant-numeric:tabular-nums}
+.retirement-kpis small{font-size:var(--fs-caption);color:var(--label-3)}
+.retirement-milestones{display:flex;flex-wrap:wrap;gap:var(--s-2);margin:0;padding:0;list-style:none}
+.retirement-milestones li{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r-pill);background:var(--fill-3);font-size:var(--fs-footnote);color:var(--label-2)}
+.retirement-milestones svg{color:var(--sys-orange)}
+.retirement-milestones b{color:var(--label);font-variant-numeric:tabular-nums}
+.retirement-tip{padding:var(--s-3) var(--s-4);border-radius:var(--r-md);background:color-mix(in srgb,var(--sys-green) 10%,transparent);color:var(--label)}
+.retirement-assumptions{border-top:1px solid var(--separator-soft);padding-top:var(--s-3)}
+.retirement-assumptions summary{display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;list-style:none}
+.retirement-assumptions summary::-webkit-details-marker{display:none}
+.retirement-assumptions[open] .expand-arrow{transform:rotate(180deg)}
+.retirement-assumptions>.field-help{margin:var(--s-3) 0}
+.retirement-input{display:flex;align-items:center;gap:6px}
+.retirement-input input{flex:1;min-width:0}
+.retirement-input em{font-style:normal;font-size:var(--fs-footnote);color:var(--label-2);min-width:28px}
+.retirement-actions{display:flex;justify-content:flex-end;gap:var(--s-2);margin-top:var(--s-3)}
+@media (max-width:760px){.retirement-hero{grid-template-columns:1fr}.retirement-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -1,3 +1,4 @@
+import { retirementSchema } from './retirement';
 import { z } from 'zod';
 
 /**
@@ -38,7 +39,7 @@ export const settingsSchema=z.object({
  water:z.object({buttons:z.array(waterButtonSchema).max(6).default([])}).default({}),
  day:z.object({sleepHours:z.number().min(4).max(12).default(8),goodNightHours:z.number().min(4).max(12).default(7),movementMinutes:z.number().int().min(5).max(300).default(30),historyDays:z.number().int().min(7).max(60).default(14)}).default({}),
  reminders:z.object({windowDays:z.number().int().min(1).max(60).default(5),sources:z.array(z.enum(reminderSources)).default([...reminderSources])}).default({}),
- finance:z.object({emergencyMonths:z.number().min(1).max(24).default(6),includeChecking:z.boolean().default(true),subtractCard:z.boolean().default(true),incomeLabels:z.tuple([z.string().max(40),z.string().max(40)]).default(['Felipe','Sara'])}).default({}),
+ finance:z.object({emergencyMonths:z.number().min(1).max(24).default(6),includeChecking:z.boolean().default(true),subtractCard:z.boolean().default(true),incomeLabels:z.tuple([z.string().max(40),z.string().max(40)]).default(['Felipe','Sara']),retirement:retirementSchema}).default({}),
  training:z.object({defaultEffort:z.number().min(0).max(10).default(5),highRatio:z.number().min(1).max(3).default(1.3),spikeRatio:z.number().min(1).max(4).default(1.5)}).default({}),
  dog:z.object({careWindowDays:z.number().int().min(7).max(180).default(45),lowStock:z.number().int().min(0).max(100).default(5)}).default({})
 }).superRefine((s,c)=>{
