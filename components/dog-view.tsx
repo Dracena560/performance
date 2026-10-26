@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {useRouter} from 'next/navigation';
-import {Bath,Bone,Bug,Cake,CalendarHeart,Check,Cpu,Dog as DogIcon,Heart,PawPrint,Pencil,Phone,Pill,Plus,Scale,ShieldCheck,Stethoscope,Syringe,Utensils} from 'lucide-react';
+import {Bath,Bone,Bug,Cake,CalendarHeart,Check,ChevronDown,Cpu,Dog as DogIcon,FileText,Heart,Mail,PawPrint,Pencil,Phone,Pill,Plus,Scale,ShieldCheck,Stethoscope,Syringe,Utensils} from 'lucide-react';
 import {Button} from './ui/button';
 import {EChart,lineOption} from './echart';
 import {RecordDialog,type Field} from './record-form';
@@ -39,7 +39,7 @@ const listTitle:Record<DogList,string>={vaccines:'Vacina',parasites:'Antiparasit
 const profileFields:Field[]=[{key:'name',label:'Nome'},{key:'breed',label:'Raça'},{key:'sex',label:'Sexo'},{key:'neutered',label:'Castração'},{key:'birth',label:'Nascimento',type:'date'},{key:'adopted',label:'Chegou em casa',type:'date'},{key:'colour',label:'Cor e pelagem'},{key:'microchip',label:'Microchip'},{key:'passport',label:'Passaporte / registro'},
  {key:'targetWeight.min',label:'Peso ideal mínimo (kg)',type:'number'},{key:'targetWeight.max',label:'Peso ideal máximo (kg)',type:'number'},
  {key:'vet.name',label:'Veterinário'},{key:'vet.phone',label:'Telefone do veterinário'},{key:'vet.address',label:'Endereço da clínica',wide:true},{key:'vet.emergency',label:'Emergência 24h',wide:true},
- {key:'insurance.provider',label:'Seguro pet'},{key:'insurance.policy',label:'Apólice'},{key:'insurance.renewal',label:'Renovação do seguro',type:'date'},{key:'insurance.monthly',label:'Seguro por mês (£)',type:'number'},{key:'insurance.excess',label:'Franquia'},
+ {key:'insurance.provider',label:'Seguro pet'},{key:'insurance.product',label:'Plano do seguro'},{key:'insurance.policy',label:'Apólice'},{key:'insurance.holder',label:'Titular'},{key:'insurance.start',label:'Início da apólice',type:'date'},{key:'insurance.end',label:'Fim da apólice',type:'date'},{key:'insurance.renewal',label:'Renovação do seguro',type:'date'},{key:'insurance.monthly',label:'Seguro por mês (£)',type:'number'},{key:'insurance.annual',label:'Seguro por ano (£)',type:'number'},{key:'insurance.paymentDay',label:'Dia do débito',type:'number'},{key:'insurance.annualLimit',label:'Limite anual de veterinário (£)',type:'number'},{key:'insurance.excess',label:'Franquia'},{key:'insurance.coPayment',label:'Co-participação',wide:true},{key:'insurance.phone',label:'Telefone do seguro'},{key:'insurance.claimsEmail',label:'E-mail para sinistros'},
  {key:'activityGoalMinutes',label:'Meta de atividade (min/dia)',type:'number'},{key:'kcalPerDay',label:'Energia por dia (kcal, vazio = estimar pelo peso)',type:'number'},
  {key:'food.brand',label:'Ração'},{key:'food.gramsPerDay',label:'Gramas por dia',type:'number'},{key:'food.meals',label:'Refeições'},{key:'food.treats',label:'Petiscos'},
  {key:'allergies',label:'Alergias e restrições',type:'textarea'},{key:'personality',label:'Personalidade',type:'textarea'},{key:'notes',label:'Observações',type:'textarea'}];
@@ -114,14 +114,38 @@ export function DogView({initial,today,walks=[],demo=false}:{initial:Dog;today:s
     <div className="dog-contacts">
      <article><Stethoscope size={18}/><div><small>Veterinário</small><strong>{dog.vet.name||'—'}</strong>{dog.vet.phone&&<a href={`tel:${dog.vet.phone.replace(/[^\d+]/g,'')}`}><Phone size={13}/>{dog.vet.phone}</a>}{dog.vet.address&&<small>{dog.vet.address}</small>}{dog.vet.emergency&&<small>{`Emergência: ${dog.vet.emergency}`}</small>}</div></article>
      <article><Utensils size={18}/><div><small>Alimentação</small><strong>{dog.food.brand||'—'}</strong><small>{[dog.food.gramsPerDay?`${num(dog.food.gramsPerDay,0)} g/dia`:'',dog.food.meals].filter(Boolean).join(' · ')}</small>{dog.food.treats&&<small>{`Petiscos: ${dog.food.treats}`}</small>}</div></article>
-     <article><ShieldCheck size={18}/><div><small>Seguro pet</small><strong>{dog.insurance.provider||'—'}</strong><small>{[dog.insurance.policy,dog.insurance.monthly!==null?`${money(dog.insurance.monthly)} por mês`:'',dog.insurance.excess?`franquia ${dog.insurance.excess}`:''].filter(Boolean).join(' · ')}</small>{dog.insurance.renewal&&<small>{`Renova em ${dateText(dog.insurance.renewal)}`}</small>}</div></article>
+     <article><ShieldCheck size={18}/><div><small>Seguro pet</small><strong>{[dog.insurance.provider,dog.insurance.product].filter(Boolean).join(' · ')||'—'}</strong><small>{[dog.insurance.policy,dog.insurance.monthly!==null?`${money(dog.insurance.monthly)} por mês${dog.insurance.paymentDay?` (dia ${dog.insurance.paymentDay})`:''}`:'',dog.insurance.excess?`franquia ${dog.insurance.excess}`:''].filter(Boolean).join(' · ')}</small>{dog.insurance.phone&&<a href={`tel:${dog.insurance.phone.replace(/[^\d+]/g,'')}`}><Phone size={13}/>{dog.insurance.phone}</a>}{dog.insurance.renewal&&<small>{`Renova em ${dateText(dog.insurance.renewal)}`}</small>}</div></article>
     </div>
     {dog.notes&&<p className="field-help">{dog.notes}</p>}
    </section>
+   <InsurancePanel insurance={dog.insurance} name={name}/>
 
   {editing&&<RecordDialog title={editing.row.id?`Editar ${listTitle[editing.list].toLowerCase()}`:`Novo: ${listTitle[editing.list].toLowerCase()}`} fields={fields[editing.list]} initial={editing.row} onClose={()=>setEditing(null)}
    onSave={row=>saveItem(editing.list,row)} onDelete={editing.row.id?()=>removeItem(editing.list,editing.row.id):undefined}/>}
   {meal&&<Dialog open onOpenChange={v=>{if(!v)setMeal(null);}}><DialogContent className="dialog-content"><DialogTitle>{meal==='new'?`Comida do ${name}`:meal.name}</DialogTitle><DialogDescription>Os nutrientes da ração cadastrada entram sozinhos.</DialogDescription><DogMealForm dog={dog} initial={meal==='new'?undefined:meal} onSave={async m=>{await persist({...dog,meals:upsertById(dog.meals,prepareDogMeal(m,dog.foodBags))});setMeal(null);}} onDelete={meal==='new'?undefined:async()=>{await persist({...dog,meals:dog.meals.filter(x=>x.id!==meal.id)});setMeal(null);}}/></DialogContent></Dialog>}
   {profile&&<RecordDialog title={`Ficha do ${name}`} description="Esses dados ficam só na sua conta." fields={profileFields} initial={dog} onClose={()=>setProfile(false)} onSave={row=>persist({...dog,...row} as Dog)}/>}
  </div>;
+}
+
+/** Everything that matters from the pet policy: limits, what each benefit pays, claim limits, rules and how to claim. */
+function InsurancePanel({insurance:i,name}:{insurance:Dog['insurance'];name:string}){
+ if(!i.provider&&!i.cover.length&&!i.rules.length)return null;
+ const head:[string,string][]=([['Plano',i.product],['Seguradora',[i.provider,i.insurer?`subscrito por ${i.insurer}`:''].filter(Boolean).join(' · ')],['Apólice',i.policy],['Titular',i.holder],['Vigência',i.start||i.end?`${dateText(i.start)} a ${dateText(i.end)}`:''],['Renovação',i.renewal?dateText(i.renewal):''],
+  ['Mensalidade',i.monthly!==null?`${money(i.monthly)}${i.paymentDay?` · débito dia ${i.paymentDay}`:''}`:''],['Por ano',i.annual!==null?money(i.annual):''],['Pagamento',i.paymentMethod],['Limite anual de veterinário',i.annualLimit!==null?money(i.annualLimit):''],['Franquia',i.excess],['Co-participação',i.coPayment]] as [string,string][]).filter(([,v])=>v);
+ const block=(title:string,body:React.ReactNode)=><details className="dog-insurance-block"><summary>{title}<ChevronDown size={16} className="expand-arrow" aria-hidden/></summary>{body}</details>;
+ return <section className="panel dog-panel dog-insurance" aria-labelledby="dog-insurance-title">
+  <div className="panel-heading"><div><h2 id="dog-insurance-title"><ShieldCheck size={19}/> {`Seguro do ${name}`}</h2><p className="field-help">O que a apólice cobre, quanto paga e como acionar.</p></div></div>
+  <dl className="dog-insurance-facts">{head.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+  {i.cover.length>0&&block('Coberturas',<dl className="dog-insurance-table">{i.cover.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>)}
+  {i.claimLimits.length>0&&block('Limites de reembolso por item',<dl className="dog-insurance-table">{i.claimLimits.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>)}
+  {i.rules.length>0&&block('Regras importantes',<ul className="dog-insurance-list">{i.rules.map(r=><li key={r}>{r}</li>)}</ul>)}
+  {i.notCovered.length>0&&block('O que não cobre',<ul className="dog-insurance-list">{i.notCovered.map(r=><li key={r}>{r}</li>)}</ul>)}
+  {(i.phone||i.email||i.claimsEmail||i.url)&&<div className="dog-insurance-contact">
+   {i.phone&&<a href={`tel:${i.phone.replace(/[^\d+]/g,'')}`}><Phone size={14}/>{i.phone}</a>}
+   {i.claimsEmail&&<a href={`mailto:${i.claimsEmail}`}><Mail size={14}/>Sinistros: {i.claimsEmail}</a>}
+   {i.email&&<a href={`mailto:${i.email}`}><Mail size={14}/>{i.email}</a>}
+   {i.url&&<a href={i.url} target="_blank" rel="noreferrer">{i.url.replace(/^https?:\/\//,'')}</a>}
+  </div>}
+  {i.documents.length>0&&<ul className="asset-docs">{i.documents.map(d=><li key={d.name}><FileText size={14}/>{d.url?<a href={d.url} target="_blank" rel="noreferrer">{d.name}</a>:d.name}</li>)}</ul>}
+ </section>;
 }
