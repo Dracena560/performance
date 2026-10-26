@@ -27,6 +27,8 @@ export const assetFinancingSchema=z.object({
  outstanding:amount,
  outstandingDate:dateValue.default(''),
  paidTotal:amount,
+ /** Paid by direct debit: each instalment counts as paid on its due date, without registering it. */
+ autoDebit:z.boolean().default(false),
  notes:text(2000),
 });
 export type AssetFinancing=z.infer<typeof assetFinancingSchema>;
@@ -73,9 +75,25 @@ export function registerInstalment(asset:Asset,paidOn:string,value?:number):Asse
  return {...asset,financing:{...f,instalmentsPaid,paidTotal:Math.round(((f.paidTotal??0)+paid)*100)/100,outstanding:f.outstanding===null?null:Math.max(0,Math.round((f.outstanding-paid)*100)/100),outstandingDate:f.outstanding===null?f.outstandingDate:paidOn,nextDue:done?'':addMonths(f.nextDue||paidOn,1,day)}};
 }
 
+/**
+ * Direct debit: instalments due between the stored next due date and today count as paid.
+ * Derived on every render (nothing is written), so the stored statement stays the reference.
+ * The balance falls in proportion to the instalments left, which fits SAC loans and uncorrected plans.
+ */
+export function withAutoDebit(asset:Asset,today:string):Asset{
+ const f=asset.financing;if(!f?.autoDebit||!f.nextDue||isPaidOff(asset))return asset;
+ const day=f.dueDay??Number(f.nextDue.slice(8,10));const left=remainingInstalments(f);
+ let debited=0;while(addMonths(f.nextDue,debited,day)<=today&&(left===null||debited<left))debited++;
+ if(!debited)return asset;
+ const remaining=left===null?null:left-debited;
+ const outstanding=f.outstanding===null?null:remaining===0?0:left?Math.round(f.outstanding*(remaining!/left)*100)/100:f.outstanding;
+ return {...asset,financing:{...f,instalmentsPaid:f.instalmentsPaid+debited,paidTotal:f.paidTotal===null?null:Math.round((f.paidTotal+debited*(f.instalmentValue??0))*100)/100,outstanding,nextDue:remaining===0?'':addMonths(f.nextDue,debited,day)}};
+}
+export const effectiveAssets=(assets:Asset[],today:string)=>assets.map(asset=>withAutoDebit(asset,today));
+
 /** Instalments shown in Próximos vencimentos (the next open one, or the monthly due day). */
-export function assetReminders(assets:Asset[]){
- return assets.filter(asset=>!isPaidOff(asset)&&asset.financing?.nextDue).map(asset=>({id:`asset-${asset.id}`,name:`Parcela · ${asset.name}`,source:'Bens',date:asset.financing!.nextDue,amount:asset.financing!.instalmentValue===null?null:formatMoney(asset.financing!.instalmentValue,asset.currency)}));
+export function assetReminders(assets:Asset[],today:string){
+ return effectiveAssets(assets,today).filter(asset=>!isPaidOff(asset)&&asset.financing?.nextDue).map(asset=>({id:`asset-${asset.id}`,name:`${asset.financing!.autoDebit?'Débito automático':'Parcela'} · ${asset.name}`,source:'Bens',date:asset.financing!.nextDue,amount:asset.financing!.instalmentValue===null?null:formatMoney(asset.financing!.instalmentValue,asset.currency)}));
 }
 
 export function formatMoney(value:number,currency:AssetCurrency){return new Intl.NumberFormat(currency==='BRL'?'pt-BR':'en-GB',{style:'currency',currency,maximumFractionDigits:2}).format(value);}

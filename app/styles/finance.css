@@ -375,3 +375,4 @@
 .retirement-input em{font-style:normal;font-size:var(--fs-footnote);color:var(--label-2);min-width:28px}
 .retirement-actions{display:flex;justify-content:flex-end;gap:var(--s-2);margin-top:var(--s-3)}
 @media (max-width:760px){.retirement-hero{grid-template-columns:1fr}.retirement-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.asset-autodebit{padding:6px 12px;border-radius:var(--r-md);background:color-mix(in srgb,var(--sys-blue) 10%,transparent);font-size:var(--fs-footnote);color:var(--label)}

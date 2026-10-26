@@ -371,6 +371,6 @@ export function demoNaps():Nap[]{
 export function demoGoods():Asset[]{
  return [
   {id:'demo-flat',name:'Apartamento exemplo',type:'Imóvel',location:'Cidade Exemplo',currency:'BRL',purchaseDate:'2018-05-10',purchasePrice:320000,currentValue:410000,currentValueDate:'2026-06-01',details:[['Área','68 m²'],['Matrícula','00000']],financing:null,documents:[{name:'Escritura (exemplo)',url:''}],notes:''},
-  {id:'demo-land',name:'Terreno exemplo',type:'Terreno',location:'Bairro Exemplo',currency:'BRL',purchaseDate:'2020-03-15',purchasePrice:90000,currentValue:null,currentValueDate:'',details:[['Quadra','1'],['Lote','10'],['Área','300 m²']],financing:{creditor:'Loteadora Exemplo',contract:'0000',indexer:'INCC',contractValue:90000,downPayment:5000,instalmentsTotal:100,instalmentsPaid:40,instalmentValue:1000,dueDay:10,nextDue:'2026-11-10',lastDue:'2031-12-10',outstanding:60000,outstandingDate:'2026-10-11',paidTotal:45000,notes:''},documents:[],notes:''},
+  {id:'demo-land',name:'Terreno exemplo',type:'Terreno',location:'Bairro Exemplo',currency:'BRL',purchaseDate:'2020-03-15',purchasePrice:90000,currentValue:null,currentValueDate:'',details:[['Quadra','1'],['Lote','10'],['Área','300 m²']],financing:{creditor:'Loteadora Exemplo',contract:'0000',indexer:'INCC',contractValue:90000,downPayment:5000,instalmentsTotal:100,instalmentsPaid:40,instalmentValue:1000,dueDay:10,nextDue:'2026-11-10',lastDue:'2031-12-10',outstanding:60000,outstandingDate:'2026-10-11',paidTotal:45000,autoDebit:true,notes:''},documents:[],notes:''},
  ];
 }

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Car, ChevronDown, FileText, Home, LandPlot, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { savePersonalSection } from '@/app/actions';
-import { assetCurrencies, assetDebt, assetTypes, assetValue, assetsInPounds, formatMoney, isPaidOff, registerInstalment, remainingInstalments, type Asset, type AssetCurrency, type AssetFinancing } from '@/lib/assets';
+import { assetCurrencies, assetDebt, assetTypes, assetValue, assetsInPounds, formatMoney, isPaidOff, registerInstalment, remainingInstalments, withAutoDebit, type Asset, type AssetCurrency, type AssetFinancing } from '@/lib/assets';
 import { localDate } from '@/lib/domain';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
 
@@ -11,7 +11,7 @@ const icons={'Imóvel':Home,'Terreno':LandPlot,'Veículo':Car,'Outro':Package} a
 const pounds=(value:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(value);
 const br=(date:string)=>date?date.split('-').reverse().join('/'):'—';
 const monthYear=(date:string)=>date?new Date(date+'T12:00:00Z').toLocaleDateString('pt-BR',{timeZone:'UTC',month:'short',year:'numeric'}).replace('.',''):'—';
-const emptyFinancing=():AssetFinancing=>({creditor:'',contract:'',indexer:'',contractValue:null,downPayment:null,instalmentsTotal:null,instalmentsPaid:0,instalmentValue:null,dueDay:null,nextDue:'',lastDue:'',outstanding:null,outstandingDate:'',paidTotal:null,notes:''});
+const emptyFinancing=():AssetFinancing=>({creditor:'',contract:'',indexer:'',contractValue:null,downPayment:null,instalmentsTotal:null,instalmentsPaid:0,instalmentValue:null,dueDay:null,nextDue:'',lastDue:'',outstanding:null,outstandingDate:'',paidTotal:null,autoDebit:false,notes:''});
 const emptyAsset=():Asset=>({id:crypto.randomUUID(),name:'',type:'Imóvel',location:'',currency:'BRL',purchaseDate:'',purchasePrice:null,currentValue:null,currentValueDate:'',details:[],financing:null,documents:[],notes:''});
 const num=(value:string)=>value.trim()===''?null:Number(value.replace(',','.'));
 
@@ -21,8 +21,10 @@ export function AssetsSection({initial,rates,demo=false}:{initial:Asset[];rates:
  const [assets,setAssets]=useState(initial);useEffect(()=>setAssets(initial),[initial]);
  const [editing,setEditing]=useState<Asset|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const today=localDate();
- const totals=assetsInPounds(assets,rates);
- const paidOff=assets.filter(isPaidOff).length;
+ // Direct-debit instalments count as paid on their due dates; cards and totals show that, editing keeps the stored statement.
+ const shown=assets.map(asset=>withAutoDebit(asset,today));
+ const totals=assetsInPounds(shown,rates);
+ const paidOff=shown.filter(isPaidOff).length;
  const persist=async(next:Asset[])=>{setBusy(true);setError('');try{if(!demo){await savePersonalSection('assets',next);router.refresh();}setAssets(next);return true;}catch(e){setError((e as Error).message);return false;}finally{setBusy(false);}};
  const remove=(asset:Asset)=>{if(confirm(`Remover ${asset.name}?`))persist(assets.filter(item=>item.id!==asset.id));};
  const payInstalment=(asset:Asset)=>{const f=asset.financing!;if(confirm(`Registrar a parcela ${f.instalmentsPaid+1}${f.instalmentsTotal?` de ${f.instalmentsTotal}`:''} de ${asset.name}${f.instalmentValue?` (${formatMoney(f.instalmentValue,asset.currency)})`:''} como paga hoje?`))persist(assets.map(item=>item.id===asset.id?registerInstalment(item,today):item));};
@@ -40,7 +42,7 @@ export function AssetsSection({initial,rates,demo=false}:{initial:Asset[];rates:
   <div className="information-body assets-body">
    <div className="assets-toolbar"><p className="field-help">Imóveis, terrenos, veículos e outros bens. Valores em libras usam a cotação do dia{rates.BRL?` (R$ 1 = £ ${rates.BRL.toLocaleString('pt-BR',{maximumFractionDigits:4})})`:''}. Bens sem valor atual usam o valor de compra.</p><button className="button primary" onClick={()=>{setError('');setEditing(emptyAsset());}}><Plus size={17}/>Adicionar bem</button></div>
    {error&&!editing&&<p className="error" role="alert">{error}</p>}
-   {assets.length?<div className="assets-grid">{assets.map(asset=>{
+   {assets.length?<div className="assets-grid">{shown.map((asset,index)=>{const stored=assets[index];
     const Icon=icons[asset.type],f=asset.financing,left=f?remainingInstalments(f):null,debt=assetDebt(asset),value=assetValue(asset);
     const overdue=!!f&&!isPaidOff(asset)&&!!f.nextDue&&f.nextDue<today;
     const pct=f&&f.instalmentsTotal?Math.round(f.instalmentsPaid/f.instalmentsTotal*100):null;
@@ -57,8 +59,9 @@ export function AssetsSection({initial,rates,demo=false}:{initial:Asset[];rates:
      </dl>
      {f&&!isPaidOff(asset)&&<section className="asset-financing">
       {pct!==null&&<div className="asset-progress"><span>{f.instalmentsPaid} de {f.instalmentsTotal} parcelas pagas</span><b>{pct}%</b><i><em style={{width:`${pct}%`}}/></i></div>}
+      {f.autoDebit&&<p className="asset-autodebit">Débito automático: cada parcela conta como paga no dia {f.dueDay??f.nextDue.slice(8,10)}, sem precisar registrar.</p>}
       <dl className="asset-facts">
-       <div><dt>Saldo devedor</dt><dd className="bad">{debt===null?'—':formatMoney(debt,asset.currency)}</dd>{f.outstandingDate&&<small>extrato de {br(f.outstandingDate)}</small>}</div>
+       <div><dt>Saldo devedor</dt><dd className="bad">{debt===null?'—':formatMoney(debt,asset.currency)}</dd>{f.outstandingDate&&<small>{f.autoDebit&&f.outstanding!==stored.financing?.outstanding?`estimado a partir do extrato de ${br(f.outstandingDate)}`:`extrato de ${br(f.outstandingDate)}`}</small>}</div>
        <div><dt>Parcela atual</dt><dd>{f.instalmentValue===null?'—':formatMoney(f.instalmentValue,asset.currency)}</dd>{f.indexer&&<small>corrigida por {f.indexer}</small>}</div>
        <div><dt>Próxima parcela</dt><dd className={overdue?'bad':''}>{br(f.nextDue)}</dd>{overdue&&<small>em aberto</small>}</div>
        <div><dt>Faltam</dt><dd>{left===null?'—':`${left} ${left===1?'parcela':'parcelas'}`}</dd>{f.lastDue&&<small>até {monthYear(f.lastDue)}</small>}</div>
@@ -70,8 +73,8 @@ export function AssetsSection({initial,rates,demo=false}:{initial:Asset[];rates:
      {asset.documents.length>0&&<ul className="asset-docs">{asset.documents.map(doc=><li key={doc.name}><FileText size={14}/>{doc.url?<a href={doc.url} target="_blank" rel="noreferrer">{doc.name}</a>:doc.name}</li>)}</ul>}
      {asset.notes&&<p className="asset-notes">{asset.notes}</p>}
      <footer>
-      {f&&!isPaidOff(asset)&&<button className="button tinted small" disabled={busy} onClick={()=>payInstalment(asset)}>Registrar parcela paga</button>}
-      <span><button className="button icon ghost" aria-label={`Editar ${asset.name}`} onClick={()=>{setError('');setEditing(structuredClone(asset));}}><Pencil size={16}/></button><button className="button icon ghost" aria-label={`Remover ${asset.name}`} onClick={()=>remove(asset)}><Trash2 size={16}/></button></span>
+      {f&&!isPaidOff(asset)&&!f.autoDebit&&<button className="button tinted small" disabled={busy} onClick={()=>payInstalment(stored)}>Registrar parcela paga</button>}
+      <span><button className="button icon ghost" aria-label={`Editar ${asset.name}`} onClick={()=>{setError('');setEditing(structuredClone(stored));}}><Pencil size={16}/></button><button className="button icon ghost" aria-label={`Remover ${asset.name}`} onClick={()=>remove(stored)}><Trash2 size={16}/></button></span>
      </footer>
     </article>;})}</div>:<p className="panel wb-empty">Nenhum bem cadastrado. Adicione aqui ou envie o extrato/escritura pelo ChatGPT/Claude.</p>}
   </div>
@@ -104,6 +107,7 @@ function AssetEditor({asset,busy,error,onClose,onSave}:{asset:Asset;busy:boolean
     <button type="button" className="text-link" onClick={()=>set('details',[...draft.details,['','']])}><Plus size={14}/> Adicionar informação</button>
    </fieldset>
    <label className="checkbox-label"><input type="checkbox" checked={!!f} onChange={e=>set('financing',e.target.checked?emptyFinancing():null)}/><span>Ainda estou pagando (financiamento ou parcelamento)</span></label>
+   {f&&<label className="checkbox-label"><input type="checkbox" checked={f.autoDebit} onChange={e=>fin('autoDebit',e.target.checked)}/><span>Débito automático (as parcelas contam como pagas no vencimento)</span></label>}
    {f&&<fieldset className="asset-rows"><legend>Pagamento</legend><div className="score-grid">
     <label>Credor<input value={f.creditor} onChange={e=>fin('creditor',e.target.value)}/></label>
     <label>Contrato<input value={f.contract} onChange={e=>fin('contract',e.target.value)}/></label>

@@ -11,7 +11,7 @@ import {CreditCardPlan} from './credit-card-plan';
 import {NetWorth} from './net-worth';
 import {LivePortfolio} from './live-portfolio';
 import type {Holding,LiveRow} from '@/lib/holdings';
-import type {Asset,AssetCurrency} from '@/lib/assets';
+import {effectiveAssets,type Asset,type AssetCurrency} from '@/lib/assets';
 import {AssetsSection} from './assets-section';
 import {RetirementPlan} from './retirement-plan';
 const money=(value:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(value);
@@ -20,12 +20,13 @@ export function FinanceSections({finance,investments,creditCard,car,today,holdin
  useEffect(()=>{const parsed=financeSchema.safeParse(finance);if(parsed.success)setData(parsed.data);},[finance]);
  const history=investmentsSchema.parse(investments);
  const total=moneyTotal(data.rows);
+ const goods=effectiveAssets(assets,today);
  const liveTotal=liveRows.length&&liveRows.every(r=>r.valueGBP!==null)?liveRows.reduce((t,r)=>t+(r.valueGBP??0),0):null;
  const stats:[string,number][]=[['Despesas mensais',total],['Enviar para Wise',moneyTotal(data.rows.filter(r=>r.payment==='Wise Jar'))],['Débito Santander',moneyTotal(data.rows.filter(r=>r.payment==='Direct Debit Santander'))],['Saldo para guardar',data.incomeFelipe+data.incomeSara-total]];
  return <div className="finance-page">
   <header className="page-heading"><div><span className="eyebrow">SEU PATRIMÔNIO</span><h1>Financeiro</h1><p>Resumos à vista. Abra cada seção para consultar os detalhes.</p></div></header>
-  <NetWorth investments={history} creditCard={creditCard} car={car} finance={data} goods={assets} rates={rates} liveTotal={liveTotal}/>
-  <RetirementPlan investments={history} creditCard={creditCard} car={car} finance={data} goods={assets} rates={rates} liveTotal={liveTotal} demo={demo}/>
+  <NetWorth investments={history} creditCard={creditCard} car={car} finance={data} goods={goods} rates={rates} liveTotal={liveTotal}/>
+  <RetirementPlan investments={history} creditCard={creditCard} car={car} finance={data} goods={goods} rates={rates} liveTotal={liveTotal} demo={demo}/>
   <CreditCardPlan initial={creditCard} finance={data} car={car} today={today}/>
   <FinanceInsights data={data} history={history}/>
   <details className="information-card finance-expand">
