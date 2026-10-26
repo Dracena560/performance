@@ -16,6 +16,7 @@ import { dogSchema,initialDog } from './dog';
 import { settingsSchema,defaultSettings,readSettings } from './settings';
 import { holdingsSchema } from './holdings';
 import { journalEntrySchema,journalKinds } from './journal';
+import { assetsSchema } from './assets';
 const requiredDate=dateValue.refine(v=>v!=='','Data obrigatória');
 const targets=z.record(z.enum(Object.keys(metricInfo) as [string,...string[]]),targetSchema);
 export const healthDisplaySchema=z.object({cards:z.array(z.tuple([z.string().max(100),z.string().max(1000)])).max(50),sections:z.array(z.tuple([z.string().max(200),z.array(z.string().max(5000)).max(100)])).max(50)});
@@ -49,6 +50,7 @@ export const resources={
  agenda:{table:'day_plans',schema:planSchema,description:'Agenda semanal por data, tipo de dia, metas e justificativa.'},
  alimentos:{table:'foods',schema:foodSchema,description:'Dados nutricionais de alimentos legados. A biblioteca não aparece no menu.'},
  refeicoes_salvas:{table:'meal_templates',schema:z.object({name:z.string().min(1).max(200),items:z.array(itemSchema).max(100)}),description:'Combinações legadas de refeições.'},
+ bens:{key:'personal_assets',schema:assetsSchema,empty:[],description:'Bens em Financeiro › Bens (imóveis, terrenos, veículos, outros), quitados ou não. Cada item: {id,name,type (Imóvel/Terreno/Veículo/Outro),location,currency (BRL/GBP/EUR/USD),purchaseDate,purchasePrice,currentValue (valor de mercado estimado; vazio usa o de compra),currentValueDate,details [[rótulo,valor]] (Quadra, Lote, Área, Matrícula, Placa…),financing (null se quitado) {creditor,contract,indexer (IPCA/INCC/IGP-M/Fixo),contractValue,downPayment,instalmentsTotal,instalmentsPaid,instalmentValue (parcela atual corrigida),dueDay,nextDue (próxima parcela em aberto),lastDue,outstanding (saldo devedor do último extrato),outstandingDate,paidTotal,notes},documents [{name,url}],notes}. Ao receber um extrato novo, atualize instalmentsPaid, instalmentValue, nextDue, outstanding, outstandingDate e paidTotal do mesmo bem; não crie outro.'},
  diario:{table:'journal_entries',schema:journalEntrySchema,description:'Diário de vida em /diario. Cada entrada: occurred_on (YYYY-MM-DD, data em que aconteceu), occurred_time (HH:MM ou vazio), kind ('+journalKinds.map(([id])=>id).join('/')+'), title, body (texto livre), mood (0–10 ou null), tags (minúsculas, sem #), people (nomes), place, milestone (marco da vida), revisit_on (data para revisitar uma decisão). Prefira as ferramentas escrever_diario e consultar_diario.'},
  rascunho_checkin:{table:'checkin_drafts',schema:draftSchema,description:'Rascunho do check-in; não é o check-in já registrado.'}
 } as const;

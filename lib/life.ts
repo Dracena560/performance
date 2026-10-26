@@ -1,3 +1,4 @@
+import { assetReminders, readAssets } from './assets';
 import { z } from 'zod';
 import { dateValue } from './date-value';
 import { examReminders,readExams } from './exams';
@@ -55,7 +56,8 @@ export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  if(latest&&latest.balance>0&&Number.isInteger(card.dueDay)&&card.dueDay>=1&&card.dueDay<=31)all.push({id:'credit-card',name:String(card.name||'Fatura do cartão de crédito'),source:'Cartão de crédito',date:nextMonthlyDate(card.dueDay,today),amount:money(latest.balance)});
  const dates=datesSchema.safeParse(profile.personal_dates??[]);if(dates.success)for(const d of dates.data)if(d.date)all.push({id:`date-${d.id}`,name:d.name,source:d.kind,date:d.date,amount:null});
  all.push(...examReminders(readExams(profile.personal_exams)));
+ all.push(...assetReminders(readAssets(profile.personal_assets)));
  if(profile.personal_dog)all.push(...dogReminders(readDog(profile.personal_dog),today));
- const group=(r:Omit<Reminder,'days'|'level'>)=>r.id.startsWith('car-')?'Carro':r.id.startsWith('bill-')?'Contas':r.id.startsWith('expense-')?'Gastos fixos':r.id==='credit-card'?'Cartão de crédito':r.id.startsWith('date-')?'Documentos e datas':r.id.startsWith('exam-')?'Exames':r.id.startsWith('dog-')?'Pet':'';
+ const group=(r:Omit<Reminder,'days'|'level'>)=>r.id.startsWith('car-')?'Carro':r.id.startsWith('bill-')?'Contas':r.id.startsWith('expense-')?'Gastos fixos':r.id==='credit-card'?'Cartão de crédito':r.id.startsWith('date-')?'Documentos e datas':r.id.startsWith('exam-')?'Exames':r.id.startsWith('dog-')?'Pet':r.id.startsWith('asset-')?'Bens':'';
  return all.filter(r=>(rules.sources as string[]).includes(group(r))).filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=rules.windowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
 }

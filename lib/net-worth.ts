@@ -1,6 +1,7 @@
 import { monthlyPortfolio,inPounds,investmentType,type InvestmentSnapshot } from './investments';
 import { latestCardEntry,parseMoney,type CreditCard } from './credit-card';
 import { moneyTotal,type Finance } from './personal';
+import { assetsInPounds,type Asset,type AssetCurrency } from './assets';
 
 export type Line={label:string;value:number;note:string};
 const cents=(n:number)=>Math.round(n*100)/100;
@@ -28,12 +29,14 @@ export function latestInvestments(history:InvestmentSnapshot[]){
  * Net worth: investments (and the current account, when informed) minus the credit card bill
  * and what is left on the car finance. Items without data are listed in `missing`.
  */
-export function netWorth({investments,card,car,liveTotal=null}:{investments:InvestmentSnapshot[];card:CreditCard;car:unknown;liveTotal?:number|null}){
+export function netWorth({investments,card,car,liveTotal=null,goods=[],rates={}}:{investments:InvestmentSnapshot[];card:CreditCard;car:unknown;liveTotal?:number|null;goods?:Asset[];rates?:Partial<Record<AssetCurrency,number>>}){
  const inv=latestInvestments(investments);const assets:Line[]=[],liabilities:Line[]=[],missing:string[]=[];
  if(liveTotal!==null&&liveTotal>0)assets.push({label:'Investimentos',value:Math.round(liveTotal*100)/100,note:'Cotação ao vivo da carteira, em libras'});else if(investments.length)assets.push({label:'Investimentos',value:inv.total,note:'Última posição de cada investimento, em libras'});else missing.push('investimentos');
  if(card.checkingBalance!==null)assets.push({label:'Conta corrente',value:card.checkingBalance,note:card.checkingDate?`Saldo de ${br(card.checkingDate)}`:'Saldo informado'});
  const bill=latestCardEntry(card);if(bill)liabilities.push({label:'Fatura do cartão',value:bill.balance,note:`Valor de ${br(bill.date)}`});else missing.push('fatura do cartão');
  const debt=carDebt(car);if(debt)liabilities.push({label:'Financiamento do carro',value:debt.value,note:debt.note});else if((car as any)?.extra?.financing?.instalment)missing.push('saldo do financiamento');
+ // Bens: market value (or purchase price) as an asset, outstanding balances as a liability, converted to pounds.
+ if(goods.length){const b=assetsInPounds(goods,rates);if(b.value>0)assets.push({label:'Bens',value:b.value,note:`${goods.length} ${goods.length===1?'bem':'bens'} em libras${b.estimated?' · sem valor atual usa o de compra':''}`});if(b.debt>0)liabilities.push({label:'Financiamento de bens',value:b.debt,note:'Saldo devedor dos extratos, em libras'});if(b.missing.length)missing.push(`cotação de ${b.missing.join(', ')}`);}
  const sum=(lines:Line[])=>cents(lines.reduce((t,l)=>t+l.value,0));
  const totalAssets=sum(assets),totalLiabilities=sum(liabilities);
  return {assets,liabilities,totalAssets,totalLiabilities,total:cents(totalAssets-totalLiabilities),missing};

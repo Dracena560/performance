@@ -2,6 +2,8 @@ import { AppFrame } from '@/components/app-frame';
 import { FinanceSections } from '@/components/finance-sections';
 import { personalData } from '@/lib/personal-data';
 import { localDate } from '@/lib/domain';
+import { readAssets } from '@/lib/assets';
+import { assetRates } from '@/lib/asset-fx';
 import { readHoldings,isoWeek } from '@/lib/holdings';
 import { ensureWeeklySnapshot,livePortfolio } from '@/lib/portfolio-data';
 import { healthService,healthUserId,supabase } from '@/lib/supabase/server';
@@ -13,5 +15,6 @@ export default async function Page(){
   try{const session=await supabase();const {data:{user}}=await session.auth.getUser();const r=await ensureWeeklySnapshot(healthUserId()?healthService():session,healthUserId()??user!.id);if(r.created){profile=await personalData();holdings=readHoldings(profile.personal_holdings);}}catch{/* prices unavailable now; try again later */}
  }
  const live=holdings.length?await livePortfolio(holdings).catch(()=>null):null;
- return <AppFrame title="Financeiro"><div className="content"><FinanceSections finance={profile.personal_finance} investments={profile.personal_investments??[]} creditCard={profile.personal_credit_card} car={profile.personal_car} today={localDate()} holdings={holdings} liveRows={live?.rows??[]} liveAt={live?.updatedAt??null}/></div></AppFrame>;
+ const assets=readAssets(profile.personal_assets);const rates=await assetRates(assets);
+ return <AppFrame title="Financeiro"><div className="content"><FinanceSections finance={profile.personal_finance} investments={profile.personal_investments??[]} creditCard={profile.personal_credit_card} car={profile.personal_car} today={localDate()} holdings={holdings} liveRows={live?.rows??[]} liveAt={live?.updatedAt??null} assets={assets} rates={rates}/></div></AppFrame>;
 }

@@ -4,15 +4,16 @@ import {netWorth,emergencyFund} from '@/lib/net-worth';
 import {readCreditCard} from '@/lib/credit-card';
 import type {InvestmentSnapshot} from '@/lib/investments';
 import type {Finance} from '@/lib/personal';
+import type {Asset,AssetCurrency} from '@/lib/assets';
 import {useSettings} from './settings-context';
 const money=(v:number)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:0}).format(v);
 const months=(v:number)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1}).format(v);
 
 /** Net worth and emergency fund side by side: the two numbers that sum up the finances. */
-export function NetWorth({investments,creditCard,car,finance,liveTotal=null}:{investments:InvestmentSnapshot[];creditCard:unknown;car:unknown;finance:Finance;liveTotal?:number|null}){
+export function NetWorth({investments,creditCard,car,finance,liveTotal=null,goods=[],rates={}}:{investments:InvestmentSnapshot[];creditCard:unknown;car:unknown;finance:Finance;liveTotal?:number|null;goods?:Asset[];rates?:Partial<Record<AssetCurrency,number>>}){
  const card=readCreditCard(creditCard);
  const rules=useSettings().finance;
- const n=netWorth({investments,card,car,liveTotal});const e=emergencyFund({investments,card,finance,target:rules.emergencyMonths,includeChecking:rules.includeChecking,subtractCard:rules.subtractCard});
+ const n=netWorth({investments,card,car,liveTotal,goods,rates});const e=emergencyFund({investments,card,finance,target:rules.emergencyMonths,includeChecking:rules.includeChecking,subtractCard:rules.subtractCard});
  const scale=Math.max(n.totalAssets,n.totalLiabilities,1);
  const pct=e.months===null?0:Math.min(100,e.months/e.target*100);
  return <div className="net-worth-grid">

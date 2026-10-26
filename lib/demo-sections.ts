@@ -1,3 +1,4 @@
+import type { Asset } from './assets';
 import type { Nap } from './naps';
 import { parseJournalEntry,type JournalEntry } from './journal';
 // Fictitious data for the dev-only /demo/* preview routes.
@@ -364,4 +365,12 @@ export function demoJournal():JournalEntry[]{
 export function demoNaps():Nap[]{
  const today=demoToday(),day=(n:number)=>new Date(Date.parse(today+'T12:00:00Z')-n*86400000).toISOString().slice(0,10);
  return ([[0,'14:10',20,'Descansado'],[2,'15:30',35,'Grogue'],[3,'13:45',15,'Descansado'],[6,'16:00',60,'Mais cansado'],[9,'14:20',25,'Normal']] as const).map(([n,time,minutes,feeling],i)=>({id:`nap-${i}`,date:day(n),at:`${day(n)}T${time}:00Z`,minutes,feeling,notes:''}));
+}
+
+/** Fictitious assets for /demo/financeiro: one paid off, one still being paid. */
+export function demoGoods():Asset[]{
+ return [
+  {id:'demo-flat',name:'Apartamento exemplo',type:'Imóvel',location:'Cidade Exemplo',currency:'BRL',purchaseDate:'2018-05-10',purchasePrice:320000,currentValue:410000,currentValueDate:'2026-06-01',details:[['Área','68 m²'],['Matrícula','00000']],financing:null,documents:[{name:'Escritura (exemplo)',url:''}],notes:''},
+  {id:'demo-land',name:'Terreno exemplo',type:'Terreno',location:'Bairro Exemplo',currency:'BRL',purchaseDate:'2020-03-15',purchasePrice:90000,currentValue:null,currentValueDate:'',details:[['Quadra','1'],['Lote','10'],['Área','300 m²']],financing:{creditor:'Loteadora Exemplo',contract:'0000',indexer:'INCC',contractValue:90000,downPayment:5000,instalmentsTotal:100,instalmentsPaid:40,instalmentValue:1000,dueDay:10,nextDue:'2026-11-10',lastDue:'2031-12-10',outstanding:60000,outstandingDate:'2026-10-11',paidTotal:45000,notes:''},documents:[],notes:''},
+ ];
 }

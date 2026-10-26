@@ -26,7 +26,7 @@ export const topicSchema=z.object({
 export const routineSchema=z.object({name:label,period:z.enum(['dia','noite','outro']).default('outro'),items:z.array(label).max(40).default([])});
 export const medicineSchema=z.object({name:label,composition:z.string().max(300).default('')});
 export const waterButtonSchema=z.object({label:z.string().trim().min(1).max(40),ml:z.number().int().min(10).max(5000)});
-export const reminderSources=['Carro','Contas','Gastos fixos','Cartão de crédito','Documentos e datas','Exames','Pet'] as const;
+export const reminderSources=['Carro','Contas','Gastos fixos','Cartão de crédito','Bens','Documentos e datas','Exames','Pet'] as const;
 export const navigationToggles=['financeiro','tenis','caju','diario'] as const;
 
 export const settingsSchema=z.object({
