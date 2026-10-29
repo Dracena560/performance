@@ -111,13 +111,15 @@ function ScoreEditor({
   id,
   initial,
   me,
+  startOpen = false,
 }: {
   id: string;
   initial: TennisSet[];
   me: string;
+  startOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false),
+  const [open, setOpen] = useState(startOpen),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const [sets, setSets] = useState<TennisSet[]>(
@@ -1610,9 +1612,17 @@ export function TennisDashboard({
           <DialogContent className="dialog-content tennis-details-dialog">
             <DialogTitle>Editar sessão de tênis</DialogTitle>
             <DialogDescription>
-              Altere o tipo, adversário e outras informações. Os cards e filtros
+              Placar, tipo, adversário e outras informações. Os cards e filtros
               refletem a nova classificação após salvar.
             </DialogDescription>
+            {editingSession.competitive && (
+              <ScoreEditor
+                id={editingSession.record.id}
+                initial={editingSession.sets}
+                me={sideName(me, editingSession)}
+                startOpen={!editingSession.sets.length}
+              />
+            )}
             <TennisSessionEditor
               id={editingSession.record.id}
               type={editingSession.type}

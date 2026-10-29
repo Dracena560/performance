@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { appointmentLineup, matchGroup, tennisSessionTypes, type Appointment, type TennisRosterPlayer } from './tennis-club';
+import { appointmentLineup, matchGroup, recordParticipants, tennisSessionTypes, type Appointment, type TennisRosterPlayer } from './tennis-club';
 import { getExplicitTennisSets, getTennisOutcome } from './tennis-session';
 
 type RecordLike={id:string;recorded_on:string;payload:Record<string,unknown>};
@@ -24,11 +24,16 @@ export function pendingMatches(upcoming:Appointment[],records:RecordLike[],playe
  const now=minutes(time),from=shift(today,-lookbackDays);
  return upcoming.filter(item=>!item.cancelled&&matchGroup(item.type)!=='training'&&item.date>=from&&(item.date<today||(item.date===today&&!!item.time&&minutes(item.time)+90<=now))).flatMap(item=>{
   const sameDay=records.filter(record=>record.recorded_on===item.date);
-  if(records.some(record=>record.payload.appointment_id===item.id&&hasResult(record))||sameDay.some(hasResult))return [];
   const lineup=appointmentLineup(item,players),doubles=matchGroup(item.type)==='doubles';
   const opponents=doubles?lineup.opponents:[lineup.opponent||item.opponent].filter(Boolean);
   const partner=doubles?lineup.partner:'';
-  const linked=records.find(record=>record.payload.appointment_id===item.id)??sameDay[0];
+  // Any record linked to the game, or a same-day record against the same opponent, means it was already logged (score or not).
+  const wanted=new Set([item.opponentId,...item.opponentIds].filter(Boolean)),names=new Set(opponents.map(name=>name.toLocaleLowerCase('pt-BR')));
+  const who=(record:RecordLike)=>recordParticipants(record.payload,players).opponents;
+  const sameOpponent=(record:RecordLike)=>who(record).some(person=>(person.id&&wanted.has(person.id))||names.has(person.name.toLocaleLowerCase('pt-BR')));
+  if(records.some(record=>record.payload.appointment_id===item.id||record.payload.scheduled_match_id===item.id)||sameDay.some(sameOpponent)||sameDay.some(record=>hasResult(record)&&!who(record).length))return [];
+  // A same-day record with nobody named (e.g. the Apple Watch workout) is completed instead of duplicated.
+  const linked=sameDay.find(record=>!who(record).length);
   return [{id:item.id,date:item.date,time:item.time,type:item.type,location:item.location,partner,opponents,label:matchLabel(me,partner,opponents),recordId:linked?.id??null}];
  }).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
 }

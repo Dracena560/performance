@@ -35,3 +35,13 @@ test('payload keeps partner apart from opponents and drops empty sets',()=>{
 test('0–0 slots saved by the old form are not shown as sets',()=>{
  assert.equal(getExplicitTennisSets({payload:{sets:[{felipe:4,adversario:6},{felipe:7,adversario:3},{felipe:0,adversario:0}]}}).length,2);
 });
+
+test('a game logged without score is no longer pending; another game the same day still is',()=>{
+ const ash=appointmentSchema.parse({id:'ash',date:'2026-10-28',time:'19:00',type:'Simples · Amistoso',opponentId:'a'});
+ const craig=appointmentSchema.parse({id:'craig',date:'2026-10-28',time:'19:50',type:'Simples · Amistoso',opponentId:'c'});
+ const roster=[...players,{id:'a',name:'Ash'},{id:'c',name:'Craig Tuck'}];
+ const logged={id:'r1',recorded_on:'2026-10-28',payload:{match_type:'Simples · Amistoso',opponent_or_partner:'Ash',duration_minutes:50}};
+ assert.deepEqual(pendingMatches([ash,craig],[logged],roster,'Felipe','2026-10-29','09:00').map(m=>m.id),['craig']);
+ const linked={id:'r2',recorded_on:'2026-10-28',payload:{scheduled_match_id:'craig'}};
+ assert.equal(pendingMatches([craig],[linked],roster,'Felipe','2026-10-29','09:00').length,0);
+});
