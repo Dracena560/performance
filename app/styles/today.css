@@ -481,3 +481,12 @@
 .deadline-group .text-link{justify-self:start;margin-top:2px;font-size:var(--fs-footnote)}
 .deadline-when{min-width:68px;padding:3px 8px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--group) 14%,transparent);font-size:var(--fs-caption);font-weight:700;text-align:center;color:color-mix(in srgb,var(--group) 55%,var(--label));white-space:nowrap}
 .deadline-when.danger{background:color-mix(in srgb,var(--danger) 14%,transparent);color:color-mix(in srgb,var(--danger) 70%,var(--label))}
+
+/* Each theme is a horizontal band: title on top, its items side by side as small cards. */
+.deadline-groups{grid-template-columns:1fr}
+.deadline-group{border-top:0;border-left:4px solid var(--group);padding:var(--s-3) var(--s-4)}
+.deadline-group ul{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:var(--s-2)}
+.deadline-group li{padding:var(--s-2) var(--s-3);border-radius:var(--r-md);background:var(--bg-2)}
+.deadline-group li+li{border-top:0}
+.deadline-group li.urgent{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 30%,transparent)}
+.deadline-group h3 small{margin-left:4px}
