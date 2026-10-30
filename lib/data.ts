@@ -8,6 +8,7 @@ import { isTennis } from './exercise-records';
 import { tennisProfileSchema } from './tennis-club';
 import { readLeague } from './tennis-league';
 import { pendingMatches } from './tennis-pending';
+import { readFoodUnits } from './food-units';
 import { configured,supabase,healthService,healthUserId } from './supabase/server';
 import { localDate, profileTargetKeys, profileTargets, type ProfileTargetKey, type HealthEvent,type Food,type TargetTemplate,type MealTemplate,type Day } from './domain';
 export async function loadData(date?:string){
@@ -36,5 +37,5 @@ export async function loadData(date?:string){
  const londonTime=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/London',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
  // Only today's view nags about games waiting for their result.
  const tennisPending=tennis.success&&selected===localDate()?pendingMatches(tennis.data.upcoming,((results[10].data??[]) as {id:string;category:string;recorded_on:string;payload:Record<string,unknown>}[]).filter(isTennis),league.players,tennisMe,selected,londonTime):[];
- return {tennisPending,tennisMe,tennisPlayers:league.players.filter(player=>!player.me).map(player=>player.name),dog:readDog(profile.personal_dog),exams:readExams(profile.personal_exams),reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
+ return {foodUnits:readFoodUnits(profile.personal_food_units),tennisPending,tennisMe,tennisPlayers:league.players.filter(player=>!player.me).map(player=>player.name),dog:readDog(profile.personal_dog),exams:readExams(profile.personal_exams),reminders:reminders({...profile,personal_finance:profile.personal_finance??initialFinance,personal_credit_card:profile.personal_credit_card??initialCreditCard},selected),events:results[0].data as HealthEvent[],periodEvents:results[1].data as HealthEvent[],foods:results[2].data as Food[],templates,day:currentDay,mealTemplates:results[5].data as MealTemplate[],draft:results[6].data?.payload??null,healthRecords:results[7].data??[],periodHealthRecords:results[8].data??[]};
 }

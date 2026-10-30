@@ -59,6 +59,7 @@ const requiredMealNutrients = ['calories','protein','carbs','fat','saturated_fat
 export const actionMealItemSchema = z.object({
   name: z.string().trim().min(1).max(200),
   grams: z.number().positive().max(10000),
+  portion: z.string().trim().max(60).optional(),
   nutrition: actionNutritionSchema.default({}),
 }).superRefine((item, context) => {
   for (const nutrient of requiredMealNutrients) {

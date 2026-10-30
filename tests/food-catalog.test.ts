@@ -22,3 +22,16 @@ test('journal topics are kept and filterable; caffeine has a 400 mg default limi
  assert.equal(filterJournal([e],{topic:'religiao'}).length,1);
  assert.equal(profileTargets.caffeine.max,400);
 });
+
+import { portionLabel, unitReference, unitsFor } from '../lib/food-units';
+test('household measures: typical, from history, and yours first',()=>{
+ assert.equal(unitsFor('Pão sourdough',null)[0].label,'fatia');
+ assert.equal(unitsFor('Pão sourdough',null)[0].grams,40);
+ assert.equal(unitsFor('Azeite de oliva',null)[0].label,'colher de sopa');
+ assert.equal(unitsFor('Ryvita Dark Rye Crispbread',10.5)[0].label,'unidade');
+ const mine=unitsFor('Pão sourdough',60,[{label:'fatia',plural:'fatias',grams:45}]);
+ assert.equal(mine[0].grams,45);assert.ok(mine[0].custom);assert.ok(mine.some(u=>u.label==='porção de costume'));
+ assert.equal(portionLabel(2,mine[0]),'2 fatias');assert.equal(portionLabel(0.5,mine[0]),'½ fatia');
+ assert.match(unitReference(unitsFor('Banana média',null)),/1 banana média ≈ 118 g/);
+ assert.equal(unitsFor('Algo sem regra',null).length,0);
+});

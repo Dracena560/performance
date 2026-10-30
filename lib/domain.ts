@@ -33,7 +33,8 @@ export const nutritionSchema=z.object(nutrientShape).partial();
 export type Nutrition=z.infer<typeof nutritionSchema>;
 export const foodSchema=z.object({name:z.string().trim().min(1).max(200),brand:z.string().max(100).default(''),nutrition:nutritionSchema,favorite:z.boolean().default(false)});
 export type Food=z.infer<typeof foodSchema>&{id:string};
-export const itemSchema=z.object({food_id:z.string().uuid().nullable(),name:z.string().min(1),grams:z.number().positive().max(10000),nutrition:nutritionSchema});
+/** `portion` is the household measure typed by the user ("2 fatias"); grams stay the source for nutrients. */
+export const itemSchema=z.object({food_id:z.string().uuid().nullable(),name:z.string().min(1),grams:z.number().positive().max(10000),nutrition:nutritionSchema,portion:z.string().max(60).optional()});
 export const eventSchema=z.object({
  timestamp:z.string().datetime({offset:true}),timezone:z.literal(timezone),type:z.enum(['water','checkin','meal']),source:z.enum(['manual','estimativa IA','foto','importação','Apple Health','Apple Watch','planilha','ChatGPT']),measurement_type:z.enum(['exact','measured','estimated','subjective','unknown']),estimated:z.boolean(),notes:z.string().max(5000).default(''),
  data:z.discriminatedUnion('kind',[
