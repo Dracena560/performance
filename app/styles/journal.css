@@ -90,3 +90,12 @@
   .journal-entry>header{grid-template-columns:42px minmax(0,1fr) auto}
   .journal-filters select{flex:1 1 40%}
 }
+
+/* Fixed topics (Configurações › Diário), shown as filled chips apart from #tags. */
+.journal-topic-filter{display:flex;flex-wrap:wrap;gap:6px}
+.journal-topic{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:0 12px;border-radius:var(--r-pill);background:color-mix(in srgb,var(--journal-tint) 12%,transparent);color:color-mix(in srgb,var(--journal-tint) 70%,var(--label));font-size:var(--fs-footnote);font-weight:600}
+.journal-topic small{font-weight:600;opacity:.7}
+.journal-topic.selected{background:var(--journal-tint);color:#fff}
+.journal-topics-field{border:0;margin:0;padding:0;display:grid;gap:6px}
+.journal-topics-field legend{font-size:var(--fs-subhead);font-weight:600;margin-bottom:6px}
+.journal-topics-field>div{display:flex;flex-wrap:wrap;gap:6px}

@@ -5,18 +5,20 @@ import { BookHeart, CalendarClock, Download, History, MapPin, Pencil, Plus, Sear
 import { deleteJournal, saveJournal } from '@/app/actions';
 import { dueRevisits, filterJournal, journalKinds, journalMarkdown, journalStats, kindLabel, onThisDay, parseJournalEntry, promptOfDay, type JournalEntry, type JournalFilter, type JournalKind } from '@/lib/journal';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
+import { useSettings } from './settings-context';
 
 const longDate=(date:string,options:Intl.DateTimeFormatOptions={day:'2-digit',month:'long',year:'numeric'})=>new Date(date+'T12:00:00Z').toLocaleDateString('pt-BR',{timeZone:'UTC',...options});
 const monthKey=(date:string)=>date.slice(0,7);
 const yearsAgo=(date:string,today:string)=>{const n=Number(today.slice(0,4))-Number(date.slice(0,4));return n===1?'há 1 ano':`há ${n} anos`;};
 const splitList=(value:string)=>value.split(',').map(item=>item.trim()).filter(Boolean);
-type Draft={id:string|null;occurred_on:string;occurred_time:string;kind:JournalKind;title:string;body:string;mood:number|null;tags:string;people:string;place:string;milestone:boolean;revisit_on:string};
-const emptyDraft=(today:string,prompt=''):Draft=>({id:null,occurred_on:today,occurred_time:'',kind:'momento',title:prompt,body:'',mood:null,tags:'',people:'',place:'',milestone:false,revisit_on:''});
-const toDraft=(entry:JournalEntry):Draft=>({id:entry.id,occurred_on:entry.occurred_on,occurred_time:entry.occurred_time,kind:entry.kind,title:entry.title,body:entry.body,mood:entry.mood,tags:entry.tags.join(', '),people:entry.people.join(', '),place:entry.place,milestone:entry.milestone,revisit_on:entry.revisit_on??''});
+type Draft={id:string|null;occurred_on:string;occurred_time:string;kind:JournalKind;title:string;body:string;mood:number|null;topics:string[];tags:string;people:string;place:string;milestone:boolean;revisit_on:string};
+const emptyDraft=(today:string,prompt=''):Draft=>({id:null,occurred_on:today,occurred_time:'',kind:'momento',title:prompt,body:'',mood:null,topics:[],tags:'',people:'',place:'',milestone:false,revisit_on:''});
+const toDraft=(entry:JournalEntry):Draft=>({id:entry.id,occurred_on:entry.occurred_on,occurred_time:entry.occurred_time,kind:entry.kind,title:entry.title,body:entry.body,mood:entry.mood,topics:entry.topics??[],tags:entry.tags.join(', '),people:entry.people.join(', '),place:entry.place,milestone:entry.milestone,revisit_on:entry.revisit_on??''});
 
 /** Life journal: write, search, look back ("neste dia", milestones, decisions to revisit) and export. */
 export function JournalView({initial,today,demo=false}:{initial:JournalEntry[];today:string;demo?:boolean}){
  const router=useRouter();
+ const topicOptions=useSettings().journal.topics;
  const [entries,setEntries]=useState(initial);
  const [filter,setFilter]=useState<JournalFilter>({});
  const [draft,setDraft]=useState<Draft|null>(null);
@@ -33,7 +35,7 @@ export function JournalView({initial,today,demo=false}:{initial:JournalEntry[];t
  const persist=async(next:Draft)=>{
   setBusy(true);setError('');
   try{
-   const input={occurred_on:next.occurred_on,occurred_time:next.occurred_time,kind:next.kind,title:next.title,body:next.body,mood:next.mood,tags:splitList(next.tags),people:splitList(next.people),place:next.place,milestone:next.milestone,revisit_on:next.revisit_on||null};
+   const input={occurred_on:next.occurred_on,occurred_time:next.occurred_time,kind:next.kind,title:next.title,body:next.body,mood:next.mood,topics:next.topics,tags:splitList(next.tags),people:splitList(next.people),place:next.place,milestone:next.milestone,revisit_on:next.revisit_on||null};
    const saved:JournalEntry=demo?{id:next.id??crypto.randomUUID(),...parseJournalEntry(input)}:await saveJournal(input,next.id);
    setEntries(current=>[saved,...current.filter(entry=>entry.id!==saved.id)]);
    setDraft(null);setNotice(demo?'Salvo só nesta demonstração.':next.id?'Entrada atualizada.':'Entrada salva no diário.');
@@ -63,6 +65,7 @@ export function JournalView({initial,today,demo=false}:{initial:JournalEntry[];t
    {long&&<button className="text-link" onClick={()=>toggle(entry.id)}>{open?'Mostrar menos':'Ler tudo'}</button>}
    <footer>
     <span className="journal-meta">
+     {(entry.topics??[]).map(topic=><button key={'topic'+topic} className="journal-topic" onClick={()=>setFilter({topic})}>{topic}</button>)}
      {entry.place&&<span><MapPin size={13}/>{entry.place}</span>}
      {entry.people.map(person=><button key={person} onClick={()=>setFilter({person})}><Users size={13}/>{person}</button>)}
      {entry.tags.map(tag=><button key={tag} onClick={()=>setFilter({tag})}>#{tag}</button>)}
@@ -119,6 +122,7 @@ export function JournalView({initial,today,demo=false}:{initial:JournalEntry[];t
     <button className={`button ${filter.milestones?'tinted':'secondary'}`} aria-pressed={!!filter.milestones} onClick={()=>setFilter({...filter,milestones:!filter.milestones||undefined})}><Star size={15}/>Marcos</button>
     {filtering&&<button className="text-link" onClick={()=>setFilter({})}>Limpar filtros</button>}
    </div>
+   {topicOptions.length>0&&<div className="journal-topic-filter" role="group" aria-label="Tópicos">{[...new Set([...topicOptions,...stats.topics.map(t=>t.name)])].map(topic=>{const total=stats.topics.find(t=>t.name===topic)?.total??0;return <button key={topic} className={`journal-topic${filter.topic===topic?' selected':''}`} aria-pressed={filter.topic===topic} onClick={()=>setFilter(filter.topic===topic?{...filter,topic:undefined}:{...filter,topic})}>{topic}{total>0&&<small>{total}</small>}</button>;})}</div>}
    {(filter.tag||filter.person)&&<p className="journal-active-filter">Mostrando {filter.tag?<b>#{filter.tag}</b>:<b>{filter.person}</b>} · {shown.length} {shown.length===1?'entrada':'entradas'}</p>}
    {(stats.people.length>0||stats.tags.length>0)&&!filtering&&<div className="journal-chips">
     {stats.people.slice(0,8).map(item=><button key={'p'+item.name} onClick={()=>setFilter({person:item.name})}><Users size={13}/>{item.name}<small>{item.total}</small></button>)}
@@ -141,6 +145,7 @@ export function JournalView({initial,today,demo=false}:{initial:JournalEntry[];t
     </div>
     <label>Título<input value={draft.title} maxLength={200} onChange={e=>setDraft({...draft,title:e.target.value})} placeholder="Em poucas palavras"/></label>
     <label>Texto<textarea rows={7} value={draft.body} maxLength={20000} onChange={e=>setDraft({...draft,body:e.target.value})} placeholder="Conte com calma: o que aconteceu, como se sentiu, o que quer lembrar."/></label>
+    <fieldset className="journal-topics-field"><legend>Tópicos</legend><div>{[...new Set([...topicOptions,...draft.topics])].map(topic=><button type="button" key={topic} aria-pressed={draft.topics.includes(topic)} className={`journal-topic${draft.topics.includes(topic)?' selected':''}`} onClick={()=>setDraft({...draft,topics:draft.topics.includes(topic)?draft.topics.filter(t=>t!==topic):[...draft.topics,topic]})}>{topic}</button>)}</div><small className="field-help">Edite a lista em Configurações › Diário.</small></fieldset>
     <div className="score-grid">
      <label>Pessoas<input value={draft.people} onChange={e=>setDraft({...draft,people:e.target.value})} placeholder="Sara, Caju"/></label>
      <label>Tags<input value={draft.tags} onChange={e=>setDraft({...draft,tags:e.target.value})} placeholder="tênis, trabalho, viagem"/></label>

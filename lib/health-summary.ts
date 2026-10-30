@@ -34,9 +34,10 @@ export function healthSummary({events,records,profile,today,settings=defaultSett
  const load=weeklyLoad(sessions,today,6,settings.training.defaultEffort).at(-1)!;
  const training={minutes:load.minutes,sessions:load.sessions,ratio:load.ratio,level:load.ratio===null?'Sem base':load.ratio>settings.training.spikeRatio?'Pico':load.ratio>settings.training.highRatio?'Acima':load.ratio>=0.8?'Ideal':'Abaixo'};
  // Energy and water
- const meals=days.map(d=>{const list=events.filter(e=>e.local_date===d);return {eaten:list.some(e=>e.type==='meal')?totals(list).calories??null:null,water:list.some(e=>e.type==='water')?totals(list).water??0:null,burned:dailyActivity(records as any,d).total};});
+ const meals=days.map(d=>{const list=events.filter(e=>e.local_date===d);return {eaten:list.some(e=>e.type==='meal')?totals(list).calories??null:null,water:list.some(e=>e.type==='water')?totals(list).water??0:null,caffeine:list.some(e=>e.type==='meal')?totals(list).caffeine??0:null,burned:dailyActivity(records as any,d).total};});
  const energy={eaten:r1(avg(meals.map(m=>m.eaten))),burned:r1(avg(meals.map(m=>m.burned)))};
  const water={avg:r1(avg(meals.map(m=>m.water)))};
+ const caffeine={avg:r1(avg(meals.map(m=>m.caffeine))),today:meals.at(-1)?.caffeine??null};
  // Body
  const body=records.filter(r=>r.category==='body_metrics').sort((a,b)=>a.recorded_on.localeCompare(b.recorded_on));
  const latestBody=body.at(-1);const previousBody=body.at(-2);
@@ -48,6 +49,6 @@ export function healthSummary({events,records,profile,today,settings=defaultSett
  const exams=readExams(profile.personal_exams);const list=markers(exams);
  const next=exams.filter(e=>e.next&&e.next>=today).sort((a,b)=>a.next.localeCompare(b.next))[0];
  const tests={out:list.filter(m=>m.status==='baixo'||m.status==='alto').map(m=>m.name),next:next?.next??null,nextLabel:next?(next.nextNote||next.title):null,markers:list.length};
- return {sleep,wellbeing,training,energy,water,body:bodyInfo,tests};
+ return {sleep,wellbeing,training,energy,water,caffeine,body:bodyInfo,tests};
 }
 export type HealthSummary=ReturnType<typeof healthSummary>;

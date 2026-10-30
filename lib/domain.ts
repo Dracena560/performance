@@ -1,10 +1,10 @@
 import { z } from 'zod';
 export const timezone='Europe/London';
 export const dayTypes=['dia sem tênis · caminhada com Caju','dia de tênis · jogo da liga','dia de tênis · jogo amistoso','dia de tênis · treino leve','dia de tênis · treino intenso','recuperação','customizado'] as const;
-export const metricInfo={water:['Água','ml'],calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],sodium:['Sódio','mg'],steps:['Passos','passos'],exercise:['Exercício','min'],sleep:['Sono','min']} as const;
+export const metricInfo={water:['Água','ml'],calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],caffeine:['Cafeína','mg'],sodium:['Sódio','mg'],steps:['Passos','passos'],exercise:['Exercício','min'],sleep:['Sono','min']} as const;
 export type Metric=keyof typeof metricInfo;
 /** Limits kept in the profile (personal_<key>_date_/_type_) because the days/templates tables predate them. Sugar uses the UK label reference of 90 g total sugars. */
-export const profileTargets={sodium:{kind:'maximum',min:null,max:2000},sugar:{kind:'maximum',min:null,max:90}} as const;
+export const profileTargets={sodium:{kind:'maximum',min:null,max:2000},sugar:{kind:'maximum',min:null,max:90},caffeine:{kind:'maximum',min:null,max:400}} as const;
 export type ProfileTargetKey=keyof typeof profileTargets;
 export const profileTargetKeys=Object.keys(profileTargets) as ProfileTargetKey[];
 export const targetSchema=z.object({kind:z.enum(['minimum','maximum','range','exact']),min:z.number().nonnegative().nullable(),max:z.number().positive().nullable()}).superRefine((v,c)=>{
@@ -24,9 +24,9 @@ export const groups={
 export const scoreKeys=Object.values(groups).flatMap(x=>Object.keys(x));
 export const scoresSchema=z.record(z.string(),z.number().min(0).max(10).nullable()).refine(x=>Object.keys(x).every(k=>scoreKeys.includes(k)),'Campo de check-in inválido');
 // Values are per 100 g. Sodium and micronutrients use mg; energy uses kcal.
-export const nutrients=['calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
+export const nutrients=['calories','protein','carbs','fat','saturated_fat','fibre','sugar','caffeine','sodium','vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
 export const micronutrients=['vitamin_a','vitamin_c','vitamin_d','vitamin_b12','folate','calcium','iron','magnesium','potassium','zinc'] as const;
-export const nutrientInfo={calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],sodium:['Sódio','mg'],vitamin_a:['Vitamina A','µg'],vitamin_c:['Vitamina C','mg'],vitamin_d:['Vitamina D','µg'],vitamin_b12:['Vitamina B12','µg'],folate:['Folato','µg'],calcium:['Cálcio','mg'],iron:['Ferro','mg'],magnesium:['Magnésio','mg'],potassium:['Potássio','mg'],zinc:['Zinco','mg']} as const;
+export const nutrientInfo={calories:['Calorias','kcal'],protein:['Proteína','g'],carbs:['Carboidratos','g'],fat:['Gordura','g'],saturated_fat:['Gordura saturada','g'],fibre:['Fibra','g'],sugar:['Açúcar','g'],caffeine:['Cafeína','mg'],sodium:['Sódio','mg'],vitamin_a:['Vitamina A','µg'],vitamin_c:['Vitamina C','mg'],vitamin_d:['Vitamina D','µg'],vitamin_b12:['Vitamina B12','µg'],folate:['Folato','µg'],calcium:['Cálcio','mg'],iron:['Ferro','mg'],magnesium:['Magnésio','mg'],potassium:['Potássio','mg'],zinc:['Zinco','mg']} as const;
 const nutrientShape=Object.fromEntries(nutrients.map(k=>[k,z.number().nonnegative().nullable()])) as Record<typeof nutrients[number],z.ZodNullable<z.ZodNumber>>;
 // Older meal snapshots did not include micronutrients, so omitted values remain unknown.
 export const nutritionSchema=z.object(nutrientShape).partial();

@@ -25,6 +25,8 @@ export const journalEntrySchema=z.object({
  body:z.string().trim().max(20000).default(''),
  mood:z.number().int().min(0).max(10).nullable().default(null),
  tags:list,
+ /** Fixed topics from Configurações › Diário (Religião, Santander, RapiDocs…). */
+ topics:list,
  people:list,
  place:z.string().trim().max(200).default(''),
  milestone:z.boolean().default(false),
@@ -37,24 +39,25 @@ const tidy=(values:string[])=>{const seen=new Map<string,string>();for(const raw
 /** Validates an entry; tags are lower-case without "#", people keep their spelling, duplicates go away. */
 export function parseJournalEntry(raw:unknown){
  const entry=journalEntrySchema.parse(raw);
- return {...entry,tags:tidy(entry.tags).map(tag=>tag.toLocaleLowerCase('pt-BR')),people:tidy(entry.people)};
+ return {...entry,tags:tidy(entry.tags).map(tag=>tag.toLocaleLowerCase('pt-BR')),topics:tidy(entry.topics),people:tidy(entry.people)};
 }
 
 const normalize=(value:string)=>value.normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase();
-export type JournalFilter={query?:string;kind?:string;tag?:string;person?:string;year?:string;milestones?:boolean;from?:string;to?:string};
+export type JournalFilter={query?:string;kind?:string;tag?:string;topic?:string;person?:string;year?:string;milestones?:boolean;from?:string;to?:string};
 /** Same filter on the page and in the MCP: words match title, text, place, tags and people, accents ignored. */
 export function filterJournal(entries:JournalEntry[],filter:JournalFilter){
  const words=normalize(filter.query??'').split(/\s+/).filter(Boolean);
  return entries.filter(entry=>{
   if(filter.kind&&entry.kind!==filter.kind)return false;
   if(filter.tag&&!entry.tags.some(tag=>normalize(tag)===normalize(filter.tag!)))return false;
+  if(filter.topic&&!(entry.topics??[]).some(topic=>normalize(topic)===normalize(filter.topic!)))return false;
   if(filter.person&&!entry.people.some(person=>normalize(person)===normalize(filter.person!)))return false;
   if(filter.year&&!entry.occurred_on.startsWith(filter.year))return false;
   if(filter.milestones&&!entry.milestone)return false;
   if(filter.from&&entry.occurred_on<filter.from)return false;
   if(filter.to&&entry.occurred_on>filter.to)return false;
   if(!words.length)return true;
-  const haystack=normalize([entry.title,entry.body,entry.place,...entry.tags,...entry.people].join(' '));
+  const haystack=normalize([entry.title,entry.body,entry.place,...entry.tags,...(entry.topics??[]),...entry.people].join(' '));
   return words.every(word=>haystack.includes(word));
  }).sort(byDateDesc);
 }
@@ -83,6 +86,7 @@ export function journalStats(entries:JournalEntry[],today:string){
   streak,
   mood30:moods.length?Math.round(moods.reduce((a,b)=>a+b,0)/moods.length*10)/10:null,
   tags:count(entries.flatMap(entry=>entry.tags)),
+  topics:count(entries.flatMap(entry=>entry.topics??[])),
   people:count(entries.flatMap(entry=>entry.people)),
   kinds:journalKinds.map(([id,label])=>({id,label,total:entries.filter(entry=>entry.kind===id).length})),
   years:[...new Set(entries.map(entry=>entry.occurred_on.slice(0,4)))].sort().reverse(),
@@ -106,7 +110,7 @@ export function journalMarkdown(entries:JournalEntry[]){
  const lines=['# Diário',''];let year='';
  for(const entry of [...entries].sort(byDateDesc).reverse()){
   if(entry.occurred_on.slice(0,4)!==year){year=entry.occurred_on.slice(0,4);lines.push(`## ${year}`,'');}
-  const meta=[kindLabel(entry.kind),entry.place,entry.people.length?`com ${entry.people.join(', ')}`:'',entry.mood!==null?`humor ${entry.mood}/10`:'',entry.tags.map(tag=>'#'+tag).join(' ')].filter(Boolean).join(' · ');
+  const meta=[kindLabel(entry.kind),(entry.topics??[]).join(', '),entry.place,entry.people.length?`com ${entry.people.join(', ')}`:'',entry.mood!==null?`humor ${entry.mood}/10`:'',entry.tags.map(tag=>'#'+tag).join(' ')].filter(Boolean).join(' · ');
   lines.push(`### ${entry.milestone?'★ ':''}${dateLabel(entry.occurred_on)}${entry.occurred_time?` ${entry.occurred_time}`:''}${entry.title?` — ${entry.title}`:''}`,`_${meta}_`,'');
   if(entry.body)lines.push(entry.body,'');
  }

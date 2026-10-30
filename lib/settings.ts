@@ -41,6 +41,7 @@ export const settingsSchema=z.object({
  reminders:z.object({windowDays:z.number().int().min(1).max(60).default(5),sources:z.array(z.enum(reminderSources)).default([...reminderSources])}).default({}),
  finance:z.object({emergencyMonths:z.number().min(1).max(24).default(6),includeChecking:z.boolean().default(true),subtractCard:z.boolean().default(true),incomeLabels:z.tuple([z.string().max(40),z.string().max(40)]).default(['Felipe','Sara']),retirement:retirementSchema}).default({}),
  training:z.object({defaultEffort:z.number().min(0).max(10).default(5),highRatio:z.number().min(1).max(3).default(1.3),spikeRatio:z.number().min(1).max(4).default(1.5)}).default({}),
+ journal:z.object({topics:z.array(z.string().trim().min(1).max(40)).max(40).default(['Religião','Santander','RapiDocs','Tênis','Financeiro','Psicológico','Saúde','Família','Sara','Caju','Carreira','Estudos','Viagens','Amizades','Casa','Brasil'])}).default({}),
  dog:z.object({careWindowDays:z.number().int().min(7).max(180).default(45),lowStock:z.number().int().min(0).max(100).default(5)}).default({})
 }).superRefine((s,c)=>{
  const ids=s.diary.topics.map(t=>t.id);if(new Set(ids).size!==ids.length)c.addIssue({code:'custom',message:'Cada tópico precisa de um identificador único.'});

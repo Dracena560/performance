@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Activity,ArrowUpRight,BedDouble,ChevronDown,Droplets,Dumbbell,FlaskConical,Flame,HeartPulse,Moon,Scale,Smile,Target,Utensils } from 'lucide-react';
+import { Coffee, Activity,ArrowUpRight,BedDouble,ChevronDown,Droplets,Dumbbell,FlaskConical,Flame,HeartPulse,Moon,Scale,Smile,Target,Utensils } from 'lucide-react';
 import { SleepDashboard } from './sleep-dashboard';
 import { ExerciseDashboard } from './exercise-dashboard';
 import { ExamsView } from './exams-view';
@@ -40,6 +40,7 @@ export function HealthHub({food,summary:s,sleepRecords,exerciseRecords,exams,tak
    <Tile tone={loadTone} icon={<Dumbbell size={16}/>} label="Treino · esta semana" value={String(s.training.minutes)} unit=" min" detail={`${s.training.sessions} ${s.training.sessions===1?'sessão':'sessões'} · carga ${s.training.ratio===null?'sem base':`${fmt(s.training.ratio,2)}× a média (${s.training.level.toLowerCase()})`}`}/>
    <Tile icon={<Flame size={16}/>} label="Energia · média 7 dias" value={fmt(s.energy.eaten,0)} unit=" kcal" detail={`Gasto ${fmt(s.energy.burned,0)} kcal${balance!==null?` · saldo ${balance>0?'+':''}${fmt(balance,0)} kcal/dia`:''}`}/>
    <Tile icon={<Droplets size={16}/>} label="Água · média 7 dias" value={fmt(s.water.avg,0)} unit=" ml" detail={targets?.water?`Meta de hoje ${targetLabel(targets.water)} ml`:'Defina a meta em Metas'}/>
+   <Tile tone={(s.caffeine.today??0)>(targets?.caffeine?.max??400)?'warn':''} icon={<Coffee size={16}/>} label="Cafeína · hoje" value={fmt(s.caffeine.today,0)} unit=" mg" detail={`Média 7 dias ${fmt(s.caffeine.avg,0)} mg · limite ${fmt(targets?.caffeine?.max??400,0)} mg/dia`}/>
    <Tile icon={<Scale size={16}/>} label="Corpo" value={fmt(s.body.weight)} unit=" kg" detail={[s.body.fat!==null?`gordura ${fmt(s.body.fat)}%`:'',s.body.change!==null?`${s.body.change>0?'+':''}${fmt(s.body.change)} kg`:'',s.body.vo2?`VO₂ max ${s.body.vo2}`:'',s.body.date?`medido em ${dateText(s.body.date)}`:''].filter(Boolean).join(' · ')||'Envie a bioimpedância pelo ChatGPT'}/>
    <Tile tone={s.tests.out.length?'warn':s.tests.markers?'good':''} icon={<FlaskConical size={16}/>} label="Exames" value={String(s.tests.out.length)} unit=" fora da faixa" detail={s.tests.out.slice(0,3).join(', ')||(s.tests.markers?'Tudo dentro da referência':'Nenhum exame registrado')} extra={s.tests.next?`Próxima data: ${dateText(s.tests.next)} (${s.tests.nextLabel})`:undefined}/>
   </section>

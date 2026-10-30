@@ -2,11 +2,12 @@
 import {useEffect,useMemo,useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import {ArrowDown,ArrowUp,Bell,Brain,Database,Dog,Download,Droplets,Dumbbell,Eye,EyeOff,Pill,Plus,RotateCcw,Save,Settings2,Sparkles,Target,Trash2,UserRound,Wallet,X} from 'lucide-react';
+import {ArrowDown,ArrowUp,Bell,BookHeart,Brain,Database,Dog,Download,Droplets,Dumbbell,Eye,EyeOff,Pill,Plus,RotateCcw,Save,Settings2,Sparkles,Target,Trash2,Upload,UserRound,Wallet,X} from 'lucide-react';
 import {Button} from './ui/button';
 import {ThemeToggle} from './theme-toggle';
 import {LanguageToggle} from './i18n';
-import {exportProfile,savePersonalSection} from '@/app/actions';
+import {backupExportChunk,backupRestoreChunk,savePersonalSection} from '@/app/actions';
+import {BACKUP_FORMAT,BACKUP_VERSION,CHUNK,backupTables,readBackup} from '@/lib/backup';
 import {defaultSettings,dimensionKeys,isBuiltin,navigationToggles,reminderSources,settingsSchema,type Settings,type Topic} from '@/lib/settings';
 
 const dimensionLabel:Record<string,string>={mente:'Mente',humor:'Humor',corpo:'Corpo',digestao:'Digestão'};
@@ -75,7 +76,16 @@ export function SettingsView({initial,demo=false}:{initial:Settings;demo?:boolea
  const topics=s.diary.topics;const ofKind=topics.map((t,i)=>({t,i})).filter(x=>x.t.kind===kind);
  const setTopics=(next:Topic[])=>patch('diary',{topics:next});
  const save=async()=>{setBusy(true);setError('');setMessage('');try{const parsed=settingsSchema.safeParse(s);if(!parsed.success)throw new Error(parsed.error.issues[0]?.message??'Revise os campos.');if(!demo)await savePersonalSection('settings',parsed.data);setMessage(demo?'Demonstração: nada foi salvo.':'Configurações salvas.');router.refresh();}catch(e){setError(e instanceof Error?e.message:'Não foi possível salvar.');}finally{setBusy(false);}};
- const download=async()=>{try{const data=demo?{personal_settings:s}:await exportProfile();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`painel-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);}catch(e){setError(e instanceof Error?e.message:'Não foi possível exportar.');}};
+ const [backup,setBackup]=useState('');
+ // Full backup: every table, page by page, assembled here so no single request gets too big.
+ const download=async()=>{if(demo){setError('Na demonstração não há dados para baixar.');return;}setError('');try{const tables:Record<string,unknown[]>={};for(const {table} of backupTables){const rows:unknown[]=[];for(let offset=0;;offset+=CHUNK){setBackup(`Lendo ${table}… ${rows.length}`);const page=await backupExportChunk(table,offset);rows.push(...page);if(page.length<CHUNK)break;}tables[table]=rows;}
+  const file={format:BACKUP_FORMAT,version:BACKUP_VERSION,exported_at:new Date().toISOString(),tables};const total=Object.values(tables).reduce((t,r)=>t+r.length,0);
+  const blob=new Blob([JSON.stringify(file)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`painel-backup-completo-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);setBackup(`Backup baixado: ${total} registros em ${backupTables.length} tabelas.`);}catch(e){setBackup('');setError(e instanceof Error?e.message:'Não foi possível gerar o backup.');}};
+ // Restore: the same file goes back table by table, in chunks; existing rows are updated, missing ones recreated.
+ const restore=async(file:File)=>{if(demo){setError('Na demonstração não é possível restaurar.');return;}setError('');try{const data=readBackup(JSON.parse(await file.text()));const counts=backupTables.map(({table})=>[table,data.tables[table]?.length??0] as const).filter(([,n])=>n>0);
+  if(!window.confirm(`Restaurar o backup de ${new Date(data.exported_at).toLocaleString('pt-BR')}?\n\n${counts.map(([t,n])=>`${t}: ${n}`).join('\n')}\n\nRegistros com o mesmo ID são substituídos pela versão do backup; o resto continua como está.`))return;
+  let saved=0,skipped=0;for(const [table] of counts){const rows=data.tables[table]!;for(let i=0;i<rows.length;i+=CHUNK){setBackup(`Restaurando ${table}… ${Math.min(i+CHUNK,rows.length)}/${rows.length}`);const r=await backupRestoreChunk(table,rows.slice(i,i+CHUNK));saved+=r.saved;skipped+=r.skipped;}}
+  setBackup(`Backup restaurado: ${saved} registros${skipped?` · ${skipped} não puderam ser gravados`:''}.`);router.refresh();}catch(e){setBackup('');setError(e instanceof Error?e.message:'Não foi possível restaurar.');}};
 
  return <div className="settings-page">
   <header className="page-heading"><div className="health-hero-lead"><span className="health-hero-icon" aria-hidden style={{['--icon-tint' as string]:'var(--sys-gray, #8e8e93)'}}><Settings2/></span><div><span className="eyebrow">AJUSTES</span><h1>Configurações</h1><p>Tudo o que o painel usa e que você pode mudar: opções do Registrar, notas, rotinas, metas, alertas e regras.</p></div></div></header>
@@ -175,12 +185,19 @@ export function SettingsView({initial,demo=false}:{initial:Settings;demo?:boolea
    </div>
   </Section>
 
-  <Section id="dados" icon={<Database size={19}/>} title="Seus dados" help="Cópia de segurança e restauração das configurações. O ChatGPT também lê e altera estas configurações pelo MCP (recurso configuracoes).">
+  <Section id="diario" icon={<BookHeart size={19}/>} title="Diário" help="Tópicos fixos para escolher ao escrever no diário, além das tags livres. Remover um tópico não apaga as entradas que já o usam." actions={<Link className="text-link" href={demo?'/demo/diario':'/diario'}>Abrir Diário</Link>}>
+   <ul className="set-chips">{s.journal.topics.map(topic=><li key={topic}><span>{topic}</span><button type="button" aria-label={`Remover ${topic}`} onClick={()=>patch('journal',{topics:s.journal.topics.filter(t=>t!==topic)})}><X size={14}/></button></li>)}</ul>
+   <AddField label="Novo tópico" placeholder="Ex.: Igreja, Projeto X" onAdd={v=>{if(!s.journal.topics.some(t=>t.toLocaleLowerCase('pt-BR')===v.toLocaleLowerCase('pt-BR')))patch('journal',{topics:[...s.journal.topics,v]});}}/>
+  </Section>
+
+  <Section id="dados" icon={<Database size={19}/>} title="Seus dados" help="Backup completo do banco: registros de saúde, refeições, água, sono, tênis, diário, finanças, bens, Caju, metas e configurações. O mesmo arquivo pode ser enviado aqui para restaurar tudo.">
    <div className="set-inline">
-    <Button variant="secondary" onClick={download}><Download size={16}/>Baixar backup (JSON)</Button>
+    <Button variant="secondary" onClick={download}><Download size={16}/>Baixar backup completo</Button>
+    <label className="button secondary set-upload"><Upload size={16}/>Restaurar backup<input type="file" accept="application/json,.json" hidden onChange={e=>{const f=e.target.files?.[0];e.target.value='';if(f)restore(f);}}/></label>
     <Button variant="destructive" onClick={()=>{if(window.confirm('Voltar todas as configurações ao padrão? Seus registros não são apagados. Clique em Salvar para confirmar.'))setS(defaultSettings);}}><RotateCcw size={16}/>Restaurar padrão</Button>
    </div>
-   <p className="field-help">O backup inclui perfil, finanças, carro, exames, Caju, liga e configurações. Guarde em local seguro: ele contém dados pessoais.</p>
+   {backup&&<p className="field-help" role="status">{backup}</p>}
+   <p className="field-help">Guarde o arquivo em local seguro: ele contém todos os seus dados pessoais. Restaurar não apaga nada: atualiza o que tem o mesmo ID e recria o que estiver faltando.</p>
   </Section>
 
   {(dirty||message||error)&&<div className="set-savebar glass show" role="status">

@@ -29,11 +29,11 @@ export async function saveEvent(input:EventInput,id?:string){
 export async function deleteEvent(id:string){const {db,user}=await context();const {error}=await db.from('events').delete().eq('id',z.string().uuid().parse(id)).eq('user_id',user.id);check(error);revalidatePath('/','layout');}
 export async function saveFood(input:unknown){const value=foodSchema.parse(input);const {db,user}=await context();const result=await db.from('foods').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
 export async function saveMealTemplate(input:unknown){const value=z.object({name:z.string().trim().min(1).max(200),items:z.array(itemSchema).min(1)}).parse(input);const {db,user}=await context();const result=await db.from('meal_templates').insert({...value,user_id:user.id}).select().single();check(result.error);return result.data;}
-const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','sugar','sodium','steps','exercise','sleep']),targetSchema);
+const targetsSchema=z.record(z.enum(['water','calories','protein','carbs','fat','saturated_fat','fibre','sugar','caffeine','sodium','steps','exercise','sleep']),targetSchema);
 export async function saveTargets(date:string,day_type:string,targets:unknown,asTemplate:boolean){
  const parsed=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),day_type:z.enum(dayTypes),targets:targetsSchema}).parse({date,day_type,targets});
  const session=await context();const user={id:healthUserId()??session.user.id};const db=healthUserId()?healthService():session.db;
- const {sodium,sugar,...coreTargets}=parsed.targets;const limits={sodium,sugar};
+ const {sodium,sugar,caffeine,...coreTargets}=parsed.targets;const limits={sodium,sugar,caffeine};
  const {error}=await db.from('days').upsert({user_id:user.id,local_date:parsed.date,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,local_date'});check(error);
  if(asTemplate){const result=await db.from('target_templates').upsert({user_id:user.id,name:parsed.day_type,day_type:parsed.day_type,targets:coreTargets},{onConflict:'user_id,day_type'});check(result.error);}
  const extra:Record<string,unknown>={};for(const metric of profileTargetKeys){extra[`personal_${metric}_date_${parsed.date}`]=limits[metric]??null;if(asTemplate)extra[`personal_${metric}_type_${parsed.day_type}`]=limits[metric]??null;}await mergeProfileSection(extra);
@@ -126,8 +126,6 @@ export async function refreshPortfolio(snapshot=false){
  return {...live,snapshot:snap};
 }
 
-/** Everything stored in the owner's profile, for a JSON backup. */
-export async function exportProfile(){const session=await context();const db=healthUserId()?healthService():session.db;const result=await db.from('health_profiles').select('profile').eq('user_id',healthUserId()??session.user.id).maybeSingle();if(result.error)throw new Error('Não foi possível exportar.');return {exported_at:new Date().toISOString(),profile:result.data?.profile??{}};}
 
 export async function saveInvestment(input:unknown){const {investmentSnapshotSchema,appendSnapshot,investmentsSchema}=await import('@/lib/investments');const {updateProfile}=await import('@/lib/profile-store');const {priceInPounds}=await import('@/lib/investment-fx');const snapshot=await priceInPounds(investmentSnapshotSchema.parse(input));const session=await context();const db=healthUserId()?healthService():session.db;const saved=await updateProfile(db,healthUserId()??session.user.id,profile=>({...profile,personal_investments:appendSnapshot(investmentsSchema.parse(profile.personal_investments??[]),snapshot)}));revalidatePath('/','layout');return {saved:true,id:snapshot.id,snapshot:saved.personal_investments.find((s:any)=>s.id===snapshot.id)};}
 
@@ -169,4 +167,14 @@ export async function saveJournal(input:unknown,id:string|null=null){
 export async function deleteJournal(id:string){
  const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
  const {deleteJournalEntry}=await import('@/lib/journal-data');await deleteJournalEntry(db,userId,id);revalidatePath('/diario');return true;
+}
+
+/** Full backup (Configurações › Seus dados): read one page of a table, or restore one chunk. The browser assembles and splits the file. */
+export async function backupExportChunk(table:string,offset:number){
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ const {exportRows}=await import('@/lib/backup');return exportRows(db,userId,table,z.number().int().min(0).parse(offset));
+}
+export async function backupRestoreChunk(table:string,rows:unknown[]){
+ const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
+ const {restoreRows}=await import('@/lib/backup');const result=await restoreRows(db,userId,table,rows);revalidatePath('/','layout');return result;
 }

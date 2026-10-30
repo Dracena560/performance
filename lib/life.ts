@@ -33,7 +33,8 @@ export type Preferences={series?:z.infer<typeof seriesPreferenceSchema>[]} & {[k
 export function cleanPreferences(input:Record<string,any>):Preferences{return Object.fromEntries(Object.entries(input).filter(([key])=>!['Carros.','Música.','Filmes.'].some(prefix=>key.startsWith(prefix))&&key!=='Comida.Intolerâncias')) as Preferences;}
 
 export const reminderWindowDays=5;
-export type Reminder={id:string;name:string;source:string;date:string;days:number;level:string;amount:string|null};
+/** `group` is the reminder source family (Carro, Contas, Gastos fixos, Cartão de crédito, Bens, Documentos e datas, Exames, Pet). */
+export type Reminder={id:string;name:string;source:string;group:string;date:string;days:number;level:string;amount:string|null};
 const dayMs=86400000;
 const daysBetween=(from:string,to:string)=>Math.round((Date.parse(to+'T12:00:00Z')-Date.parse(from+'T12:00:00Z'))/dayMs);
 const money=(value:number|null|undefined,currency='GBP')=>typeof value==='number'&&Number.isFinite(value)?new Intl.NumberFormat('en-GB',{style:'currency',currency}).format(value):null;
@@ -43,7 +44,7 @@ function upcoming(date:string,today:string,monthly:boolean){if(!date||!dateValue
 export function nextCarPayment(financing:Record<string,any>|undefined,today:string){const paymentDay=Number(financing?.paymentDay);return upcoming(financing?.nextPayment??'',today,true)||(Number.isInteger(paymentDay)&&paymentDay>=1&&paymentDay<=31?nextMonthlyDate(paymentDay,today):'');}
 export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  const rules=readSettings(profile.personal_settings).reminders;
- const all:Omit<Reminder,'days'|'level'>[]=[];const car=profile.personal_car??{},extra=car.extra??{},financing=extra.financing??{};
+ const all:Omit<Reminder,'days'|'level'|'group'>[]=[];const car=profile.personal_car??{},extra=car.extra??{},financing=extra.financing??{};
  const rows:unknown[]=Array.isArray(profile.personal_finance?.rows)?profile.personal_finance.rows:[];
  // A fixed expense that explicitly represents the car finance is the canonical
  // monthly reminder. Do not add the same instalment again from the car profile.
@@ -58,6 +59,6 @@ export function reminders(profile:Record<string,any>,today:string):Reminder[]{
  all.push(...examReminders(readExams(profile.personal_exams)));
  all.push(...assetReminders(readAssets(profile.personal_assets),today));
  if(profile.personal_dog)all.push(...dogReminders(readDog(profile.personal_dog),today));
- const group=(r:Omit<Reminder,'days'|'level'>)=>r.id.startsWith('car-')?'Carro':r.id.startsWith('bill-')?'Contas':r.id.startsWith('expense-')?'Gastos fixos':r.id==='credit-card'?'Cartão de crédito':r.id.startsWith('date-')?'Documentos e datas':r.id.startsWith('exam-')?'Exames':r.id.startsWith('dog-')?'Pet':r.id.startsWith('asset-')?'Bens':'';
- return all.filter(r=>(rules.sources as string[]).includes(group(r))).filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=rules.windowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
+ const group=(r:Omit<Reminder,'days'|'level'|'group'>)=>r.id.startsWith('car-')?'Carro':r.id.startsWith('bill-')?'Contas':r.id.startsWith('expense-')?'Gastos fixos':r.id==='credit-card'?'Cartão de crédito':r.id.startsWith('date-')?'Documentos e datas':r.id.startsWith('exam-')?'Exames':r.id.startsWith('dog-')?'Pet':r.id.startsWith('asset-')?'Bens':'';
+ return all.filter(r=>(rules.sources as string[]).includes(group(r))).filter(r=>dateValue.safeParse(r.date).success).map(r=>{const days=daysBetween(today,r.date);return {...r,group:group(r),days,level:days===0?'Hoje':days===1?'Amanhã':`Em ${days} dias`};}).filter(r=>r.days>=0&&r.days<=rules.windowDays).sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name,'pt-BR'));
 }
