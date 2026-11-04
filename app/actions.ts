@@ -135,17 +135,18 @@ export async function updateTennisDetails(recordId:unknown,input:unknown){
  const value=z.object({match_type:z.string().max(100),opponent_or_partner:z.string().max(200),partner:z.string().max(200).optional(),duration_minutes:z.number().finite().nonnegative().nullable(),analysis:z.string().max(10000)}).parse(input);
  const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
  const current=await db.from('health_records').select('payload').eq('id',id).eq('user_id',userId).in('category',['tennis','workout','activity']).single();check(current.error);if(!current.data)throw new Error('Partida não encontrada.');
- const {withRosterIds}=await import('@/lib/tennis-club');const {loadRoster}=await import('@/lib/tennis-league');
+ const {doublesLineupError,withRosterIds}=await import('@/lib/tennis-club');const {loadRoster}=await import('@/lib/tennis-league');
  // The edited names are the source here: drop old links so they are resolved again from the roster.
- const merged:Record<string,unknown>={...(current.data.payload as Record<string,unknown>),...value};delete merged.opponent_ids;delete merged.opponent_id;if(value.partner!==undefined)delete merged.partner_id;
- const result=await db.from('health_records').update({payload:withRosterIds(merged,await loadRoster(db,userId))}).eq('id',id).eq('user_id',userId).in('category',['tennis','workout','activity']);check(result.error);revalidatePath('/','layout');return true;
+ const merged:Record<string,unknown>={...(current.data.payload as Record<string,unknown>),...value};for(const key of ['opponent_ids','opponent_id','opponentIds','opponentId','opponent','opponents'])delete merged[key];if(value.partner!==undefined){delete merged.partner_id;delete merged.partnerId;}
+ const roster=await loadRoster(db,userId);const lineup=doublesLineupError(merged,roster);if(lineup)throw new Error(lineup);
+ const result=await db.from('health_records').update({payload:withRosterIds(merged,roster)}).eq('id',id).eq('user_id',userId).in('category',['tennis','workout','activity']);check(result.error);revalidatePath('/','layout');return true;
 }
 
 /** Registers a tennis match, or completes the same-day record (scheduled game or Apple Watch workout) instead of duplicating it. */
 export async function saveTennisMatch(raw:unknown){
- const {tennisMatchPayload}=await import('@/lib/tennis-pending');const {withRosterIds}=await import('@/lib/tennis-club');const {loadRoster}=await import('@/lib/tennis-league');
+ const {tennisMatchPayload}=await import('@/lib/tennis-pending');const {doublesLineupError,withRosterIds}=await import('@/lib/tennis-club');const {loadRoster}=await import('@/lib/tennis-league');
  const session=await context();const userId=healthUserId()??session.user.id,db=healthUserId()?healthService():session.db;
- const {input,payload:typed}=tennisMatchPayload(raw);const payload=withRosterIds(typed,await loadRoster(db,userId));
+ const {input,payload:typed}=tennisMatchPayload(raw);const roster=await loadRoster(db,userId);const lineup=doublesLineupError(typed,roster);if(lineup)throw new Error(lineup);const payload=withRosterIds(typed,roster);
  if(input.record_id){
   const current=await db.from('health_records').select('payload').eq('id',input.record_id).eq('user_id',userId).in('category',['tennis','workout','activity']).single();check(current.error);if(!current.data)throw new Error('Partida não encontrada.');
   const result=await db.from('health_records').update({payload:{...(current.data.payload as Record<string,unknown>),...payload}}).eq('id',input.record_id).eq('user_id',userId).select().single();check(result.error);revalidatePath('/','layout');return result.data;

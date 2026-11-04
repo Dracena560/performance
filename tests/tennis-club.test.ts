@@ -41,3 +41,22 @@ test('records show roster names and get roster ids',()=>{
  assert.deepEqual(saved.opponent_ids,['hani-al-hallak']);
  assert.equal(saved.partner_id,'ash');
 });
+
+import { doublesLineupError, touchesLineup } from '../lib/tennis-club';
+const team=[{id:'me',name:'Felipe',me:true},{id:'a',name:'Ash'},{id:'h',name:'Hani'},{id:'s',name:'Satyam'}];
+test('doubles written with any field name show the same people',()=>{
+ const camel=recordParticipants({opponent:'Hani & Satyam',opponentIds:['h','s'],partner:'Ash',partnerId:'a'},team);
+ assert.deepEqual(camel.opponents.map(p=>p.id),['h','s']);assert.equal(camel.partner?.id,'a');
+ assert.deepEqual(recordParticipants({opponent:'Hani e Roberto',opponents:['Hani','Roberto']},team).opponents.map(p=>p.name),['Hani','Roberto']);
+ assert.deepEqual(recordParticipants({opponents:['Hani','Satyam']},team).opponents.map(p=>p.id),['h','s']);
+});
+test('doubles require a partner and two registered opponents',()=>{
+ const ok={match_type:'Duplas',partner:'Ash',opponent_or_partner:'Hani & Satyam'};
+ assert.equal(doublesLineupError(ok,team),null);
+ assert.match(doublesLineupError({match_type:'Duplas',partner:'Ash'},team)!,/parceiro e dos 2 advers/);
+ assert.match(doublesLineupError({...ok,partner:'Jamie'},team)!,/Cadastre primeiro.*Jamie/);
+ assert.match(doublesLineupError({...ok,partner:'Felipe'},team)!,/Você já está/);
+ assert.match(doublesLineupError({...ok,partner:'Hani'},team)!,/uma vez/);
+ assert.equal(doublesLineupError({match_type:'Simples · Amistoso',opponent_or_partner:'Alguém'},team),null);
+ assert.equal(touchesLineup(['partner']),true);assert.equal(touchesLineup(['duration_minutes']),false);
+});

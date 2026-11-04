@@ -242,6 +242,15 @@ const shownKeys = [
   "Tipo de sessão",
   "Tipo informado",
   "opponent_or_partner",
+  "opponent",
+  "opponents",
+  "opponent_id",
+  "opponentId",
+  "opponent_ids",
+  "opponentIds",
+  "partner",
+  "partner_id",
+  "partnerId",
   "Adversário",
   "Parceiro",
   "duration_minutes",
@@ -260,10 +269,12 @@ const shownKeys = [
 function TennisDetails({
   session,
   me,
+  players,
   onClose,
 }: {
   session: Session;
   me: string;
+  players: string[];
   onClose: () => void;
 }) {
   const checkin = [
@@ -371,6 +382,7 @@ function TennisDetails({
           partner={session.partner}
           duration={session.duration}
           analysis={session.analysis}
+          players={players}
           onSaved={onClose}
         />
         <WorkoutDetails
@@ -1630,6 +1642,7 @@ export function TennisDashboard({
               partner={editingSession.partner}
               duration={editingSession.duration}
               analysis={editingSession.analysis}
+              players={roster.filter((p) => !p.me).map((p) => p.name)}
               expanded
               onSaved={() => setEditingSession(null)}
             />
@@ -1684,6 +1697,7 @@ export function TennisDashboard({
         <TennisDetails
           session={selected}
           me={me}
+          players={roster.filter((p) => !p.me).map((p) => p.name)}
           onClose={() => setSelected(null)}
         />
       )}

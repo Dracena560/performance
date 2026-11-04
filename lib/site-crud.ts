@@ -9,7 +9,8 @@ import { carSchema,financeSchema,tripSchema,initialFinance } from './personal';
 import { billsSchema,datesSchema,preferencesSchema,dateValue,defaultBills } from './life';
 import { investmentsSchema } from './investments';
 import { creditCardSchema,initialCreditCard } from './credit-card';
-import { tennisLeagueSchema,initialTennisLeague } from './tennis-league';
+import { tennisLeagueSchema,initialTennisLeague,loadRoster } from './tennis-league';
+import { doublesLineupError,touchesLineup } from './tennis-club';
 import { updateProfile } from './profile-store';
 import { examsSchema } from './exams';
 import { dogSchema,initialDog } from './dog';
@@ -101,6 +102,8 @@ export async function siteWrite(db:SupabaseClient,userId:string,mode:'add'|'edit
  if(mode==='edit')for(const op of args.operations??[]){const root=String(op.path).split('/')[1];if(metadata.has(root)&&!(root==='local_date'&&['dias_metas','agenda'].includes(resource)))throw new Error('Campo interno não editável: '+root);}
  const candidate=mode==='add'?args.data:patchData(current,args.operations);if(mode==='edit'&&(candidate.id!==current.id||candidate.user_id!==undefined))throw new Error('Não altere IDs internos.');
  const data=validateResource(config,resource,candidate) as any;if(resource==='eventos')data.local_date=localDate(new Date(data.timestamp));const limits:Record<string,unknown>=Object.fromEntries(profileTargetKeys.map(metric=>[metric,data.targets?.[metric]]));if(['dias_metas','modelos_metas'].includes(resource)){for(const metric of profileTargetKeys)delete data.targets[metric];}
+ // Doubles always point at registered players, whichever generic tool writes them.
+ if(resource==='registros'&&['tennis','workout','activity'].includes(data.category)&&(mode==='add'||touchesLineup((args.operations??[]).map((op:any)=>String(op.path).replace(/^\/payload\//,''))))){const error=doublesLineupError(data.payload,await loadRoster(db,userId));if(error)throw new Error(error);}
  const write=mode==='add'?query.insert({...data,[idKey]:id,user_id:userId}):guarded(query.update(data).eq('user_id',userId).eq(idKey,id),previous.data);const result=await write.select().single();if(result.error)throw new Error('Não foi possível salvar: '+result.error.message);
  if(['dias_metas','modelos_metas'].includes(resource)){await updateProfile(db,userId,p=>({...p,...Object.fromEntries(profileTargetKeys.map(metric=>[resource==='dias_metas'?`personal_${metric}_date_${data.local_date}`:`personal_${metric}_type_${data.day_type}`,limits[metric]??null]))}));}
  return {id,saved:true,...await siteRead(db,userId,{resource,id,limit:1})};

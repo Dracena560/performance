@@ -3,7 +3,7 @@ import {z} from 'zod';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {exerciseCategory,exercisePayloadSchema} from './exercise-records';
 import {siteRead,siteWrite} from './site-crud';
-import {withRosterIds} from './tennis-club';
+import {doublesLineupError,touchesLineup,withRosterIds} from './tennis-club';
 import {loadRoster} from './tennis-league';
 export async function saveExercise(db:SupabaseClient,userId:string,args:Record<string,unknown>,tennis=false){
  const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(args.date);
@@ -11,7 +11,10 @@ export async function saveExercise(db:SupabaseClient,userId:string,args:Record<s
  if(typeof args.notes==='string'&&args.notes)payload.notes=args.notes;
  const category=exerciseCategory(payload,tennis);
  // Tennis records always point at the league roster, the single player registry.
- if(category==='tennis'||tennis)Object.assign(payload,withRosterIds(payload as Record<string,unknown>,await loadRoster(db,userId)));
+ const roster=category==='tennis'||tennis?await loadRoster(db,userId):[];
+ // Partial updates only normalize what they send; lineup rules run below, on the whole record.
+ const typed=payload as Record<string,unknown>;const sent=Object.keys(typed);
+ if(sent.some(key=>touchesLineup([key]))&&(category==='tennis'||tennis)){const normal=withRosterIds(typed,roster);for(const key of sent)if(!(key in normal))delete typed[key];Object.assign(typed,normal);}
  let explicit=args.record_id??record_id;
  if(!explicit&&payload.started_at){
   const existing=await db.from('health_records').select('id,category,payload').eq('user_id',userId).eq('recorded_on',date);
@@ -25,6 +28,7 @@ export async function saveExercise(db:SupabaseClient,userId:string,args:Record<s
  const id=explicit?z.string().uuid().parse(explicit):hash?`${hash.slice(0,8)}-${hash.slice(8,12)}-4${hash.slice(13,16)}-8${hash.slice(17,20)}-${hash.slice(20,32)}`:randomUUID();
  const read=await siteRead(db,userId,{resource:'registros',id});const item=read.items?.[0];
  if(explicit&&!item)throw new Error('Registro indicado não encontrado. Consulte os registros antes de atualizar.');
+ if(category==='tennis'||tennis){const merged={...(item?.data.payload??{}),...typed};if(!item||touchesLineup(sent)){const error=doublesLineupError(merged,roster);if(error)throw new Error(error);}}
  if(item){if(!['activity','workout','tennis','daily_metrics'].includes(item.data.category)||item.data.recorded_on!==date||(item.data.category==='daily_metrics')!==(category==='daily_metrics'))throw new Error('O registro indicado não corresponde ao tipo/data enviado.');
  const safeCategory=item.data.category==='tennis'?'tennis':category;
  return siteWrite(db,userId,'edit',{resource:'registros',id,expected_version:item.version,operations:[{op:'replace',path:'/category',value:safeCategory},...(category==='daily_metrics'?[{op:'replace',path:'/recorded_at',value:payload.snapshot_at??new Date().toISOString()}]:[]),...Object.entries(payload).map(([key,value])=>({op:'add',path:'/payload/'+key.replaceAll('~','~0').replaceAll('/','~1'),value}))]});}

@@ -46,12 +46,17 @@ const participant=(id:unknown,text:string,roster:TennisRosterPlayer[]):Participa
 const textField=(payload:Record<string,unknown>,keys:string[])=>{for(const key of keys){const value=payload[key];if(typeof value==='string'&&value.trim())return value.trim();}return '';};
 /** Opponents and partner of a tennis record, named from the roster whenever possible. */
 export function recordParticipants(payload:Record<string,unknown>,roster:TennisRosterPlayer[]){
- const ids=Array.isArray(payload.opponent_ids)?payload.opponent_ids.filter((id):id is string=>typeof id==='string'):typeof payload.opponent_id==='string'&&payload.opponent_id?[payload.opponent_id]:[];
- const names=splitPlayerNames(textField(payload,['opponent_or_partner','Adversário']));
+ // Records came from the site, ChatGPT and imports with different field names: all of them mean the same people.
+ const list=(value:unknown)=>Array.isArray(value)?value.filter((item):item is string=>typeof item==='string'&&!!item.trim()):[];
+ const single=[payload.opponent_id,payload.opponentId].find((id):id is string=>typeof id==='string'&&!!id);
+ const ids=list(payload.opponent_ids).length?list(payload.opponent_ids):list(payload.opponentIds).length?list(payload.opponentIds):single?[single]:[];
+ const typed=textField(payload,['opponent_or_partner','opponent','Adversário']);
+ const names=typed?splitPlayerNames(typed):list(payload.opponents);
  const count=Math.max(ids.length,names.length);
  const opponents=Array.from({length:count},(_,i)=>participant(ids[i],names[i]??'',roster)).filter(item=>item.name);
  const partnerText=textField(payload,['partner']);
- const partner=partnerText||payload.partner_id?participant(payload.partner_id,partnerText,roster):null;
+ const partnerId=payload.partner_id||payload.partnerId;
+ const partner=partnerText||partnerId?participant(partnerId,partnerText,roster):null;
  return {opponents,partner:partner?.name?partner:null};
 }
 /** Rewrites a record payload so names come from the roster and ids point at it; unknown names stay as typed. */
@@ -60,7 +65,25 @@ export function withRosterIds(payload:Record<string,unknown>,roster:TennisRoster
  const out:Record<string,unknown>={...payload};
  if(opponents.length){out.opponent_or_partner=opponents.map(item=>item.name).join(' & ');out.opponent_ids=opponents.map(item=>item.id).filter(Boolean);}
  if(partner){out.partner=partner.name;if(partner.id)out.partner_id=partner.id;else delete out.partner_id;}
+ delete out.opponent;delete out.opponentId;delete out.opponentIds;delete out.partnerId;
  return out;
+}
+const sessionType=(payload:Record<string,unknown>)=>textField(payload,['match_type','type','Tipo de sessão','Tipo informado']);
+const lineupKeys=/^(partner|partner_id|partnerId|opponent|opponents|opponent_or_partner|opponent_id|opponentId|opponent_ids|opponentIds|match_type|type)$/;
+/** Whether a change touches the session type or who played, the only changes that need the doubles check. */
+export const touchesLineup=(keys:string[])=>keys.some(key=>lineupKeys.test(key));
+/** Doubles need the partner and two opponents, all from the player list. Returns what is wrong, or null. */
+export function doublesLineupError(payload:Record<string,unknown>,roster:TennisRosterPlayer[]){
+ if(matchGroup(sessionType(payload))!=='doubles')return null;
+ const {opponents,partner}=recordParticipants(payload,roster);
+ if(!partner||opponents.length<2)return 'Sessão de duplas precisa do parceiro e dos 2 adversários.';
+ if(opponents.length>2)return 'Sessão de duplas tem só 2 adversários.';
+ const people=[partner,...opponents];
+ const missing=people.filter(person=>!person.id).map(person=>person.name);
+ if(missing.length)return `Cadastre primeiro em Tênis › Jogadores: ${missing.join(', ')}.`;
+ if(people.some(person=>roster.find(player=>player.id===person.id)?.me))return 'Você já está na dupla: escolha outro parceiro ou adversário.';
+ if(new Set(people.map(person=>person.id)).size<3)return 'Cada jogador só pode aparecer uma vez na partida.';
+ return null;
 }
 export function matchGroup(type:string){const t=type.toLowerCase();if(/trein|training/.test(t))return 'training';if(/dupla|double/.test(t))return 'doubles';if(/liga|league/.test(t))return 'league';if(/amist|friendly/.test(t))return 'friendly';return 'other';}
 export function participantName(players:TennisRosterPlayer[],id:string){return players.find(player=>player.id===id)?.name??'';}

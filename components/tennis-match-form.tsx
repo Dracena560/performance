@@ -39,7 +39,7 @@ export function TennisMatchForm({me,players:givenPlayers,initial,onSaved}:{me:st
   }catch(e){setError((e as Error).message);}finally{setBusy(false);}
  };
  // Players come only from the roster (Jogadores), so the same person is never typed twice in different ways.
- const playerInput=(label:string,value:string,onChange:(value:string)=>void)=><label>{label}<select value={value} onChange={e=>onChange(e.target.value)}><option value="">Escolher jogador…</option>{[...new Set([...(value&&!players.includes(value)?[value]:[]),...players])].map(name=><option key={name} value={name}>{name}</option>)}</select></label>;
+ const playerInput=(label:string,value:string,onChange:(value:string)=>void)=><label>{label}<select required={doubles} value={value} onChange={e=>onChange(e.target.value)}><option value="">Escolher jogador…</option>{[...new Set([...(value&&!players.includes(value)?[value]:[]),...players])].map(name=><option key={name} value={name}>{name}</option>)}</select></label>;
  return <form className="form-stack tennis-match-form" onSubmit={submit}>
   <div className="score-grid">
    <label>Data<input name="date" type="date" required defaultValue={initial?.date??localDate()}/></label>
@@ -49,7 +49,7 @@ export function TennisMatchForm({me,players:givenPlayers,initial,onSaved}:{me:st
    {doubles&&playerInput('Adversário 2',opponents[1],value=>setOpponents([opponents[0],value]))}
    <label>Duração (min)<input name="duration_minutes" type="number" min="0" step="any"/></label>
   </div>
-  {!training&&!players.length&&<p className="field-help">Cadastre os jogadores em Tênis → Jogadores para escolhê-los aqui.</p>}
+  {doubles?<p className="field-help">Em duplas, escolha o parceiro e os 2 adversários. Não achou alguém? Cadastre primeiro em Tênis › Jogadores.</p>:!training&&!players.length&&<p className="field-help">Cadastre os jogadores em Tênis → Jogadores para escolhê-los aqui.</p>}
   {!training&&<div className="scoreboard-entry">
    <h3>Placar por sets</h3>
    <p className="field-help">{us} vs {them}. O resultado é calculado pelos sets.</p>
