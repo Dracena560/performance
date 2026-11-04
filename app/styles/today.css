@@ -490,3 +490,36 @@
 .deadline-group li+li{border-top:0}
 .deadline-group li.urgent{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--danger) 30%,transparent)}
 .deadline-group h3 small{margin-left:4px}
+
+/* Assistant on Hoje: the Claude-style field, with the conversation above it. */
+.assistant-box{display:grid;gap:var(--s-3);min-width:0}
+.assistant-box.has-thread{padding:var(--s-4);border-radius:var(--r-lg);background:var(--bg-2);box-shadow:var(--shadow-1)}
+.assistant-field{border:1px solid var(--separator);border-radius:24px;background:var(--bg-2);box-shadow:var(--shadow-1);padding:10px 12px;min-width:0}
+.assistant-box.has-thread .assistant-field{box-shadow:none}
+.assistant-field:focus-within{border-color:var(--accent)}
+.assistant-row{display:flex;align-items:flex-end;gap:var(--s-2)}
+.assistant-row textarea{flex:1;min-width:0;min-height:36px;max-height:180px;resize:none;border:0;background:transparent;box-shadow:none;padding:7px 4px;font:inherit;font-size:var(--fs-body);line-height:1.4;outline:none}
+.assistant-icon,.assistant-send{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%}
+.assistant-icon{color:var(--label)}
+.assistant-icon:hover:not(:disabled){background:var(--fill-3)}
+.assistant-send{background:var(--accent);color:#fff}
+.assistant-send:disabled{background:var(--fill-2);color:var(--label-3)}
+.assistant-attachments{display:flex;flex-wrap:wrap;gap:var(--s-2);padding:2px 2px var(--s-2)}
+.assistant-attachments span{position:relative;display:block}
+.assistant-attachments img{display:block;width:64px;height:64px;object-fit:cover;border-radius:12px}
+.assistant-attachments button{position:absolute;top:-5px;right:-5px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--label);color:var(--bg-2)}
+.assistant-thread{display:grid;gap:var(--s-3);max-height:min(60vh,520px);overflow-y:auto;padding:2px}
+.assistant-new{justify-self:end;font-size:var(--fs-footnote)}
+.assistant-turn{display:grid;gap:var(--s-2);max-width:88%;min-width:0;justify-self:start}
+.assistant-turn p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--fs-subhead);line-height:1.45}
+.assistant-turn.user{justify-self:end;padding:8px 14px;border-radius:18px;background:var(--fill-3)}
+.assistant-images{display:flex;flex-wrap:wrap;gap:6px}
+.assistant-images img{max-width:160px;max-height:160px;border-radius:12px}
+.assistant-steps{display:grid;gap:3px;margin:0;padding:0;list-style:none}
+.assistant-steps li{display:flex;align-items:center;gap:6px;font-size:var(--fs-footnote);color:var(--label-2)}
+.assistant-steps li.ok svg{color:var(--sys-green)}
+.assistant-steps li.error{color:var(--danger)}
+.assistant-wait{display:flex;align-items:center;gap:6px;color:var(--label-2)}
+.assistant-spin{animation:assistant-spin 1s linear infinite}
+@keyframes assistant-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.assistant-spin{animation:none}}
