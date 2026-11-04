@@ -1,8 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { z } from 'zod';
 
-/** Sonnet 5.5 by default; ANTHROPIC_MODEL on Vercel switches model without touching the code. */
-export const assistantModel=()=>process.env.ANTHROPIC_MODEL||'claude-sonnet-5-5';
+/** Haiku 5.5, the cheapest model, by default; ANTHROPIC_MODEL on Vercel switches model without touching the code. */
+export const assistantModel=()=>process.env.ANTHROPIC_MODEL||'claude-haiku-5-5';
+/** Haiku has no server-side refusal fallback; other models get the recommended one. */
+const fallbackParams=(model:string)=>model.includes('haiku')?{}:{betas:['server-side-fallback-2026-07-01'],fallbacks:'default'};
 const MAX_STEPS=20,MAX_RESULT=120000;
 
 const imageSchema=z.object({media_type:z.enum(['image/jpeg','image/png','image/webp','image/gif']),data:z.string().min(1).max(5_000_000)});
@@ -32,7 +34,7 @@ export async function runAssistant({client,model,system,tools,messages,execute,e
  const history=[...messages];let wrote=false;
  for(let step=0;step<MAX_STEPS;step++){
   const stream=client.beta.messages.stream({
-   model,max_tokens:64000,betas:['server-side-fallback-2026-07-01'],fallbacks:'default',output_config:{effort:'medium'},cache_control:{type:'ephemeral'},
+   model,max_tokens:64000,...fallbackParams(model),output_config:{effort:'medium'},cache_control:{type:'ephemeral'},
    system:[{type:'text',text:system,cache_control:{type:'ephemeral'}}],tools,messages:history,
   },{signal});
   stream.on('text',text=>emit({type:'text',text}));

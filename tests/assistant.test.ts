@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assistantRequestSchema, runAssistant, toClaudeMessages, type AssistantEvent } from '../lib/assistant';
+import { assistantModel, assistantRequestSchema, runAssistant, toClaudeMessages, type AssistantEvent } from '../lib/assistant';
 import { mcpInstructions, toolList } from '../lib/mcp-tools';
 
 const reply=(content:any[],stop_reason:string)=>({content,stop_reason}) as any;
@@ -20,6 +20,7 @@ test('runs the tool, sends the result back and reports that something was saved'
  const last=f.calls[1].messages.at(-1);
  assert.equal(last.content[0].tool_use_id,'t1');assert.equal(last.content[0].is_error,false);
  assert.equal(f.calls[0].fallbacks,'default');
+ assert.equal(assistantModel(),'claude-haiku-5-5');
 });
 
 test('a tool failure goes back to Claude instead of breaking the turn',async()=>{
@@ -51,4 +52,10 @@ test('every site tool can be sent to Claude',()=>{
  const names=toolList.map(tool=>tool.name);
  assert.equal(new Set(names).size,names.length);
  for(const tool of toolList){assert.match(tool.name,/^[a-zA-Z0-9_-]{1,64}$/);assert.equal((tool.inputSchema as any).type,'object',tool.name);assert.ok(tool.description.length>0,tool.name);}
+});
+
+test('the cheapest model is called without the fallback it does not support',async()=>{
+ const f=fake([reply([{type:'text',text:'ok'}],'end_turn')]);
+ await runAssistant({client:f.client,model:'claude-haiku-5-5',system:'s',tools:[],messages:[{role:'user',content:'oi'}],execute:async()=>({text:'',isError:false,wrote:false}),emit:()=>{}});
+ assert.equal(f.calls[0].model,'claude-haiku-5-5');assert.equal(f.calls[0].fallbacks,undefined);assert.equal(f.calls[0].betas,undefined);
 });
