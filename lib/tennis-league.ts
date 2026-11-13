@@ -89,10 +89,11 @@ export function standings(league:TennisLeague,season:LeagueSeason):Standing[]{
  for(const id of season.players){const player=byId.get(id);if(player)rows.set(id,{player,played:0,won:0,lost:0,setsWon:0,setsLost:0,points:0,form:[]});}
  for(const m of [...season.matches].sort((a,b)=>(a.date||'').localeCompare(b.date||''))){
   const h=rows.get(m.home),a=rows.get(m.away);if(!h||!a)continue;const homeWon=m.homeSets>m.awaySets;
-  for(const [row,mine,theirs,won] of [[h,m.homeSets,m.awaySets,homeWon],[a,m.awaySets,m.homeSets,!homeWon]] as const){row.played++;row.setsWon+=mine;row.setsLost+=theirs;if(won)row.won++;else row.lost++;row.points+=mine+(won?1:0);row.form.push(won?'V':'D');}
+  for(const [row,mine,theirs,won] of [[h,m.homeSets,m.awaySets,homeWon],[a,m.awaySets,m.homeSets,!homeWon]] as const){row.played++;row.setsWon+=mine;row.setsLost+=theirs;if(won)row.won++;else row.lost++;row.points+=mine;row.form.push(won?'V':'D');}
  }
  const winner=(x:string,y:string)=>{const m=season.matches.find(m=>(m.home===x&&m.away===y)||(m.home===y&&m.away===x));if(!m)return 0;const xWon=(m.home===x)===(m.homeSets>m.awaySets);return xWon?-1:1;};
- return [...rows.entries()].sort(([ia,a],[ib,b])=>b.won-a.won||(b.setsWon-b.setsLost)-(a.setsWon-a.setsLost)||b.setsWon-a.setsWon||winner(ia,ib)||a.player.name.localeCompare(b.player.name)).map(([,r],i)=>({...r,form:r.form.slice(-5),position:i+1}));
+ // League rule: 1 point per set won; the table follows the points, then wins, set difference and head-to-head.
+ return [...rows.entries()].sort(([ia,a],[ib,b])=>b.points-a.points||b.won-a.won||(b.setsWon-b.setsLost)-(a.setsWon-a.setsLost)||b.setsWon-a.setsWon||winner(ia,ib)||a.player.name.localeCompare(b.player.name)).map(([,r],i)=>({...r,form:r.form.slice(-5),position:i+1}));
 }
 
 /** Progress of a season: matches played out of the full round robin, days left, and pairs still to play. */

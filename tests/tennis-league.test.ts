@@ -44,3 +44,9 @@ test('MCP helpers upsert players, create quarterly seasons, add images and resul
  const played=mcpRecordResult(img,{home:'Felipe',away:'Jan',home_sets:2,away_sets:1},'2026-10-05');
  const summary=leagueSummary(played,'2026-10-05','2026-q4');assert.equal(summary.current,'2026-q4');assert.equal(summary.seasons[0].matches[0].partida,'Felipe Fabricio 2-1 Jan Kosiba');assert.equal(summary.seasons[0].status.played,1);
 });
+
+test('league points: 1 per set won, and the table follows the points',()=>{
+ const table=standings(league,q3);
+ for(const row of table)assert.equal(row.points,row.setsWon);
+ for(let i=1;i<table.length;i++)assert.ok(table[i-1].points>=table[i].points);
+});
